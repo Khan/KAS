@@ -15,7 +15,7 @@ grunt.initConfig({
         },
         dist: {
             src: srcFiles,
-            dest: "build/kas.js"
+            dest: "kas.js"
         }
     }
 });

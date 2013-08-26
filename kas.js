@@ -964,7 +964,7 @@ _.extend(Expr.prototype, {
         var equalNumbers = function(num1, num2) {
             return ((num1 === num2) || /* needed if either is +/- Infinity */
                     (isNaN(num1) && isNaN(num2)) ||
-                    (Math.abs(num1 - num2) < Math.pow(1, -TOLERANCE)));
+                    (Math.abs(num1 - num2) < Math.pow(10, -TOLERANCE)));
         };
 
         // if no variables, only need to evaluate once
@@ -1071,7 +1071,11 @@ _.extend(Expr.prototype, {
     // complete parse by performing a few necessary transformations
     completeParse: function() { return this.recurse("completeParse"); },
 
-    abs: abstract
+    abs: abstract,
+
+    negate: function() {
+        return new Mul(Num.Neg, this);
+    }
 });
 
 
@@ -1174,6 +1178,11 @@ _.extend(Seq.prototype, {
     // syntactic sugar for replace()
     remove: function(term) {
         return this.replace(term);
+    },
+
+    getDenominator: function() {
+        // TODO(alex): find and return LCM
+        return new Mul(_.invoke(this.terms, "getDenominator")).flatten();
     }
 });
 
@@ -1289,6 +1298,10 @@ _.extend(Add.prototype, {
     isNegative: function() {
         var terms = _.invoke(this.terms, "collect");
         return _.all(_.invoke(terms, "isNegative"));
+    },
+
+    negate: function() {
+        return new Add(_.invoke(this.terms, "negate"));
     }
 });
 
@@ -1603,10 +1616,6 @@ _.extend(Mul.prototype, {
         });
     },
 
-    getDenominator: function() {
-        return new Mul(_.invoke(this.terms, "getDenominator")).flatten();
-    },
-
     // factor a single -1 in to the Mul
     // combine with a Num if all Nums are positive, else add as a term
     factorIn: function(hint) {
@@ -1675,6 +1684,16 @@ _.extend(Mul.prototype, {
 
     fold: function() {
         return Mul.fold(this);
+    },
+
+    negate: function() {
+        var isNum = function(expr) { return expr instanceof Num; };
+        if (_.any(this.terms, isNum)) {
+            var num = _.find(this.terms, isNum);
+            return this.replace(num, num.negate());
+        } else {
+            return new Mul([Num.Neg].concat(this.terms));
+        }
     }
 });
 
@@ -2083,11 +2102,13 @@ _.extend(Pow.prototype, {
     },
 
     // extract whatever denominator makes sense, ignoring hints
+    // if negative exponent, will recursively include the base's denominator as well
     getDenominator: function() {
         if (this.exp instanceof Num && this.exp.eval() === -1) {
-            return this.base;
+            return Mul.createOrAppend(this.base, this.base.getDenominator()).flatten();
         } else if (this.exp.isNegative()) {
-            return new Pow(this.base, Mul.handleNegative(this.exp).collect());
+            var pow = new Pow(this.base, Mul.handleNegative(this.exp).collect());
+            return Mul.createOrAppend(pow, pow.collect().getDenominator()).flatten();
         } else {
             return Num.One;
         }
@@ -2606,23 +2627,19 @@ _.extend(Eq.prototype, {
         }
 
         if (this.right instanceof Add) {
-            // invidually negate every additive term
-            // e.g. y=x+1 -> y-x-1(=0)
-            terms = terms.concat(_.map(this.right.terms, function(term) {
-                return Mul.handleNegative(term).collect();
-            }));
+            terms = terms.concat(this.right.negate().terms);
         } else if (!isZero(this.right)) {
-            // otherwise just negate the entire side
-            // e.g. y=3x -> y-3x(=0)
-            terms.push(Mul.handleNegative(this.right).collect());
+            terms.push(this.right.negate());
         }
+
+        var isInequality = !this.isEquality();
 
         // then multiply through by every denominator
         for (var i = 0; i < terms.length; i++) {
             var denominator = terms[i].getDenominator();
 
             // can't multiply inequalities by non 100% positive factors
-            if (!this.isEquality() && !denominator.isPositive()) {
+            if (isInequality && !denominator.isPositive()) {
                 denominator = denominator.asPositiveFactor();
             }
 
@@ -2924,7 +2941,7 @@ _.extend(Num.prototype, {
         entered: false
     }),
 
-    // wheter a number is considered simple (one term)
+    // whether a number is considered simple (one term)
     // e.g. for reals, ints and floats are simple
     isSimple: abstract
 });

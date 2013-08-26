@@ -240,7 +240,7 @@ _.extend(Expr.prototype, {
         var equalNumbers = function(num1, num2) {
             return ((num1 === num2) || /* needed if either is +/- Infinity */
                     (isNaN(num1) && isNaN(num2)) ||
-                    (Math.abs(num1 - num2) < Math.pow(1, -TOLERANCE)));
+                    (Math.abs(num1 - num2) < Math.pow(10, -TOLERANCE)));
         };
 
         // if no variables, only need to evaluate once

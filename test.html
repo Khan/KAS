@@ -1234,6 +1234,22 @@
         isSimplified("y=(2x+2)/(x+1)", false);
     });
 
+    var isMisusingX = function(input1, input2, expectedResult) {
+        if (expectedResult === undefined) expectedResult = true;
+        var result = KAS.compare(parse(input1), parse(input2));
+        var misuseMsg = "Use *, not x, for multiplication.";
+        var message = input1 + " or " + input2;
+        message +=  (expectedResult ? " is " : " is NOT ") + "misusing X.";
+        ok(result.message === misuseMsg || !expectedResult, message);
+    }
+
+    test("isMisusingX", function() {
+        isMisusingX("2*3", "2x3");
+        isMisusingX("2x-3", "2*-3");
+        isMisusingX("2*3", "2*3", false);
+        isMisusingX("2*3x", "2*3x", false);
+    });
+
 })(KAS);
 </script>
 

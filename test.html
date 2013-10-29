@@ -387,6 +387,9 @@
         tex("-1/2x", "-\\frac{1}{2}x");
         tex("a-1/2x", "a-\\frac{1}{2}x");
 
+        // TODO(alex): Fix this!
+        // tex("1/(2x)", "\\frac{1}{2x}");
+
         tex("x/2", "\\frac{x}{2}");
         tex("1x/2", "\\frac{1x}{2}");
         tex("-x/2", "-\\frac{x}{2}");
@@ -786,6 +789,8 @@
         // test cases for all functionality
         comp("6.12*10^-2", "6.12*10^-2");
         comp("6.12*10^-2", "6.12*10^-6", false);
+
+        comp("5.6=x+0.4+5.2", "5.6=x+0.4+5.2");
     });
 
     test("simplify can't yet handle these", function() {

@@ -642,23 +642,23 @@ case 7:return "/"
 break;
 case 8:return "-"
 break;
-case 9:return "+"
+case 9:return "-"
 break;
-case 10:return "^"
+case 10:return "+"
 break;
-case 11:return "("
+case 11:return "^"
 break;
-case 12:return ")"
+case 12:return "("
 break;
-case 13:return "_"
+case 13:return ")"
 break;
-case 14:return "|"
+case 14:return "_"
 break;
-case 15:return "!"
+case 15:return "|"
 break;
-case 16:return "SIGN"
+case 16:return "!"
 break;
-case 17:yy_.yytext = "<>"; return "SIGN"
+case 17:return "SIGN"
 break;
 case 18:yy_.yytext = "<>"; return "SIGN"
 break;
@@ -666,50 +666,52 @@ case 19:yy_.yytext = "<>"; return "SIGN"
 break;
 case 20:yy_.yytext = "<>"; return "SIGN"
 break;
-case 21:yy_.yytext = "<="; return "SIGN"
+case 21:yy_.yytext = "<>"; return "SIGN"
 break;
-case 22:yy_.yytext = ">="; return "SIGN"
+case 22:yy_.yytext = "<="; return "SIGN"
 break;
-case 23:return "sqrt"
+case 23:yy_.yytext = ">="; return "SIGN"
 break;
-case 24:return "abs"
+case 24:return "sqrt"
 break;
-case 25:return "ln"
+case 25:return "abs"
 break;
-case 26:return "log"
+case 26:return "ln"
 break;
-case 27:return "TRIG"
+case 27:return "log"
 break;
 case 28:return "TRIG"
 break;
-case 29:return "TRIGINV"
+case 29:return "TRIG"
 break;
 case 30:return "TRIGINV"
 break;
-case 31:return "CONST"
+case 31:return "TRIGINV"
 break;
-case 32:yy_.yytext = "pi"; return "CONST"
+case 32:return "CONST"
 break;
-case 33:return "VAR"
+case 33:yy_.yytext = "pi"; return "CONST"
 break;
-case 34:yy_.yytext = "theta"; return "VAR"
+case 34:return "VAR"
 break;
-case 35:return "VAR"
+case 35:yy_.yytext = "theta"; return "VAR"
 break;
-case 36:yy_.yytext = "phi"; return "VAR"
+case 36:return "VAR"
 break;
-case 37:return yy.symbolLexer(yy_.yytext)
+case 37:yy_.yytext = "phi"; return "VAR"
 break;
-case 38:return "EOF"
+case 38:return yy.symbolLexer(yy_.yytext)
 break;
-case 39:return "INVALID"
+case 39:return "EOF"
 break;
-case 40:console.log(yy_.yytext);
+case 40:return "INVALID"
+break;
+case 41:console.log(yy_.yytext);
 break;
 }
 },
-rules: [/^(?:\s+)/,/^(?:[0-9]+\.?)/,/^(?:([0-9]+)?\.[0-9]+)/,/^(?:\*\*)/,/^(?:\*)/,/^(?:·)/,/^(?:×)/,/^(?:\/)/,/^(?:-)/,/^(?:\+)/,/^(?:\^)/,/^(?:\()/,/^(?:\))/,/^(?:_)/,/^(?:\|)/,/^(?:\!)/,/^(?:<=|>=|<>|<|>|=)/,/^(?:=\/=)/,/^(?:\/=)/,/^(?:\!=)/,/^(?:≠)/,/^(?:≤)/,/^(?:≥)/,/^(?:sqrt)/,/^(?:abs)/,/^(?:ln)/,/^(?:log)/,/^(?:sin|cos|tan)/,/^(?:csc|sec|cot)/,/^(?:arcsin|arccos|arctan)/,/^(?:arccsc|arcsec|arccot)/,/^(?:pi)/,/^(?:π)/,/^(?:theta)/,/^(?:θ)/,/^(?:phi)/,/^(?:φ)/,/^(?:[a-zA-Z])/,/^(?:$)/,/^(?:.)/,/^(?:.)/],
-conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40],"inclusive":true}}
+rules: [/^(?:\s+)/,/^(?:[0-9]+\.?)/,/^(?:([0-9]+)?\.[0-9]+)/,/^(?:\*\*)/,/^(?:\*)/,/^(?:·)/,/^(?:×)/,/^(?:\/)/,/^(?:-)/,/^(?:−)/,/^(?:\+)/,/^(?:\^)/,/^(?:\()/,/^(?:\))/,/^(?:_)/,/^(?:\|)/,/^(?:\!)/,/^(?:<=|>=|<>|<|>|=)/,/^(?:=\/=)/,/^(?:\/=)/,/^(?:\!=)/,/^(?:≠)/,/^(?:≤)/,/^(?:≥)/,/^(?:sqrt)/,/^(?:abs)/,/^(?:ln)/,/^(?:log)/,/^(?:sin|cos|tan)/,/^(?:csc|sec|cot)/,/^(?:arcsin|arccos|arctan)/,/^(?:arccsc|arcsec|arccot)/,/^(?:pi)/,/^(?:π)/,/^(?:theta)/,/^(?:θ)/,/^(?:phi)/,/^(?:φ)/,/^(?:[a-zA-Z])/,/^(?:$)/,/^(?:.)/,/^(?:.)/],
+conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41],"inclusive":true}}
 };
 return lexer;
 })();

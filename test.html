@@ -113,6 +113,7 @@
         print("--3x", "-1*-3*x");
         print("-x*3", "x*-3");
         print("--x*3", "-1*x*-3");
+        print("\u2212x", "-1*x");
     });
 
     test("addition and subtraction", function() {
@@ -129,6 +130,7 @@
         print("x-1", "x+-1");
         print("(x-1)", "x+-1");
         print("a(x-1)", "a*(x+-1)");
+        print("a\u2212b", "a+-1*b");
     });
 
     test("multiplication", function() {

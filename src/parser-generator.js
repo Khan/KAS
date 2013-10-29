@@ -1,4 +1,4 @@
-// run `node parser-generator.js` to get parser.js
+#!/usr/bin/env node
 
 var fs = require("fs");
 var path = require("path");
@@ -16,6 +16,7 @@ var grammar = {
             ["\u00d7",              "return \"*\""],    // times
             ["\\/",                 "return \"/\""],
             ["-",                   "return \"-\""],
+            ["\u2212",              "return \"-\""],    // minus
             ["\\+",                 "return \"+\""],
             ["\\^",                 "return \"^\""],
             ["\\(",                 "return \"(\""],

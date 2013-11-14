@@ -201,10 +201,13 @@ _.extend(Expr.prototype, {
         return _.any(this.exprArgs(), function(arg) { return arg.has(func); });
     },
     
+    // check whether this expression's arguments are the same as another's
     sameAs: abstract,
     
+    // return a new object with the same properties
     copy: abstract,
     
+    // check whether the expression contains the element
     contains: function(elem) {
         if (this.sameAs(elem)) return true;
         return _.any(this.exprArgs(), function(arg) {return arg.contains(elem); });
@@ -485,7 +488,7 @@ _.extend(Seq.prototype, {
     
     sameAs: function(other) {
         var used = []
-        return other.is(Mul) && this.terms.length === other.terms.length &&
+        return other.is(this.func) && this.terms.length === other.terms.length &&
                        _.every(this.terms, function(a) {
                            return _.any(other.terms, function(b, index) {
                                if (a.sameAs(b) && !_.contains(used, index)) {
@@ -869,7 +872,7 @@ _.extend(Mul.prototype, {
         }
         
         if (number.eval() === -1) {
-            number = Num.negativeOne();
+            number = Num.Neg;
         }
 
         var others = partitioned[1].flatten();
@@ -1529,7 +1532,7 @@ _.extend(Pow.prototype, {
     },
     
     sameAs: function(other) {
-        return other.is(Pow) && this.base === other.base && this.exp === other.exp
+        return other.is(Pow) && this.base.sameAs(other.base) && this.exp.sameAs(other.exp);
     },
     
     copy: function() {
@@ -1749,7 +1752,7 @@ _.extend(Log.prototype, {
     },
     
     sameAs: function(other) {
-        return other.is(Log) && this.base === other.base && this.power === other.power;
+        return other.is(Log) && this.base.sameAs(other.base) && this.power.sameAs(other.power);
     },
     
     copy: function(other) {
@@ -1923,17 +1926,17 @@ _.extend(Trig.prototype, {
         baseDerivative = this.arg.differentiate(variable, options)
         switch(this.type) {
             case "sin": return new Mul([baseDerivative, new Trig("cos", this.arg)]);
-            case "cos": return new Mul([baseDerivative, Num.negativeOne(), new Trig("sin", this.arg)]);
+            case "cos": return new Mul([baseDerivative, Num.Neg, new Trig("sin", this.arg)]);
             case "tan": return new Mul([baseDerivative, new Pow(new Trig("sec", this.arg), Num.Two)]);
-            case "csc": return new Mul([baseDerivative, Num.negativeOne(), new Trig("csc", this.arg), new Trig("cot", this.arg)]);
+            case "csc": return new Mul([baseDerivative, Num.Neg, new Trig("csc", this.arg), new Trig("cot", this.arg)]);
             case "sec": return new Mul([baseDerivative, new Trig("sec", this.arg), new Trig("tan", this.arg)]);
-            case "cot": return new Mul([baseDerivative, Num.negativeOne(), new Pow(new Trig("csc", this.arg), Num.Two)]);
+            case "cot": return new Mul([baseDerivative, Num.Neg, new Pow(new Trig("csc", this.arg), Num.Two)]);
             default: throw Error("The derivative of the Trig function '" + this.type + "' is not supported yet.");
         }
     },
     
     sameAs: function(other) {
-        return other.is(Trig) && this.type === other.type && this.arg === other.arg;
+        return other.is(Trig) && this.type === other.type && this.arg.sameAs(other.arg);
     },
 
     expand: function(options) {
@@ -2062,6 +2065,10 @@ _.extend(Abs.prototype, {
         } else {
             return abs;
         }
+    },
+    
+    sameAs: function(other) {
+    	return other.is(Abs) && this.arg.sameAs(other.arg);
     },
 
     isPositive: function() { return true; }
@@ -2294,6 +2301,10 @@ _.extend(Func.prototype, {
     tex: function() {
         return this.symbol + "(" + this.arg.tex() + ")";
     },
+    
+    sameAs: function(other) {
+    	return other.is(Func) && this.symbol === other.symbol && this.arg.sameAs(other.arg);
+    },
 
     getVars: function(excludeFunc) {
         if (excludeFunc) {
@@ -2414,7 +2425,7 @@ Const.pi = new Const("pi");
 
 
 /* abstract number node */
-function Num() ;
+function Num() {};
 Num.prototype = new Expr();
 
 _.extend(Num.prototype, {

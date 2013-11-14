@@ -40,7 +40,7 @@ KAS.compare = function(expr1, expr2, options) {
     }
 
     // syntactic check
-    if (options.simplify && !expr1.isSimplified()) {
+    if (options.simplify && !expr1.isSimplified(options)) {
         return {equal: false, message: "Your answer is not fully expanded and simplified."};
     }
 

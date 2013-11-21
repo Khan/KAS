@@ -19,6 +19,21 @@ KAS.compare = function(expr1, expr2, options) {
         options = defaults;
     }
 
+    var xUsedAsMultOp = function() {
+        var vars = expr1.getVars() + expr2.getVars();
+        if (!_.contains(vars.toLowerCase(),"x"))
+            return false;
+        var replace = function(expr) {
+            var replacedStr = expr.print().replace(/.x./gi,"*");
+            return KAS.parse(replacedStr, options);
+        };
+        var testPairs = [[replace(expr1),expr2], [replace(expr2),expr1]];
+        return _.some(testPairs, function(pair) {
+            var x =  pair[0].parsed && pair[0].expr.compare(pair[1]);
+            return pair[0].parsed && pair[0].expr.compare(pair[1]);
+        });
+    };
+
     // variable check
     var vars = expr1.sameVars(expr2);
     if (!vars.equal) {
@@ -26,12 +41,19 @@ KAS.compare = function(expr1, expr2, options) {
         if (vars.equalIgnoringCase) {
             message = "Some of your variables are in the wrong case (upper vs. lower).";
         }
+        else if (xUsedAsMultOp()) {
+            message = "Use *, not x, for multiplication.";
+        }
         return {equal: false, message: message};
     }
 
     // semantic check
     if (!expr1.compare(expr2)) {
-        return {equal: false, message: null};
+        message = null;
+        if (xUsedAsMultOp()) {
+            message = "Use *, not x, for multiplication.";
+        }
+        return {equal: false, message: message};
     }
 
     // syntactic check

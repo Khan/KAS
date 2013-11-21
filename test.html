@@ -716,6 +716,7 @@
         comp("2+2", "4");
         comp("a(b+c)", "ab+ac");
         comp("a/b", "a*b^-1");
+        comp("1.2^2", "1.44");
         comp("(1-x)(-1-6x)", "(6x+1)(x-1)");
         comp("y=x", "x", false);
         comp("x", "y=x", false);
@@ -793,6 +794,15 @@
         comp("6.12*10^-2", "6.12*10^-6", false);
 
         comp("5.6=x+0.4+5.2", "5.6=x+0.4+5.2");
+
+        // Handle denominators the same way regardless of a fraction's format
+        comp("x=1.2^2", "x=1.44");
+        comp("x=1.2^2", "x=36/25");
+        comp("x=1.44", "x=36/25");
+
+        comp("x=1.2^(2y)", "x=1.44^y");
+        comp("x=1.2^(2y)", "x=(36/25)^y");
+        comp("x=1.44^y", "x=(36/25)^y");
     });
 
     test("simplify can't yet handle these", function() {

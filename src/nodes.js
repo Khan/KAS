@@ -1929,6 +1929,10 @@ _.extend(Eq.prototype, {
 
         var isInequality = !this.isEquality();
 
+        // collect over each term individually to transform simple
+        // expressions into numbers that might have denominators
+        terms = _.invoke(terms, "collect");
+
         // then multiply through by every denominator
         for (var i = 0; i < terms.length; i++) {
             var denominator = terms[i].getDenominator();

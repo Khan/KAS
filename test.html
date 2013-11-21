@@ -875,8 +875,18 @@
 
     QUnit.module("transforming");
 
-    var factor = function(input, reference) {
-        var actual = parse(input).factor().normalize().repr();
+    var factor = function(input, reference, options) {
+    	defaults = {
+            expandAbs: false,
+            expandLogs: false,
+            expandPow: {
+                baseMul: true,
+            	baseAdd: true,
+            	expAdd: false
+            },
+        };
+        options = _.extend(defaults, options);
+        var actual = parse(input).factor(options).normalize().repr();
         var expected = parse(reference).normalize().repr();
         var message = input + " factors as " + reference;
         strictEqual(actual, expected, message);
@@ -901,8 +911,18 @@
         factor("x^y+x^z", "x^y+x^z");
     });
 
-    var expand = function(input, reference) {
-        var actual = parse(input).expand().normalize().print();
+    var expand = function(input, reference, options) {
+    	defaults = {
+            expandAbs: false,
+            expandLogs: false,
+            expandPow: {
+                baseMul: true,
+            	baseAdd: true,
+            	expAdd: false
+            },
+        };
+        options = _.extend(defaults, options);
+        var actual = parse(input).expand(options).normalize().print();
         var expected = parse(reference).normalize().print();
         var message = input + " expands as " + reference;
         strictEqual(actual, expected, message);
@@ -950,36 +970,41 @@
 
     test("expand exponentiation", function() {
         expand("(ab)^2", "a^2 b^2");
+        expand("(ab)^2", "(ab)^2", {expandPow:{baseMul: false}});
         expand("2*(ab)^2", "2 a^2 b^2");
+        expand("(a+b)^2", "(a+b)^2", {expandPow:{baseAdd: false}});
         expand("(a+b)^2", "a^2+2ab+b^2");
 
         expand("(ab)^-2", "a^-2 b^-2");
         expand("2*(ab)^-2", "2 a^-2 b^-2");
+        expand("(a+b)^-2", "(a+b)^-2", {expandPow:{baseAdd: false}});
         expand("(a+b)^-2", "(a^2+2ab+b^2)^-1");
     });
 
     test("expand absolute value", function() {
         expand("|a+b|", "|a+b|");
-        expand("|ab|", "|a|*|b|");
+        expand("|ab|", "|ab|");
+        expand("|ab|", "|a|*|b|", {expandAbs: true});
     });
 
     test("expand logarithms", function() {
-        expand("ln(xy)", "lnx+lny");
-        expand("log_b(x)", "lnx/lnb");
-        expand("log_b(xy)", "lnx/lnb+lny/lnb");
-        expand("ln(xy/z)", "lnx+lny-lnz");
+        expand("ln(xy)", "ln(xy)");
+        expand("ln(xy)", "lnx+lny", {expandLog: true});
+        expand("log_b(x)", "lnx/lnb", {expandLog: true});
+        expand("log_b(xy)", "lnx/lnb+lny/lnb", {expandLog: true});
+        expand("ln(xy/z)", "lnx+lny-lnz", {expandLog: true});
 
-        expand("ln(x^y)", "ylnx");
-        expand("log_b(x^y)", "ylnx/lnb");
-        expand("ln(x^y^z)", "y^zlnx");
+        expand("ln(x^y)", "ylnx", {expandLog: true});
+        expand("log_b(x^y)", "ylnx/lnb", {expandLog: true});
+        expand("ln(x^y^z)", "y^zlnx", {expandLog: true});
 
-        expand("ln(x^y/z)", "ylnx-lnz");
+        expand("ln(x^y/z)", "ylnx-lnz", {expandLog: true});
 
         // ln((xy)^z) -> ln(x^z*y^z) -> z*ln(x)+z*ln(y)
-        expand("ln((xy)^z)", "zlnx+zlny");
+        expand("ln((xy)^z)", "zlnx+zlny", {expandLog: true});
 
-        expand("log_b(x)log_x(y)", "ln(x)/ln(b)*ln(y)/ln(x)");
-        expand("log_b(x)log_x(y)log_y(z)", "ln(x)/ln(b)*ln(y)/ln(x)*ln(z)/ln(y)");
+        expand("log_b(x)log_x(y)", "ln(x)/ln(b)*ln(y)/ln(x)", {expandLog: true});
+        expand("log_b(x)log_x(y)log_y(z)", "ln(x)/ln(b)*ln(y)/ln(x)*ln(z)/ln(y)", {expandLog: true});
     });
 
     test("expand trig functions", function() {
@@ -1090,8 +1115,8 @@
         collect("sin^--2(x)/cos^--2(x)", "tan^2(x)");
         collect("cos^--2(x)/sin^--2(x)", "cot^2(x)");
 
-        collect("sin^2(x)/cos(x)", "sin^2(x)/cos(x)");
-        collect("sin(x)/cos^2(x)", "sin(x)/cos^2(x)");
+        collect("sin^2(x)/cos(x)", "sin(x)tan(x)");
+        collect("sin(x)/cos^2(x)", "sec(x)tan(x)");
 
         collect("sin(-x)", "-sin(x)");
         collect("cos(-x)", "cos(x)");
@@ -1110,9 +1135,9 @@
     test("collect then output tex", function() {
         // user-friendly tex representation is not guaranteed after collect()
         collect("-x", "-1x");
-        collecttex("-x", "-1x");
+        collecttex("-x", "-x");
         collect("a-b", "a+-1b");
-        collecttex("a-b", "a+-1b");
+        collecttex("a-b", "a+-b");
         collect("a/b", "ab^-1");
         collecttex("a/b", "ab^{-1}");
     });
@@ -1145,10 +1170,10 @@
         simplify("1/(xya)+1/(xyb)", "(1/a+1/b) 1/x 1/y");
     });
 
-    var isSimplified = function(input, expectedResult, options) {
+    var isSimplified = function(input, expectedResult, options, simplifyOptions) {
         if (expectedResult === undefined) expectedResult = true;
         var message = input + (expectedResult ? " is " : " is NOT ") + "simplified";
-        ok(parse(input, options).isSimplified() === expectedResult, message);
+        ok(parse(input, options).isSimplified(simplifyOptions) === expectedResult, message);
     }
 
     test("isSimplified (addition/subtraction)", function() {
@@ -1185,7 +1210,8 @@
     test("isSimplified (logarithms)", function() {
         isSimplified("ln(x)");
         isSimplified("ln(x+y)");
-        isSimplified("ln(x/y)", false);
+        isSimplified("ln(x/y)", true);
+        isSimplified("ln(x/y)", false, {},{expandLog: true});
     });
 
     test("isSimplified (equations)", function() {
@@ -1249,6 +1275,110 @@
         isSimplified("y=(x+1)/(x+2)", false);
         isSimplified("y=(x+1)/(2x+2)", false);
         isSimplified("y=(2x+2)/(x+1)", false);
+    });
+    
+    var differentiate = function(input, expected, variable, options) {
+        var message = "The derivative of " + input + 
+                        " with respect to " + variable + 
+                            " is " + expected;
+        output = parse(input).differentiate(variable, options).simplify(options).tex();
+        strictEqual(output, expected, message);
+    };
+    
+    test("differentiation", function() {
+        differentiate("0", "0", "x");
+        differentiate("5", "0", "x");
+        differentiate("3x", "3", "x");
+        differentiate("x^2", "2x", "x");
+        differentiate("e^x", "e^{x}", "x");
+        differentiate("7+5+4", "0", "x");
+        differentiate("7+5+4x", "4", "x");
+        differentiate("(7)(5)", "0", "x");
+        differentiate("7+5x+x^2+e^x", "5+2x+e^{x}", "x");
+        differentiate("(x)(e^x)", "e^{x}+xe^{x}", "x");
+        differentiate("(x)/(e^x)", "e^{-x}(1+-x)", "x"); // =e^{-x}(1-x)
+        differentiate("(5^5)", "0", "x");
+        // It wouldn't be bad if the below simplified to 8(2x+3)^{3} instead 
+        differentiate("(2x+3)^4", "8(3+2x)^{3}", "x", {expandPow: {baseAdd: false}});
+        differentiate("(3^x)", "\\ln(3) \\cdot 3^{x}", "x");
+        differentiate("ln(x)", "x^{-1}", "x");
+        differentiate("ln(3x)", "x^{-1}", "x");
+        differentiate("sin(x)", "\\cos(x)", "x");
+        differentiate("cos(x)", "-\\sin(x)", "x");
+        differentiate("tan(x)", "\\sec^{2}(x)", "x");
+        differentiate("sec(x)", "\\sec(x)\\tan(x)", "x");
+        differentiate("csc(x)", "-\\csc(x)\\cot(x)", "x");
+        differentiate("cot(x)", "-\\csc^{2}(x)", "x");
+        differentiate("y", "0", "x");
+        differentiate("sin(xy)", "y\\cos(xy)", "x");
+        differentiate("sin(xy)", "x\\cos(xy)", "y");
+        differentiate("4x^3y^5(e^(xy))", "20x^{3}y^{4}e^{xy}+4x^{4}y^{5}e^{xy}", "y");
+    });
+    
+    var sameAs = function(input, other, expected) {
+    	not = expected ? "" : " NOT";
+    	var message = "The input " + input + " is" + not + " the same as " + other;
+        output = parse(input).sameAs(parse(other));
+        strictEqual(output, expected, message);
+    }
+    
+    test("sameAs", function() {
+    	sameAs("2", "2", true);					// Int
+    	sameAs("2.5", "2.5", true);				// Float
+    	sameAs("2/5", "2/5", true);				// Rational
+    	sameAs("e", "e", true);					// Const
+    	sameAs("x", "x", true);					// Var
+    	sameAs("f(x)", "f(x)", true);			// Func
+    	sameAs("sin(x)", "sin(x)", true);		// Trig
+    	sameAs("|x|", "|x|", true);				// Abs
+//    	sameAs("", "", true);					// Eq
+    	sameAs("ln(x)", "ln(x)", true);			// Log
+    	sameAs("ln(x+4)", "ln(x+4)", true);		// Log w/ multiple terms
+    	sameAs("x^(3)", "x^(3)", true);			// Pow
+    	sameAs("x^(3y+5)", "x^(3y+5)", true);	// Pow w/ multiple terms
+    	sameAs("2+x+x^(2)", "x+2+x^(2)", true);	// Add (form changed)
+    	sameAs("2xyz", "zx2y", true);			// Mul (form changed)
+  
+    	sameAs("2", "3", false);				// Int  	
+    	sameAs("2.5", "3.5", false);			// Float
+    	sameAs("2/5", "3/5", false);			// Rational
+    	sameAs("e", "pi", false);				// Const
+    	sameAs("x", "y", false);				// Var
+    	sameAs("f(x)", "f(y)", false);			// Func, different arg
+    	sameAs("f(x)", "g(x)", false);			// Func, different symbol
+    	sameAs("sin(x)", "cos(x)", false);		// Trig, different type
+    	sameAs("sin(x)", "sin(y)", false);		// Trig, different arg
+    	sameAs("|x|", "|y|", false);			// Abs
+//    	sameAs("", "", false);					// Eq
+    	sameAs("ln(x)", "ln(y)", false);		// Log
+    	sameAs("ln(x+4)", "ln(x+y+4)", false);	// Log w/ multiple terms
+    	sameAs("x^(3)", "x^(4)", false);		// Pow
+    	sameAs("x^(3y+5)", "x^(4y+5)", false);	// Pow w/ multiple terms
+    	sameAs("2+x+x^(2)", "2+x+x^(3)", false);// Add
+    	sameAs("2xyz", "zx2yz", false);			// Mul
+    });
+    
+    
+    var contains = function(input, elem, expected) {
+    	not = expected ? "" : " NOT";
+        var message = "The input " + input + " does" + not + " contain " + elem;
+        output = parse(input).contains(parse(elem));
+        strictEqual(output, expected, message);
+    };
+    
+    test("contains", function() {
+    	contains("x+y+z", "y", true);	// Add
+    	contains("xyz", "y", true);		// Mul
+    	contains("x^(y+z)", "y", true);	// Pow
+    	contains("sin(x)", "x", true);	// Trig
+    	contains("ln(x)", "x", true);	// Log
+    	contains("|x|", "x", true);		// Abs
+//    	contains("y=x", "x", true);		// Eq
+    	contains("f(x)", "x", true);	// Func
+    	
+    	contains("3", "3/5", false);	// numerator & denominator don't count (?)
+    	contains("y", "z", false);		// can be false (b/c _.any() is false)
+    	
     });
 
 })(KAS);

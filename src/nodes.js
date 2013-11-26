@@ -642,22 +642,22 @@ _.extend(Mul.prototype, {
         var negatives = "";
         var numerator;
 
+        numbers = _.compact(_.map(numbers, function(term) {
+            if (((term instanceof Rational) && !(term instanceof Int) && !term.hints.fraction)) {
+                // e.g. 3x/4 -> 3/4*x (internally) -> 3x/4 (rendered)
+                inverses.push(new Pow(new Int(term.d), Num.Div));
+                var number = new Int(term.n);
+                number.hints = term.hints;
+                return _.any(term.hints) ? number : null;
+            } else {
+                return term;
+            }
+        }));
+
         if (numbers.length === 0 && others.length === 1) {
             // e.g. (x+y)/z -> \frac{x+y}{z}
             numerator = others[0].tex();
         } else {
-            numbers = _.compact(_.map(numbers, function(term) {
-                if (((term instanceof Rational) && !(term instanceof Int) && !term.hints.fraction)) {
-                    // e.g. 3x/4 -> 3/4*x (internally) -> 3x/4 (rendered)
-                    inverses.push(new Pow(new Int(term.d), Num.Div));
-                    var number = new Int(term.n);
-                    number.hints = term.hints;
-                    return _.any(term.hints) ? number : null;
-                } else {
-                    return term;
-                }
-            }));
-
             var tex = "";
 
             _.each(numbers, function(term) {

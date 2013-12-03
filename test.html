@@ -121,7 +121,7 @@
         print("a-b", "a+-1*b");
         print("a--b", "a+-1*-1*b");
         print("a---b", "a+-1*-1*-1*b");
-        print("2-4", "2+-4"); 
+        print("2-4", "2+-4");
         print("2--4", "2+-1*-4");
         print("2---4", "2+-1*-1*-4");
         print("2-x*4", "2+x*-4");
@@ -804,6 +804,13 @@
         comp("x=1.2^(2y)", "x=1.44^y");
         comp("x=1.2^(2y)", "x=(36/25)^y");
         comp("x=1.44^y", "x=(36/25)^y");
+
+        comp("csc x", "1/sin x");
+        comp("sec x", "1/cos x");
+        comp("cot x", "1/tan x");
+        comp("arccsc x", "arcsin (1/x)");
+        comp("arcsec x", "arccos (1/x)");
+        comp("arccot x", "arctan (1/x)");
     });
 
     test("simplify can't yet handle these", function() {
@@ -998,7 +1005,7 @@
         var message = input + " collects as " + reference;
         strictEqual(actual, expected, message);
     };
-    
+
     var collectrepr = function(input, expected) {
         var actual = parse(input).collect().repr();
         var message = input + " collects as " + expected;

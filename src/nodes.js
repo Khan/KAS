@@ -140,10 +140,10 @@ _.extend(Expr.prototype, {
     expand: function() { return this.recurse("expand"); },
 
     // naively factors out like terms
-    factor: function() { return this.recurse("factor"); },
+    factor: function(options) { return this.recurse("factor", options); },
 
     // collect all like terms
-    collect: function() { return this.recurse("collect"); },
+    collect: function(options) { return this.recurse("collect", options); },
 
     // strict syntactic equality check
     equals: function(other) {
@@ -151,9 +151,13 @@ _.extend(Expr.prototype, {
     },
 
     // expand and collect until the expression no longer changes
-    simplify: function() {
+    simplify: function(options) {
+        options = _.extend({
+            once: false
+        }, options);
+
         var simplified = this.factor().collect().expand().collect();
-        if (this.equals(simplified)) {
+        if (options.once || this.equals(simplified)) {
             return simplified;
         } else {
             return simplified.simplify();
@@ -385,8 +389,8 @@ _.extend(Seq.prototype, {
         return this.recurse("expand").flatten();
     },
 
-    factor: function() {
-        return this.recurse("factor").flatten();
+    factor: function(options) {
+        return this.recurse("factor", options).flatten();
     },
 
     // partition the sequence into its numeric and non-numeric parts
@@ -513,8 +517,8 @@ _.extend(Add.prototype, {
         return tex;
     },
 
-    collect: function() {
-        var terms = _.invoke(this.terms, "collect");
+    collect: function(options) {
+        var terms = _.invoke(this.terms, "collect", options);
 
         // [Expr expr, Num coefficient]
         var pairs = [];
@@ -522,7 +526,7 @@ _.extend(Add.prototype, {
         _.each(terms, function(term) {
             if (term instanceof Mul) {
                 var muls = term.partition();
-                pairs.push([muls[1].flatten(), muls[0].reduce()]);
+                pairs.push([muls[1].flatten(), muls[0].reduce(options)]);
             } else if (term instanceof Num) {
                 pairs.push([Num.One, term]);
             } else {
@@ -538,8 +542,8 @@ _.extend(Add.prototype, {
         var collected = _.compact(_.map(grouped, function(pairs) {
             var expr = pairs[0][0];
             var sum = new Add(_.zip.apply(_, pairs)[1]);
-            var coefficient = sum.reduce();
-            return new Mul(coefficient, expr).collect();
+            var coefficient = sum.reduce(options);
+            return new Mul(coefficient, expr).collect(options);
         }));
 
         // TODO(alex): use the Pythagorean identity here
@@ -549,8 +553,12 @@ _.extend(Add.prototype, {
     },
 
     // naively factor out anything that is common to all terms
-    // if keepNegative is specified, won't factor out a common -1
-    factor: function(keepNegative) {
+    // if options.keepNegative is specified, won't factor out a common -1
+    factor: function(options) {
+        options = _.extend({
+            keepNegative: false
+        }, options);
+
         var terms = _.invoke(this.terms, "collect");
         var factors;
 
@@ -566,7 +574,7 @@ _.extend(Add.prototype, {
             });
         });
 
-        if (!keepNegative && this.isNegative()) {
+        if (!options.keepNegative && this.isNegative()) {
             factors.push(Num.Neg);
         }
 
@@ -580,8 +588,10 @@ _.extend(Add.prototype, {
         return Mul.createOrAppend(factors, remainder).flatten();
     },
 
-    reduce: function() {
-        return _.reduce(this.terms, function(memo, term) { return memo.add(term); }, this.identity);
+    reduce: function(options) {
+        return _.reduce(this.terms, function(memo, term) {
+            return memo.add(term, options);
+        }, this.identity);
     },
 
     needsExplicitMul: function() { return false; },
@@ -766,9 +776,9 @@ _.extend(Mul.prototype, {
         return new Mul(normals.concat(inverses)).flatten();
     },
 
-    collect: function() {
-        var partitioned = this.recurse("collect").partition();
-        var number = partitioned[0].reduce();
+    collect: function(options) {
+        var partitioned = this.recurse("collect", options).partition();
+        var number = partitioned[0].reduce(options);
 
         // e.g. 0*x -> 0
         if (number.eval() === 0) {
@@ -805,7 +815,7 @@ _.extend(Mul.prototype, {
         var summed = _.compact(_.map(grouped, function(pairs) {
             var base = pairs[0][0];
             var sum = new Add(_.zip.apply(_, pairs)[1]);
-            var exp = sum.collect();
+            var exp = sum.collect(options);
 
             if (exp instanceof Num && exp.eval() === 0) {
                 return null;
@@ -845,7 +855,7 @@ _.extend(Mul.prototype, {
                     funcs[pair[0].type] = pair[1];
                 });
 
-                if (Mul.handleNegative(funcs.sin).collect().equals(funcs.cos)) {
+                if (Mul.handleNegative(funcs.sin).collect(options).equals(funcs.cos)) {
                     // e.g. sin^x(y)/cos^x(y) -> tan^x(y)
                     if (funcs.cos.isNegative()) {
                         funcs = {tan: funcs.sin};
@@ -879,7 +889,7 @@ _.extend(Mul.prototype, {
                 // e.g. ln(x)/ln(z)*ln(y) -> log_z(x)*ln(y)
                 // e.g. ln(x)*ln(y)/ln(z) -> ln(x)*log_z(y)
                 if (pairs.length === 2 &&
-                    Mul.handleNegative(pairs[0][1]).collect().equals(pairs[1][1])) {
+                    Mul.handleNegative(pairs[0][1]).collect(options).equals(pairs[1][1])) {
                     // e.g. ln(x)^y/ln(b)^y -> log_b(x)^y
                     if (pairs[0][1].isNegative()) {
                         logs.push([new Log(pairs[0][0].power, pairs[1][0].power), pairs[1][1]]);
@@ -897,7 +907,7 @@ _.extend(Mul.prototype, {
         pairs = trigs.concat(logs).concat(exprs);
 
         var collected = _.map(pairs, function(pair) {
-            return new Pow(pair[0], pair[1]).collect();
+            return new Pow(pair[0], pair[1]).collect(options);
         });
 
         return new Mul([number].concat(collected)).flatten();
@@ -950,8 +960,10 @@ _.extend(Mul.prototype, {
         }
     },
 
-    reduce: function() {
-        return _.reduce(this.terms, function(memo, term) { return memo.mul(term); }, this.identity);
+    reduce: function(options) {
+        return _.reduce(this.terms, function(memo, term) {
+            return memo.mul(term, options);
+        }, this.identity);
     },
 
     findGCD: function(factor) {
@@ -1310,7 +1322,7 @@ _.extend(Pow.prototype, {
         }
     },
 
-    collect: function() {
+    collect: function(options) {
 
         if (this.base instanceof Pow) {
             // collect this first to avoid having to deal with float precision
@@ -1318,10 +1330,10 @@ _.extend(Pow.prototype, {
             // e.g. (x^y)^z -> x^(yz)
             var base = this.base.base;
             var exp = Mul.createOrAppend(this.base.exp, this.exp);
-            return new Pow(base, exp).collect();
+            return new Pow(base, exp).collect(options);
         }
 
-        var pow = this.recurse("collect");
+        var pow = this.recurse("collect", options);
 
         var isSimilarLog = function(term) {
             return term instanceof Log && term.base.equals(pow.base);
@@ -1351,13 +1363,13 @@ _.extend(Pow.prototype, {
             var log = _.find(pow.exp.terms, isSimilarLog);
             var base = log.power;
             var exp = pow.exp.remove(log).flatten();
-            return new Pow(base, exp).collect();
+            return new Pow(base, exp).collect(options);
 
         } else if (pow.base instanceof Num &&
             pow.exp instanceof Num) {
 
             // e.g. 4^1.5 -> 8
-            return pow.base.raiseToThe(pow.exp);
+            return pow.base.raiseToThe(pow.exp, options);
         } else {
             return pow;
         }
@@ -1404,6 +1416,8 @@ _.extend(Pow.prototype, {
         } else if (this.exp.isNegative()) {
             var pow = new Pow(this.base, Mul.handleNegative(this.exp).collect());
             return Mul.createOrAppend(pow, pow.collect().getDenominator()).flatten();
+        } else if (this.base instanceof Num) {
+            return new Pow(this.base.getDenominator(), this.exp).collect();
         } else {
             return Num.One;
         }
@@ -1516,8 +1530,8 @@ _.extend(Log.prototype, {
         }
     },
 
-    collect: function() {
-        var log = this.recurse("collect");
+    collect: function(options) {
+        var log = this.recurse("collect", options);
 
         if (log.power instanceof Num && log.power.eval() === 1) {
 
@@ -1738,14 +1752,14 @@ _.extend(Trig.prototype, {
         }
     },
 
-    collect: function() {
-        var trig = this.recurse("collect");
+    collect: function(options) {
+        var trig = this.recurse("collect", options);
         if (!trig.isInverse() && trig.arg.isNegative()) {
             var arg;
             if (trig.arg instanceof Num) {
                 arg = trig.arg.abs();
             } else {
-                arg = Mul.handleDivide(trig.arg, Num.Neg).collect();
+                arg = Mul.handleDivide(trig.arg, Num.Neg).collect(options);
             }
 
             if (trig.isEven()) {
@@ -1808,8 +1822,8 @@ _.extend(Abs.prototype, {
         return "\\left|" + this.arg.tex() + "\\right|";
     },
 
-    collect: function() {
-        var abs = this.recurse("collect");
+    collect: function(options) {
+        var abs = this.recurse("collect", options);
 
         if (abs.arg.isPositive()) {
             // e.g. |2^x| -> 2^x
@@ -1929,22 +1943,23 @@ _.extend(Eq.prototype, {
 
         var isInequality = !this.isEquality();
 
-        // collect over each term individually to transform simple
-        // expressions into numbers that might have denominators
-        terms = _.invoke(terms, "collect");
+        // Collect over each term individually to transform simple expressions
+        // into numbers that might have denominators, taking into account
+        // float precision...
+        terms = _.invoke(terms, "collect", {preciseFloats: true});
 
-        // then multiply through by every denominator
+        // ...then multiply through by every denominator.
         for (var i = 0; i < terms.length; i++) {
             var denominator = terms[i].getDenominator();
 
-            // can't multiply inequalities by non 100% positive factors
+            // Can't multiply inequalities by non 100% positive factors
             if (isInequality && !denominator.isPositive()) {
                 denominator = denominator.asPositiveFactor();
             }
 
             if (!denominator.equals(Num.One)) {
                 terms = _.map(terms, function(term) {
-                    return Mul.createOrAppend(term, denominator).collect();
+                    return Mul.createOrAppend(term, denominator).simplify({once: true});
                 });
             }
         }
@@ -1957,7 +1972,10 @@ _.extend(Eq.prototype, {
     // e.g. 2y-4x(=0) -> y-2x(=0)
     divideThrough: function(expr) {
         var isInequality = !this.isEquality();
-        var factored = expr.factor(/* keepNegative */ isInequality);
+
+        var factored = expr.simplify({once: true})
+                           .factor({keepNegative: isInequality});
+
         if (!(factored instanceof Mul)) {
             return expr;
         }
@@ -2248,7 +2266,23 @@ _.extend(Num.prototype, {
 
     // whether a number is considered simple (one term)
     // e.g. for reals, ints and floats are simple
-    isSimple: abstract
+    isSimple: abstract,
+
+    // Based on http://stackoverflow.com/a/10454560/2571482
+    getDecimalPlaces: function() {
+        var match = ("" + this.n).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+        if (match) {
+            return Math.max(
+                0,
+                // Number of digits right of decimal point
+                (match[1] ? match[1].length : 0) -
+                // Adjust for scientific notation
+                (match[2] ? +match[2] : 0)
+            );
+        } else {
+            return 0;
+        }
+    }
 });
 
 
@@ -2276,19 +2310,19 @@ _.extend(Rational.prototype, {
         return this.n < 0 ? "-" + tex : tex;
     },
 
-    add: function(num) {
+    add: function(num, options) {
         if (num instanceof Rational) {
             return new Rational(this.n * num.d + this.d * num.n, this.d * num.d).collect();
         } else {
-            return num.add(this);
+            return num.add(this, options);
         }
     },
 
-    mul: function(num) {
+    mul: function(num, options) {
         if (num instanceof Rational) {
             return new Rational(this.n * num.n, this.d * num.d).collect();
         } else {
-            return num.mul(this);
+            return num.mul(this, options);
         }
     },
 
@@ -2370,12 +2404,26 @@ _.extend(Float.prototype, {
     print: function() { return this.n.toString(); },
     tex: function() { return this.n.toString(); },
 
-    add: function(num) {
-        return new Float(this.n + num.eval()).collect();
+    add: function(num, options) {
+        if (options && options.preciseFloats) {
+            return Float.toDecimalPlaces(
+                this.n + num.eval(),
+                Math.max(this.getDecimalPlaces(), num.getDecimalPlaces())
+            );    
+        } else {
+            return new Float(this.n + num.eval()).collect();
+        }
     },
 
-    mul: function(num) {
-        return new Float(this.n * num.eval()).collect();
+    mul: function(num, options) {
+        if (options && options.preciseFloats) {
+            return Float.toDecimalPlaces(
+                this.n * num.eval(),
+                this.getDecimalPlaces() + num.getDecimalPlaces()
+            );    
+        } else {
+            return new Float(this.n * num.eval()).collect();
+        }
     },
 
     collect: function() {
@@ -2391,8 +2439,16 @@ _.extend(Float.prototype, {
     abs: function() { return new Float(Math.abs(this.n)); },
 
     // for now, assuming that exp is a Num
-    raiseToThe: function(exp) {
-        return new Float(Math.pow(this.n, exp.eval())).collect();
+    raiseToThe: function(exp, options) {
+        if (options && options.preciseFloats &&
+                exp instanceof Int && exp.n > 1) {
+            return Float.toDecimalPlaces(
+                Math.pow(this.n, exp.n),
+                this.getDecimalPlaces() * exp.n
+            );
+        } else {
+            return new Float(Math.pow(this.n, exp.eval())).collect();
+        }
     },
 
     // only to be used on non-repeating decimals (e.g. user-provided)
@@ -2411,7 +2467,13 @@ _.extend(Float.prototype, {
 });
 
 _.extend(Float, {
-    create: function(n) { return new Float(n).addHint("entered"); }
+    create: function(n) { return new Float(n).addHint("entered"); },
+
+    // Account for floating point imprecision by explicitly controlling the
+    // number of decimal places in common operations (e.g. +, *, ^)
+    toDecimalPlaces: function(n, places) {
+        return new Float(+n.toFixed(Math.min(places, 20))).collect();
+    }
 });
 
 // static methods and fields that are best defined on Num

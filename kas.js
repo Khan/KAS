@@ -1009,7 +1009,7 @@ _.extend(Expr.prototype, {
                 var result2 = expr2.partialEval(vars);
 
                 equal = result1.simplify().equals(result2.simplify());
-            } else {            
+            } else {
                 var result1 = expr1.eval(vars);
                 var result2 = expr2.eval(vars);
 
@@ -1067,7 +1067,7 @@ _.extend(Expr.prototype, {
     isNegative: function() { return false; },
 
     // return a factor of this expression that is 100% positive
-    asPositiveFactor: function() { 
+    asPositiveFactor: function() {
         return this.isPositive() ? this : Num.One;
     },
 
@@ -1081,7 +1081,7 @@ _.extend(Expr.prototype, {
         expr.hints = _.clone(this.hints);
         expr.hints[hint] = true;
         return expr;
-    }, 
+    },
 
     hints: {
         parens: false
@@ -1377,22 +1377,22 @@ _.extend(Mul.prototype, {
         var negatives = "";
         var numerator;
 
+        numbers = _.compact(_.map(numbers, function(term) {
+            if (((term instanceof Rational) && !(term instanceof Int) && !term.hints.fraction)) {
+                // e.g. 3x/4 -> 3/4*x (internally) -> 3x/4 (rendered)
+                inverses.push(new Pow(new Int(term.d), Num.Div));
+                var number = new Int(term.n);
+                number.hints = term.hints;
+                return _.any(term.hints) ? number : null;
+            } else {
+                return term;
+            }
+        }));
+
         if (numbers.length === 0 && others.length === 1) {
             // e.g. (x+y)/z -> \frac{x+y}{z}
             numerator = others[0].tex();
         } else {
-            numbers = _.compact(_.map(numbers, function(term) {
-                if (((term instanceof Rational) && !(term instanceof Int) && !term.hints.fraction)) {
-                    // e.g. 3x/4 -> 3/4*x (internally) -> 3x/4 (rendered)
-                    inverses.push(new Pow(new Int(term.d), Num.Div));
-                    var number = new Int(term.n);
-                    number.hints = term.hints;
-                    return _.any(term.hints) ? number : null;
-                } else {
-                    return term;
-                }
-            }));
-
             var tex = "";
 
             _.each(numbers, function(term) {
@@ -1903,7 +1903,7 @@ _.extend(Mul, {
 
                 // e.g. -x*2 -> x*-2
                 if (firstNeg < firstNum) {
-                    return expr.replace(firstNum, 
+                    return expr.replace(firstNum,
                                         expr.terms[firstNum].negate())
                                .remove(firstNeg);
                 }
@@ -1966,7 +1966,7 @@ _.extend(Pow.prototype, {
             } else if (this.base instanceof Trig || this.base instanceof Log) {
                 // e.g. ln(x) ^ 2 -> [ln(x)]^2
                 base = "[" + base + "]";
-            } 
+            }
             return base + "^{" + this.exp.tex() + "}";
         }
     },
@@ -2054,7 +2054,7 @@ _.extend(Pow.prototype, {
             var base = this.base.base;
             var exp = Mul.createOrAppend(this.base.exp, this.exp);
             return new Pow(base, exp).collect();
-        } 
+        }
 
         var pow = this.recurse("collect");
 
@@ -2361,21 +2361,21 @@ _.extend(Trig.prototype, {
             }
         },
         csc: {
-            eval: function(arg) { 1 / Math.sin(arg); },
+            eval: function(arg) { return 1 / Math.sin(arg); },
             tex: "\\csc",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.sin(this.arg));
             }
         },
         sec: {
-            eval: function(arg) { 1 / Math.cos(arg); },
+            eval: function(arg) { return 1 / Math.cos(arg); },
             tex: "\\sec",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.cos(this.arg));
             }
         },
         cot: {
-            eval: function(arg) { 1 / Math.tan(arg); },
+            eval: function(arg) { return 1 / Math.tan(arg); },
             tex: "\\cot",
             expand: function() {
                 return Mul.handleDivide(Trig.cos(this.arg), Trig.sin(this.arg));
@@ -2394,15 +2394,15 @@ _.extend(Trig.prototype, {
             tex: "\\arctan"
         },
         arccsc: {
-            eval: function(arg) { Math.asin(1 / arg); },
+            eval: function(arg) { return Math.asin(1 / arg); },
             tex: "\\operatorname{arccsc}"
         },
         arcsec: {
-            eval: function(arg) { Math.acos(1 / arg); },
+            eval: function(arg) { return Math.acos(1 / arg); },
             tex: "\\operatorname{arcsec}"
         },
         arccot: {
-            eval: function(arg) { Math.atan(1 / arg); },
+            eval: function(arg) { return Math.atan(1 / arg); },
             tex: "\\operatorname{arccot}"
         }
     },
@@ -2606,7 +2606,7 @@ Eq.prototype = new Expr();
 _.extend(Eq.prototype, {
     func: Eq,
     args: function() { return [this.left, this.type, this.right]; },
-    
+
     needsExplicitMul: function() { return false; },
 
     print: function() {
@@ -2619,7 +2619,7 @@ _.extend(Eq.prototype, {
         ">": " > ",
         "<>": " \\ne ",
         "<=": " \\le ",
-        ">=": " \\ge "        
+        ">=": " \\ge "
     },
 
     tex: function() {
@@ -2761,7 +2761,7 @@ _.extend(Eq.prototype, {
 
         if (eq1.isEquality()) {
             // equals and not-equals can be subtracted either way
-            return expr1.compare(expr2) || 
+            return expr1.compare(expr2) ||
                    expr1.compare(Mul.handleNegative(expr2));
         } else {
             return expr1.compare(expr2);
@@ -3259,7 +3259,6 @@ KAS.parse = function(input, options) {
 };
 
 })(KAS);
- 
 ;(function(KAS) {
 
 // assumes that both expressions have already been parsed

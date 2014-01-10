@@ -1387,9 +1387,6 @@ _.extend(Mul.prototype, {
         var negatives = "";
         var numerator;
 
-        var hasDenom;
-        var shouldPushDown;
-
         // check all the numbers to see if there is a rational we can extract,
         // since we would like 1/2x/y to come out as \frac{1}{2}\frac{x}{y},
         // and not \frac{1x}{2y}.
@@ -1405,8 +1402,8 @@ _.extend(Mul.prototype, {
         }
 
         numbers = _.compact(_.map(numbers, function(term) {
-            hasDenom = (term instanceof Rational) && !(term instanceof Int);
-            shouldPushDown = !term.hints.fraction || inverses.length > 0;
+            var hasDenom = (term instanceof Rational) && !(term instanceof Int);
+            var shouldPushDown = !term.hints.fraction || inverses.length > 0;
             if (hasDenom && shouldPushDown) {
                 // e.g. 3x/4 -> 3/4*x (internally) -> 3x/4 (rendered)
                 inverses.push(new Pow(new Int(term.d), Num.Div));

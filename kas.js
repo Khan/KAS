@@ -1387,8 +1387,27 @@ _.extend(Mul.prototype, {
         var negatives = "";
         var numerator;
 
+        var hasDenom;
+        var shouldPushDown;
+
+        // check all the numbers to see if there is a rational we can extract,
+        // since we would like 1/2x/y to come out as \frac{1}{2}\frac{x}{y},
+        // and not \frac{1x}{2y}.
+        for (var i = 0; i < numbers.length; i++) {
+            var isRational = numbers[i] instanceof Rational &&
+                                !(numbers[i] instanceof Int);
+            if (isRational && others.length > 0 && inverses.length > 0) {
+                var withThisRemoved = numbers.slice();
+                withThisRemoved.splice(i);
+                var newTerms = withThisRemoved.concat(inverses).concat(others);
+                return numbers[i].tex() + new Mul(newTerms).tex();
+            }
+        }
+
         numbers = _.compact(_.map(numbers, function(term) {
-            if (((term instanceof Rational) && !(term instanceof Int) && !term.hints.fraction)) {
+            hasDenom = (term instanceof Rational) && !(term instanceof Int);
+            shouldPushDown = !term.hints.fraction || inverses.length > 0;
+            if (hasDenom && shouldPushDown) {
                 // e.g. 3x/4 -> 3/4*x (internally) -> 3x/4 (rendered)
                 inverses.push(new Pow(new Int(term.d), Num.Div));
                 var number = new Int(term.n);
@@ -1788,8 +1807,7 @@ _.extend(Mul, {
 
         // for simplification purposes, fold Ints into Rationals if possible
         // e.g. 3x / 4 -> 3/4 * x (will still render as 3x/4)
-        if (isInt(right) && left instanceof Mul &&
-            !isInt(_.last(left.terms)) && _.any(_.initial(left.terms), isInt)) {
+        if (isInt(right) && left instanceof Mul && _.any(left.terms, isInt)) {
 
             var num = _.find(left.terms, isInt);
 

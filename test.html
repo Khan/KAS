@@ -381,17 +381,18 @@
         tex("(z+2)/4", "\\frac{z+2}{4}");
     });
 
-    test("rational expressons", function() {
+    test("rational expressions", function() {
         tex("x+1/2", "x+\\frac{1}{2}");
         tex("x-1/2", "x-\\frac{1}{2}");
 
         tex("1/2x", "\\frac{1}{2}x");
-        tex("1/2x/y", "\\frac{\\frac{1}{2}x}{y}");
+        tex("1/2x/y", "\\frac{1}{2}\\frac{x}{y}");
+        tex("5*1/2x/y", "\\frac{5}{2}\\frac{x}{y}");
         tex("-1/2x", "-\\frac{1}{2}x");
         tex("a-1/2x", "a-\\frac{1}{2}x");
 
-        // TODO(alex): Fix this!
-        // tex("1/(2x)", "\\frac{1}{2x}");
+        tex("1/(2x)", "\\frac{1}{2x}");
+        tex("8/(7p^4)", "\\frac{8}{7p^{4}}");
 
         tex("x/2", "\\frac{x}{2}");
         tex("1x/2", "\\frac{1x}{2}");
@@ -400,8 +401,8 @@
 
         tex("1*-2", "1 \\cdot -2");
         tex("1*-2*3", "1 \\cdot -2 \\cdot 3");
-        tex("1*-2*3/4", "1 \\cdot -2 \\cdot \\frac{3}{4}");
-        tex("1*-2*3/4/5", "\\frac{1 \\cdot -2 \\cdot \\frac{3}{4}}{5}");
+        tex("1*-2*3/4", "\\frac{1 \\cdot -2 \\cdot 3}{4}");
+        tex("1*-2*3/4/5", "\\frac{1 \\cdot -2 \\cdot 3}{4 \\cdot 5}");
     });
 
     test("exponentiation", function() {
@@ -478,11 +479,11 @@
         tex("2/x", "\\frac{2}{x}");
         tex("1/x^2", "\\frac{1}{x^{2}}");
         tex("2/x^2", "\\frac{2}{x^{2}}");
-        tex("1/1/x", "\\frac{\\frac{1}{1}}{x}");
+        tex("1/1/x", "\\frac{1}{x}");
         tex("1/(1/x)", "\\frac{1}{\\frac{1}{x}}");
         tex("1/x/x", "\\frac{1}{xx}");
         tex("1/(x/x)", "\\frac{1}{\\frac{x}{x}}");
-        tex("-1/1/x", "\\frac{-\\frac{1}{1}}{x}");
+        tex("-1/1/x", "\\frac{-1}{x}");
         tex("-1/(1/x)", "\\frac{-1}{\\frac{1}{x}}");
         tex("-1/x/x", "\\frac{-1}{xx}");
         tex("-1/(x/x)", "\\frac{-1}{\\frac{x}{x}}");

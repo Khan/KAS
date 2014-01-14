@@ -69,6 +69,16 @@
         print("-theta", "-1*theta");
     });
 
+    test("LaTeX constants", function() {
+        print("\\theta", "theta");
+        print("\\pi", "pi");
+        print("\\phi", "phi");
+    });
+
+    test("ignore \\space", function() {
+        print("a\\space b", "a*b");
+    });
+
     test("positive and negative rationals", function() {
         print("1/2", "1/2");
         print("-1/2", "-1/2");
@@ -77,6 +87,26 @@
         print("42/42", "42/42");
         print("42/1", "42/1");
         print("0/42", "0/42");
+
+        print("2 (1/2)", "2*1/2");
+        print("1/2 1/2", "1/2*1/2");
+        print("-1/2", "-1/2");
+        print("1/2 2", "1/2*2");
+    });
+
+    test("rationals using \\frac", function() {
+        print("\\frac{1}{2}", "1/2");
+        print("\\frac{-1}{2}", "-1/2");
+        print("\\frac{1}{-2}", "-1/2");
+        print("\\frac{-1}{-2}", "-1*-1/2");
+        print("\\frac{42}{42}", "42/42");
+        print("\\frac{42}{1}", "42/1");
+        print("\\frac{0}{42}", "0/42");
+
+        print("2\\frac{1}{2}", "2*1/2");
+        print("\\frac{1}{2}\\frac{1}{2}", "1/2*1/2");
+        print("-\\frac{1}{2}", "-1/2");
+        print("\\frac{1}{2}2", "1/2*2");
     });
 
     test("parens", function() {
@@ -100,6 +130,7 @@
         print("a_n", "a_(n)");
         print("a_n+1", "a_(n)+1");
         print("a_(n+1)", "a_(n+1)");
+        print("a_{n+1}", "a_(n+1)");
     });
 
     test("negation", function() {
@@ -142,6 +173,8 @@
         print("-(ab)", "-1*a*b");
         print("a\u00b7b", "a*b");
         print("a\u00d7b", "a*b");
+        print("a\\cdotb", "a*b");
+        print("a\\timesb", "a*b");
     })
 
     test("division", function() {
@@ -167,6 +200,9 @@
         print("x^-yz", "x^(-1*y)*z");
         print("x^-y^z", "x^(-1*y^(z))");
         print("x**y", "x^(y)");
+
+        print("x^{a}", "x^(a)");
+        print("x^{ab}", "x^(a*b)");
     });
 
     test("square root", function() {
@@ -177,6 +213,14 @@
 
         print("sqrt(2)/2", "2^(1/2)*1/2");
         print("sqrt(2)^2", "(2^(1/2))^(2)");
+
+        print("\\sqrt(x)", "x^(1/2)");
+        print("\\sqrt(x)y", "x^(1/2)*y");
+        print("1/\\sqrt(x)", "x^(-1/2)");
+        print("1/\\sqrt(x)y", "x^(-1/2)*y");
+
+        print("\\sqrt(2)/2", "2^(1/2)*1/2");
+        print("\\sqrt(2)^2", "(2^(1/2))^(2)");
     });
 
     test("absolute value", function() {
@@ -189,6 +233,14 @@
         // TODO(alex): fix the below so it doesn't require an *
         // may require own lexer/preprocessor
         print("|x|*|y|", "abs(x)*abs(y)");
+
+        print("\\abs(x)", "abs(x)");
+        print("\\abs(\\abs(x))", "abs(abs(x))");
+        print("\\abs(x)\\abs(y)", "abs(x)*abs(y)");
+
+        print("\\left|x\\right|", "abs(x)");
+        print("\\left|\\left|x\\right|\\right|", "abs(abs(x))");
+        print("\\left|x\\right|\\left|y\\right|", "abs(x)*abs(y)");
     });
 
     test("logarithms", function() {
@@ -218,6 +270,24 @@
         print("ln ln x", "ln(ln(x))");
         print("ln x ln y", "ln(x)*ln(y)");
         print("ln x/ln y", "ln(x)*ln(y)^(-1)");
+
+        print("\\lnx", "ln(x)");
+        print("\\ln x", "ln(x)");
+        print("\\ln x^y", "ln(x^(y))");
+        print("\\ln xy", "ln(x*y)");
+        print("\\ln x/y", "ln(x*y^(-1))");
+        print("\\ln x+y", "ln(x)+y");
+        print("\\ln x-y", "ln(x)+-1*y");
+
+        print("\\logx", "log_(10) (x)");
+        print("\\log x", "log_(10) (x)");
+        print("\\log_2x", "log_(2) (x)");
+        print("\\log _ 2 x", "log_(2) (x)");
+        print("\\log_bx_0", "log_(b) (x_(0))");
+        print("\\log_x_0b", "log_(x_(0)) (b)");
+
+        print("\\log_2.5x", "log_(2.5) (x)");
+
     });
 
     test("trig functions", function() {
@@ -232,9 +302,11 @@
 
         _.each(functions.concat(inverses), function(func) {
             print(func + "x", func + "(x)");
+            print("\\" + func + "x", func + "(x)");
         });
 
         print("sin^-1 x", "arcsin(x)");
+        print("\\sin^-1 x", "arcsin(x)");
 
         print("(sinx)^2", "sin(x)^(2)");
         print("sin^2x", "sin(x)^(2)");
@@ -257,6 +329,7 @@
         print("1/(sin^2x)", "sin(x)^(-2)");
 
         print("sin(theta)", "sin(theta)");
+        print("\\sin(\\theta)", "sin(theta)");
     });
 
     test("formulas", function() {
@@ -284,12 +357,15 @@
         print("y=x^2", "y=x^(2)");
         print("1<2", "1<2");
         print("1<=2", "1<=2");
+        print("1\\le2", "1<=2");
         print("2>1", "2>1");
         print("2>=1", "2>=1");
+        print("2\\ge1", "2>=1");
         print("1<>2", "1<>2");
         print("1=/=2", "1<>2");
         print("1/=2", "1<>2");
         print("1!=2", "1<>2");
+        print("1\\ne2", "1<>2");
         print("a\u2260b", "a<>b");
         print("a\u2264b", "a<=b");
         print("a\u2265b", "a>=b");
@@ -301,6 +377,12 @@
         print("f(x+y)", "f(x+y)", {functions: ["f"]});
         print("f(x)g(x)", "f(x)*g(x)", {functions: ["f", "g"]});
         print("f(g(h(x)))", "f(g(h(x)))", {functions: ["f", "g", "h"]});
+
+        print("f\\left(x\\right)", "f*x");
+        print("f\\left(x\\right)", "f(x)", {functions: ["f"]});
+        print("f\\left(x+y\\right)", "f(x+y)", {functions: ["f"]});
+        print("f\\left(x\\right)g\\left(x\\right)", "f(x)*g(x)", {functions: ["f", "g"]});
+        print("f\\left(g\\left(h\\left(x\\right)\\right)\\right)", "f(g(h(x)))", {functions: ["f", "g", "h"]});
     });
 
     var repr = function(input, expected, options) {

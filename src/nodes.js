@@ -660,7 +660,7 @@ _.extend(Mul.prototype, {
                                 !(numbers[i] instanceof Int);
             if (isRational && others.length > 0 && inverses.length > 0) {
                 var withThisRemoved = numbers.slice();
-                withThisRemoved.splice(i);
+                withThisRemoved.splice(i, 1);
                 var newTerms = withThisRemoved.concat(inverses).concat(others);
                 return numbers[i].tex() + new Mul(newTerms).tex();
             }
@@ -1066,20 +1066,34 @@ _.extend(Mul, {
         }
 
         var isInt = function(expr) { return expr instanceof Int; };
+        var isRational = function(expr) { return expr instanceof Rational; };
 
         // for simplification purposes, fold Ints into Rationals if possible
         // e.g. 3x / 4 -> 3/4 * x (will still render as 3x/4)
         if (isInt(right) && left instanceof Mul && _.any(left.terms, isInt)) {
 
-            var num = _.find(left.terms, isInt);
+            // search from the right
+            var reversed = left.terms.slice().reverse()
+            var num = _.find(reversed, isRational);
 
+            if (!isInt(num)) {
+                return new Mul(left.terms.concat([new Rational(1, right.n).addHint("fraction")]));
+            }
+
+            var rational = new Rational(num.n, right.n);
+            rational.hints = num.hints;
+
+            // in the case of something like 1/3 * 6/8, we want the
+            // 6/8 to be considered a fraction, not just a division
+            if (num === reversed[0]) {
+                rational = rational.addHint("fraction");
+            }
+
+            var result;
             if (num.n < 0 && right.n < 0) {
-                var rational = new Rational(num.n, -right.n);
-                rational.hints = num.hints;
+                rational.d = -rational.d;
                 return left.replace(num, [Num.Neg, rational]);
             } else {
-                var rational = new Rational(num.n, right.n);
-                rational.hints = num.hints;
                 return left.replace(num, rational);
             }
         }

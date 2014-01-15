@@ -17,10 +17,17 @@ grunt.initConfig({
             src: srcFiles,
             dest: "kas.js"
         }
+    },
+    execute: {
+        parser: {
+            src: ['src/parser-generator.js']
+        }
     }
 });
 
 grunt.loadNpmTasks("grunt-contrib-concat");
+grunt.loadNpmTasks('grunt-execute');
 grunt.registerTask("default", ["concat"]);
+grunt.registerTask("parser", ["execute:parser"]);
 
 };

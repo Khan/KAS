@@ -7,3 +7,10 @@ How To Build
 ------------
     npm install
     grunt
+
+To Build Parser
+---------------
+First, make any changes in `src/parser-generator.js`
+
+    npm install
+    grunt parser

@@ -22,6 +22,30 @@
 
     (abstract, not meant to be instantiated)
 
+    == Hints ==
+
+    Some nodes require extra information to be able to disambiguate between
+    certain cases during the parsing stage. These are:
+
+    implicit:
+        Means the value was not explicitly entered.
+        It distinguishes `-x*3` vs `-1*x*3`, since the former is considered
+        simplified while the latter is not.
+
+    parens:
+        Means that the argument to this function was surrounded by parens,
+        since there are situations where they are optional.
+        Examples:
+            sinx vs sin(x)
+             lnx vs ln(x)
+             x^3 vs x^(3)
+
+    open:
+        Whether the function should accept new arguments to the right of it.
+        For example, `sinx*x` should be interpreted as `sin(x*x)`, so the sin
+        is open, but `sinx*(x)` should be parsed as `sin(x)*(x)`, so the sin is
+        closed.
+
     == Key design concepts ==
     Functional: All methods return new nodes - nodes are never mutated.
     Ignore commutativity: Commutative inputs should be parsed equivalently.
@@ -81,37 +105,6 @@ _.extend(Expr.prototype, {
     // should be valid as input
     // e.g. this.equals(parse(this.print())) === true
     print: abstract,
-
-    // returns a TeX string representing the expression
-    tex: abstract,
-
-    // returns a TeX string, modified by the given options
-    asTex: function(options) {
-
-        options = options || {};
-        _.defaults(options, {
-            display: true,
-            dynamic: true,
-            times: false
-        });
-
-        var tex = this.tex();
-
-        if (options.display) {
-            tex = "\\displaystyle " + tex;
-        }
-        if (options.dynamic) {
-            tex = tex.replace(/\(/g, "\\left(");
-            tex = tex.replace(/\)/g, "\\right)");
-            tex = tex.replace(/\[/g, "\\left[");
-            tex = tex.replace(/\]/g, "\\right]");
-        }
-        if (options.times) {
-            tex = tex.replace(/\\cdot/g, "\\times");
-        }
-
-        return tex;
-    },
 
     // returns the name of this expression's constructor as a string
     // only used for testing and debugging (the ugly regex is for IE8)
@@ -198,17 +191,6 @@ _.extend(Expr.prototype, {
     // most useful for eventually implementing i^3 = -i, etc.
     raiseToThe: function(exp) {
         return new Pow(this, exp);
-    },
-
-    // does this expression have a specific rendering hint?
-    // rendering hints are picked up while parsing, but are lost during transformations
-    isSubtract: function() { return false; },
-    isDivide:  function() { return false; },
-    isRoot:  function() { return false; },
-
-    // whether this node needs an explicit multiplication sign if following a Num
-    needsExplicitMul: function() {
-        return this.args()[0].needsExplicitMul();
     },
 
     // check that the variables in both expressions are the same
@@ -365,7 +347,7 @@ _.extend(Expr.prototype, {
     abs: abstract,
 
     negate: function() {
-        return new Mul(Num.Neg, this);
+        return new Mul(Num.ImplicitNeg, this);
     }
 });
 
@@ -503,20 +485,6 @@ _.extend(Add.prototype, {
         return _.invoke(this.terms, "print").join("+");
     },
 
-    tex: function() {
-        var tex = "";
-
-        _.each(this.terms, function(term) {
-            if (!tex || term.isSubtract()) {
-                tex += term.tex();
-            } else {
-                tex += "+" + term.tex();
-            }
-        });
-
-        return tex;
-    },
-
     collect: function(options) {
         var terms = _.invoke(this.terms, "collect", options);
 
@@ -575,7 +543,7 @@ _.extend(Add.prototype, {
         });
 
         if (!options.keepNegative && this.isNegative()) {
-            factors.push(Num.Neg);
+            factors.push(Num.ImplicitNeg);
         }
 
         factors = new Mul(factors).flatten().collect();
@@ -593,8 +561,6 @@ _.extend(Add.prototype, {
             return memo.add(term, options);
         }, this.identity);
     },
-
-    needsExplicitMul: function() { return false; },
 
     isNegative: function() {
         var terms = _.invoke(this.terms, "collect");
@@ -628,101 +594,6 @@ _.extend(Mul.prototype, {
         return _.map(this.terms, function(term) {
             return (term instanceof Add) ? "(" + term.print() + ")" : term.print();
         }).join("*");
-    },
-
-    // since we don't care about commutativity, we can render a Mul any way we choose
-    // so we follow convention: first any negatives, then any numbers, then everything else
-    tex: function() {
-        var cdot = " \\cdot ";
-
-        var terms = _.groupBy(this.terms, function(term) {
-            if (term.isDivide()) {
-                return "inverse";
-            } else if (term instanceof Num) {
-                return "number";
-            } else {
-                return "other";
-            }
-        });
-
-        var inverses = terms.inverse || [];
-        var numbers = terms.number || [];
-        var others = terms.other || [];
-
-        var negatives = "";
-        var numerator;
-
-        // check all the numbers to see if there is a rational we can extract,
-        // since we would like 1/2x/y to come out as \frac{1}{2}\frac{x}{y},
-        // and not \frac{1x}{2y}.
-        for (var i = 0; i < numbers.length; i++) {
-            var isRational = numbers[i] instanceof Rational &&
-                                !(numbers[i] instanceof Int);
-            if (isRational && others.length > 0 && inverses.length > 0) {
-                var withThisRemoved = numbers.slice();
-                withThisRemoved.splice(i);
-                var newTerms = withThisRemoved.concat(inverses).concat(others);
-                return numbers[i].tex() + new Mul(newTerms).tex();
-            }
-        }
-
-        numbers = _.compact(_.map(numbers, function(term) {
-            var hasDenom = (term instanceof Rational) && !(term instanceof Int);
-            var shouldPushDown = !term.hints.fraction || inverses.length > 0;
-            if (hasDenom && shouldPushDown) {
-                // e.g. 3x/4 -> 3/4*x (internally) -> 3x/4 (rendered)
-                inverses.push(new Pow(new Int(term.d), Num.Div));
-                var number = new Int(term.n);
-                number.hints = term.hints;
-                return _.any(term.hints) ? number : null;
-            } else {
-                return term;
-            }
-        }));
-
-        if (numbers.length === 0 && others.length === 1) {
-            // e.g. (x+y)/z -> \frac{x+y}{z}
-            numerator = others[0].tex();
-        } else {
-            var tex = "";
-
-            _.each(numbers, function(term) {
-                if (term.hints.subtract && term.hints.entered) {
-                    negatives += "-";
-                    tex += (tex ? cdot : "") + term.abs().tex();
-                } else if ((term instanceof Int) && (term.n === -1) &&
-                    (term.hints.negate || term.hints.subtract)) {
-                    // e.g. -1*-1 -> --1
-                    // e.g. -1*x -> -x
-                    negatives += "-";
-                } else {
-                    // e.g. 2*3 -> 2(dot)3
-                    tex += (tex ? cdot : "") + term.tex();
-                }
-            });
-
-            _.each(others, function(term) {
-                if (term.needsExplicitMul()) {
-                    // e.g. 2*2^3 -> 2(dot)2^3
-                    tex += (tex ? cdot : "") + term.tex();
-                } else if (term instanceof Add) {
-                    // e.g. (a+b)*c -> (a+b)c
-                    tex += "(" + term.tex() + ")";
-                } else {
-                    // e.g. a*b*c -> abc
-                    tex += term.tex();
-                }
-            });
-
-            numerator = tex ? tex : "1";
-        }
-
-        if (!inverses.length) {
-            return negatives + numerator;
-        } else {
-            var denominator = new Mul(_.invoke(inverses, "asDivide")).flatten().tex();
-            return negatives + "\\frac{" + numerator + "}{" + denominator + "}";
-        }
     },
 
     strip: function() {
@@ -786,7 +657,7 @@ _.extend(Mul.prototype, {
 
         if (hasInverseAdd) {
             var denominator = new Mul(_.invoke(inverses, "getDenominator")).flatten();
-            inverses = [new Pow(denominator.expand(), Num.Div)];
+            inverses = [new Pow(denominator.expand(), Num.ImplicitNeg)];
         }
 
         return new Mul(normals.concat(inverses)).flatten();
@@ -929,15 +800,9 @@ _.extend(Mul.prototype, {
         return new Mul([number].concat(collected)).flatten();
     },
 
-    isSubtract: function() {
-        return _.any(this.terms, function(term) {
-            return term instanceof Num && term.hints.subtract;
-        });
-    },
-
     // factor a single -1 in to the Mul
     // combine with a Num if all Nums are positive, else add as a term
-    factorIn: function(hint) {
+    factorIn: function() {
         var partitioned = this.partition();
         var numbers = partitioned[0].terms;
         var fold = numbers.length && _.all(numbers, function(num) {
@@ -946,33 +811,11 @@ _.extend(Mul.prototype, {
 
         if (fold) {
             // e.g. - x*2*3 -> x*-2*3
-            var num = numbers[0].negate();
-            num.hints = numbers[0].hints;
-            return this.replace(numbers[0], num.addHint(hint));
+            return this.replace(numbers[0], numbers[0].negate());
         } else {
             // e.g. - x*y -> -1*x*y
             // e.g. - x*-2 -> -1*x*-2
-            return new Mul([Num.negativeOne(hint)].concat(this.terms));
-        }
-    },
-
-    // factor out a single hinted -1 (assume it is the division hint)
-    // TODO(alex): make more general or rename to be more specific
-    factorOut: function() {
-        var factored = false;
-        var terms = _.compact(_.map(this.terms, function(term, i, list) {
-            if (!factored && term instanceof Num && term.hints.divide) {
-                factored = true;
-                return term.n !== -1 ? term.negate() : null;
-            } else {
-                return term;
-            }
-        }));
-
-        if (terms.length === 1) {
-            return terms[0];
-        } else {
-            return new Mul(terms);
+            return new Mul([Num.ImplicitNeg].concat(this.terms));
         }
     },
 
@@ -1013,7 +856,7 @@ _.extend(Mul.prototype, {
             var num = _.find(this.terms, isNum);
             return this.replace(num, num.negate());
         } else {
-            return new Mul([Num.Neg].concat(this.terms));
+            return new Mul([Num.ImplicitNeg].concat(this.terms));
         }
     }
 });
@@ -1035,23 +878,18 @@ _.each([Add, Mul], function(type) {
 _.extend(Mul, {
     // negative signs should be folded into numbers whenever possible
     // never fold into a Num that's already negative or a Mul that has a negative Num
-    // an optional hint is kept track of to properly render user input
-    // an empty hint means negation
-    handleNegative: function(expr, hint) {
+    handleNegative: function(expr) {
         if (expr instanceof Num && expr.n > 0) {
             // e.g. - 2 -> -2
-            var negated = expr.negate();
-            // TODO(alex): rework hint system so that this isn't necessary
-            negated.hints = expr.hints;
-            return negated.addHint(hint);
+            return expr.negate();
         } else if (expr instanceof Mul) {
             // e.g. - x*2*3 -> x*-2*3
             // e.g. - x*y -> -1*x*y
             // e.g. - x*-2 -> -1*x*-2
-            return expr.factorIn(hint);
+            return expr.factorIn();
         } else {
             // e.g. - x -> -1*x
-            return new Mul(Num.negativeOne(hint), expr);
+            return new Mul(Num.ImplicitNeg, expr);
         }
     },
 
@@ -1075,11 +913,9 @@ _.extend(Mul, {
 
             if (num.n < 0 && right.n < 0) {
                 var rational = new Rational(num.n, -right.n);
-                rational.hints = num.hints;
-                return left.replace(num, [Num.Neg, rational]);
+                return left.replace(num, [Num.ImplicitNeg, rational]);
             } else {
                 var rational = new Rational(num.n, right.n);
-                rational.hints = num.hints;
                 return left.replace(num, rational);
             }
         }
@@ -1089,12 +925,12 @@ _.extend(Mul, {
                 if (a instanceof Int) {
                     if (a.n < 0 && b.n < 0) {
                         // e.g. -2 / -3 -> -1*-2/3
-                        return [Num.Neg, new Rational(a.n, -b.n).addHint("fraction")];
+                        return [Num.ImplicitNeg, new Rational(a.n, -b.n)];
                     } else {
                         // e.g. 2 / 3 -> 2/3
                         // e.g. -2 / 3 -> -2/3
                         // e.g. 2 / -3 -> -2/3
-                        return [new Rational(a.n, b.n).addHint("fraction")];
+                        return [new Rational(a.n, b.n)];
                     }
                 } else {
                     // e.g. x / 3 -> x*1/3
@@ -1114,10 +950,10 @@ _.extend(Mul, {
                     // e.g. (x^2) ^ -1 -> x^-2
                     // e.g. (x^y) ^ -1 -> x^(-1*y)
                     // e.g. (x^(yz)) ^ -1 -> x^(-1*y*z)
-                    pow = new Pow(b.base, Mul.handleNegative(b.exp, "divide"));
+                    pow = new Pow(b.base, Mul.handleNegative(b.exp));
                 } else {
                     // e.g. x ^ -1 -> x^-1
-                    pow = new Pow(b, Num.Div);
+                    pow = new Pow(b, Num.ImplicitNeg);
                 }
 
                 if (a instanceof Int && a.n === 1) {
@@ -1182,7 +1018,7 @@ _.extend(Mul, {
             var numbers = partitioned[0].terms;
 
             var pos = function(num) { return num.n > 0; };
-            var neg = function(num) { return num.n === -1 && num.hints.negate; };
+            var neg = function(num) { return num.n === -1 && num.hints.implicit; };
             var posOrNeg = function(num) { return pos(num) || neg(num); };
 
             if (numbers.length > 1 &&
@@ -1228,45 +1064,6 @@ _.extend(Pow.prototype, {
         return base + "^(" + this.exp.print() + ")";
     },
 
-    tex: function() {
-        if (this.isDivide()) {
-
-            // e.g. x ^ -1 w/hint -> 1/x
-            return "\\frac{1}{" + this.asDivide().tex() + "}";
-
-        } else if (this.isRoot()) {
-
-            // e.g. x ^ 1/2 w/hint -> sqrt(x)
-            return "\\sqrt{" + this.base.tex() + "}";
-
-        } else if (this.base instanceof Trig && !this.base.isInverse() &&
-            this.exp instanceof Num && this.exp.isSimple() &&
-            this.exp.eval() >= 0) {
-
-            // e.g sin(x) ^ 2 -> sin^2(x)
-            var split = this.base.tex({split: true});
-            return split[0] + "^{" + this.exp.tex() + "}" + split[1];
-
-        } else {
-
-            // e.g. x ^ y -> x^y
-            var base = this.base.tex();
-            if (this.base instanceof Seq || this.base instanceof Pow ||
-                (this.base instanceof Num && !this.base.isSimple())) {
-                // e.g. a+b ^ c -> (a+b)^c
-                base = "(" + base + ")";
-            } else if (this.base instanceof Trig || this.base instanceof Log) {
-                // e.g. ln(x) ^ 2 -> [ln(x)]^2
-                base = "[" + base + "]";
-            }
-            return base + "^{" + this.exp.tex() + "}";
-        }
-    },
-
-    needsExplicitMul: function() {
-        return this.isRoot() ? false : this.base.needsExplicitMul();
-    },
-
     expand: function() {
         var pow = this.recurse("expand");
 
@@ -1287,7 +1084,7 @@ _.extend(Pow.prototype, {
             var n = pow.exp.abs().eval();
 
             var signed = function(mul) {
-                return positive ? mul : new Pow(mul, Num.Div);
+                return positive ? mul : new Pow(mul, Num.ImplicitNeg);
             };
 
             // compute and cache powers of 2 up to n
@@ -1390,39 +1187,6 @@ _.extend(Pow.prototype, {
         }
     },
 
-    // checks whether this Pow represents user-entered division
-    isDivide: function() {
-        var isDiv = function(arg) { return arg instanceof Num && arg.hints.divide; };
-        return isDiv(this.exp) || (this.exp instanceof Mul && _.any(this.exp.terms, isDiv));
-    },
-
-    // assuming this Pow represents user-entered division, returns the denominator
-    asDivide: function() {
-        if (this.exp instanceof Num) {
-            if (this.exp.eval() === -1) {
-                return this.base;
-            } else {
-                var negated = this.exp.negate();
-                negated.hints = _.clone(this.exp.hints);
-                negated.hints.divide = false;
-                return new Pow(this.base, negated);
-            }
-        } else if (this.exp instanceof Mul) {
-            return new Pow(this.base, this.exp.factorOut());
-        } else {
-            error("called asDivide() on an Expr that wasn't a Num or Mul");
-        }
-    },
-
-    isRoot: function() {
-        return this.exp instanceof Num && this.exp.hints.root;
-    },
-
-    isSquaredTrig: function() {
-        return this.base instanceof Trig && !this.base.isInverse() &&
-            this.exp instanceof Num && this.exp.eval() === 2;
-    },
-
     // extract whatever denominator makes sense, ignoring hints
     // if negative exponent, will recursively include the base's denominator as well
     getDenominator: function() {
@@ -1510,7 +1274,7 @@ _.extend(Pow.prototype, {
 
 _.extend(Pow, {
     sqrt: function(arg) {
-        return new Pow(arg, Num.Sqrt);
+        return new Pow(arg, Num.Half);
     }
 });
 
@@ -1533,15 +1297,6 @@ _.extend(Log.prototype, {
             return "ln" + power;
         } else {
             return "log_(" + this.base.print() + ") " + power;
-        }
-    },
-
-    tex: function() {
-        var power = "(" + this.power.tex() + ")";
-        if (this.isNatural()) {
-            return "\\ln" + power;
-        } else {
-            return "\\log_{" + this.base.tex() + "}" + power;
         }
     },
 
@@ -1609,8 +1364,6 @@ _.extend(Log.prototype, {
         }
     },
 
-    needsExplicitMul: function() { return false; },
-
     isNatural: function() { return this.base.equals(Const.e); }
 });
 
@@ -1639,65 +1392,53 @@ _.extend(Trig.prototype, {
     functions: {
         sin: {
             eval: Math.sin,
-            tex: "\\sin",
             expand: function() { return this; }
         },
         cos: {
             eval: Math.cos,
-            tex: "\\cos",
             expand: function() { return this; }
         },
         tan: {
             eval: Math.tan,
-            tex: "\\tan",
             expand: function() {
                 return Mul.handleDivide(Trig.sin(this.arg), Trig.cos(this.arg));
             }
         },
         csc: {
             eval: function(arg) { return 1 / Math.sin(arg); },
-            tex: "\\csc",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.sin(this.arg));
             }
         },
         sec: {
             eval: function(arg) { return 1 / Math.cos(arg); },
-            tex: "\\sec",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.cos(this.arg));
             }
         },
         cot: {
             eval: function(arg) { return 1 / Math.tan(arg); },
-            tex: "\\cot",
             expand: function() {
                 return Mul.handleDivide(Trig.cos(this.arg), Trig.sin(this.arg));
             }
         },
         arcsin: {
             eval: Math.asin,
-            tex: "\\arcsin",
         },
         arccos: {
             eval: Math.acos,
-            tex: "\\arccos"
         },
         arctan: {
             eval: Math.atan,
-            tex: "\\arctan"
         },
         arccsc: {
             eval: function(arg) { return Math.asin(1 / arg); },
-            tex: "\\operatorname{arccsc}"
         },
         arcsec: {
             eval: function(arg) { return Math.acos(1 / arg); },
-            tex: "\\operatorname{arcsec}"
         },
         arccot: {
             eval: function(arg) { return Math.atan(1 / arg); },
-            tex: "\\operatorname{arccot}"
         }
     },
 
@@ -1721,12 +1462,6 @@ _.extend(Trig.prototype, {
 
     print: function() {
         return this.type + "(" + this.arg.print() + ")";
-    },
-
-    tex: function(options) {
-        var func = this.functions[this.type].tex;
-        var arg = "(" + this.arg.tex() + ")";
-        return (options && options.split) ? [func, arg] : func + arg;
     },
 
     hints: _.extend(Trig.prototype.hints, {
@@ -1753,9 +1488,6 @@ _.extend(Trig.prototype, {
         }
     },
 
-    // TODO(alex): does every new node type need to redefine these?
-    needsExplicitMul: function() { return false; },
-
     expand: function() {
         var trig = this.recurse("expand");
         if (!trig.isInverse()) {
@@ -1774,7 +1506,7 @@ _.extend(Trig.prototype, {
             if (trig.arg instanceof Num) {
                 arg = trig.arg.abs();
             } else {
-                arg = Mul.handleDivide(trig.arg, Num.Neg).collect(options);
+                arg = Mul.handleDivide(trig.arg, Num.ImplicitNeg).collect(options);
             }
 
             if (trig.isEven()) {
@@ -1783,7 +1515,7 @@ _.extend(Trig.prototype, {
 
             } else {
                 // e.g. sin(-x) -> -sin(x)
-                return new Mul(Num.Neg, new Trig(trig.type, arg));
+                return new Mul(Num.ImplicitNeg, new Trig(trig.type, arg));
             }
         } else {
             return trig;
@@ -1796,7 +1528,7 @@ _.extend(Trig, {
         var type = pair[0];
         var exp = pair[1];
 
-        if (exp && exp.equals(Num.Neg)) {
+        if (exp && exp.equals(Num.ImplicitNeg)) {
             // e.g. sin^-1(x) -> arcsin(x)
             type = "arc" + type;
             exp = undefined;
@@ -1832,10 +1564,6 @@ _.extend(Abs.prototype, {
     args: function() { return [this.arg]; },
     eval: function(vars) { return Math.abs(this.arg.eval(vars)); },
     print: function() { return "abs(" + this.arg.print() + ")"; },
-
-    tex: function() {
-        return "\\left|" + this.arg.tex() + "\\right|";
-    },
 
     collect: function(options) {
         var abs = this.recurse("collect", options);
@@ -1901,8 +1629,6 @@ _.extend(Eq.prototype, {
     func: Eq,
     args: function() { return [this.left, this.type, this.right]; },
 
-    needsExplicitMul: function() { return false; },
-
     print: function() {
         return this.left.print() + this.type + this.right.print();
     },
@@ -1914,10 +1640,6 @@ _.extend(Eq.prototype, {
         "<>": " \\ne ",
         "<=": " \\le ",
         ">=": " \\ge "
-    },
-
-    tex: function() {
-        return this.left.tex() + this.signs[this.type] + this.right.tex();
     },
 
     normalize: function() {
@@ -2029,7 +1751,7 @@ _.extend(Eq.prototype, {
         denominator = _.reject(denominator, isOne);
 
         denominator = _.map(denominator, function(term) {
-            return new Pow(term, Num.Div);
+            return new Pow(term, Num.ImplicitNeg);
         });
 
         return new Mul(terms.concat(denominator)).collect();
@@ -2099,8 +1821,6 @@ Symbol.prototype = new Expr();
 
 _.extend(Symbol.prototype, {
 
-    needsExplicitMul: function() { return false; },
-
     findGCD: function(factor) {
         if (factor instanceof Symbol || factor instanceof Num) {
             return this.equals(factor) ? this : Num.One;
@@ -2123,10 +1843,6 @@ _.extend(Func.prototype, {
 
     print: function() {
         return this.symbol + "(" + this.arg.print() + ")";
-    },
-
-    tex: function() {
-        return this.symbol + "(" + this.arg.tex() + ")";
     },
 
     getVars: function(excludeFunc) {
@@ -2161,15 +1877,6 @@ _.extend(Var.prototype, {
         return this.symbol + sub;
     },
 
-    tex: function() {
-        var sub = "";
-        if (this.subscript) {
-            sub = "_{" + this.subscript.tex() + "}";
-        }
-        var prefix = this.symbol.length > 1 ? "\\" : "";
-        return prefix + this.symbol + sub;
-    },
-
     repr: function() { return "Var(" + this.print() + ")"; },
 
     eval: function(vars) {
@@ -2200,14 +1907,6 @@ _.extend(Const.prototype, {
     },
 
     print: function() { return this.symbol; },
-
-    tex: function() {
-        if (this.symbol === "pi") {
-            return "\\pi ";
-        } else if (this.symbol === "e") {
-            return "e";
-        }
-    },
 
     isPositive: function() {
         return this.eval() > 0;
@@ -2242,12 +1941,8 @@ _.extend(Num.prototype, {
     // returns this Num's additive inverse
     negate: abstract,
 
-    isSubtract: function() { return this.hints.subtract; },
-
     // return the absolute value of the number
     abs: abstract,
-
-    needsExplicitMul: function() { return true; },
 
     findGCD: function(factor) {
         if (factor instanceof Num) {
@@ -2269,14 +1964,9 @@ _.extend(Num.prototype, {
         return this.isPositive() ? this : this.abs();
     },
 
-    // hints for interpreting and rendering user input
+    // hints for interpreting user input
     hints: _.extend(Num.prototype.hints, {
-        negate: false,
-        subtract: false,
-        divide: false,
-        root: false,
-        fraction: false,
-        entered: false
+        implicit: false
     }),
 
     // whether a number is considered simple (one term)
@@ -2318,11 +2008,6 @@ _.extend(Rational.prototype, {
 
     print: function() {
         return this.n.toString() + "/" + this.d.toString();
-    },
-
-    tex: function() {
-        var tex = "\\frac{" + Math.abs(this.n).toString() + "}{" + this.d.toString() + "}";
-        return this.n < 0 ? "-" + tex : tex;
     },
 
     add: function(num, options) {
@@ -2395,14 +2080,13 @@ _.extend(Int.prototype, {
     func: Int,
     args: function() { return [this.n]; },
     print: function() { return this.n.toString(); },
-    tex: function() { return this.n.toString(); },
     negate: function() { return new Int(-this.n); },
     abs: function() { return new Int(Math.abs(this.n)); },
     isSimple: function() { return true; }
 });
 
 _.extend(Int, {
-    create: function(n) { return new Int(n).addHint("entered"); }
+    create: function(n) { return new Int(n) }
 });
 
 /* float (n: number) */
@@ -2417,7 +2101,6 @@ _.extend(Float.prototype, {
     // TODO(alex): when we internationalize number parsing/display
     // we should make sure to use the appropriate decimal mark here
     print: function() { return this.n.toString(); },
-    tex: function() { return this.n.toString(); },
 
     add: function(num, options) {
         if (options && options.preciseFloats) {
@@ -2482,7 +2165,7 @@ _.extend(Float.prototype, {
 });
 
 _.extend(Float, {
-    create: function(n) { return new Float(n).addHint("entered"); },
+    create: function(n) { return new Float(n) },
 
     // Account for floating point imprecision by explicitly controlling the
     // number of decimal places in common operations (e.g. +, *, ^)
@@ -2493,16 +2176,6 @@ _.extend(Float, {
 
 // static methods and fields that are best defined on Num
 _.extend(Num, {
-    negativeOne: function(hint) {
-        if (hint === "subtract") {
-            return Num.Sub;
-        } else if (hint === "divide") {
-            return Num.Div;
-        } else {
-            return Num.Neg;
-        }
-    },
-
     // find the greatest common denominator
     findGCD: function(a, b) {
         var mod;
@@ -2532,11 +2205,9 @@ _.extend(Num, {
     }
 });
 
-Num.Neg = new Int(-1).addHint("negate");
-Num.Sub = new Int(-1).addHint("subtract");
-Num.Div = new Int(-1).addHint("divide");
+Num.ImplicitNeg = new Int(-1).addHint("implicit");
 
-Num.Sqrt = new Rational(1, 2).addHint("root");
+Num.Half = new Rational(1, 2);
 
 Num.Zero = new Int(0);
 Num.One = new Int(1);

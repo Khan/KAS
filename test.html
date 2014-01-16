@@ -423,219 +423,6 @@
         repr("sin -x*3", "Trig(sin,Mul(Var(x),-3))");
     });
 
-
-    QUnit.module("rendering");
-
-    var tex = function(input, expected, options) {
-        var message = input + " renders as " + expected;
-        strictEqual(parse(input, options).tex(), expected, message);
-    };
-
-    test("positive and negative primitives", function() {
-        tex("0", "0");
-        tex("-1", "-1");
-        tex("--1", "--1");
-        tex("-2", "-2");
-        tex("--2", "--2");
-        tex("x", "x");
-        tex("theta", "\\theta");
-        tex("1/2", "\\frac{1}{2}");
-        tex("-1/2", "-\\frac{1}{2}");
-        tex("1/-2", "-\\frac{1}{2}");
-        tex("-1/-2", "--\\frac{1}{2}");
-    });
-
-    test("addition", function() {
-        tex("1-2", "1-2");
-        tex("a+b", "a+b");
-        tex("a-b", "a-b");
-        tex("a-1b", "a-1b");
-        tex("a+-b", "a+-b");
-        tex("a+-1b", "a+-1b");
-    });
-
-    test("multiplication", function() {
-        tex("ab", "ab");
-        tex("a*b", "ab");
-        tex("a/b", "\\frac{a}{b}");
-        tex("a/bc/d", "\\frac{ac}{bd}");
-
-        tex("1/(x+y)", "\\frac{1}{x+y}");
-        tex("2/(x+y)", "\\frac{2}{x+y}");
-        tex("(z+2)/(x+y)", "\\frac{z+2}{x+y}");
-        tex("(z+2)/4", "\\frac{z+2}{4}");
-    });
-
-    test("rational expressions", function() {
-        tex("x+1/2", "x+\\frac{1}{2}");
-        tex("x-1/2", "x-\\frac{1}{2}");
-
-        tex("1/2x", "\\frac{1}{2}x");
-        tex("1/2x/y", "\\frac{1}{2}\\frac{x}{y}");
-        tex("5*1/2x/y", "\\frac{5}{2}\\frac{x}{y}");
-        tex("-1/2x", "-\\frac{1}{2}x");
-        tex("a-1/2x", "a-\\frac{1}{2}x");
-
-        tex("1/(2x)", "\\frac{1}{2x}");
-        tex("8/(7p^4)", "\\frac{8}{7p^{4}}");
-
-        tex("x/2", "\\frac{x}{2}");
-        tex("1x/2", "\\frac{1x}{2}");
-        tex("-x/2", "-\\frac{x}{2}");
-        tex("a-x/2", "a-\\frac{x}{2}");
-
-        tex("1*-2", "1 \\cdot -2");
-        tex("1*-2*3", "1 \\cdot -2 \\cdot 3");
-        tex("1*-2*3/4", "\\frac{1 \\cdot -2 \\cdot 3}{4}");
-        tex("1*-2*3/4/5", "\\frac{1 \\cdot -2 \\cdot 3}{4 \\cdot 5}");
-    });
-
-    test("exponentiation", function() {
-        tex("x^y", "x^{y}");
-        tex("xy^z", "xy^{z}");
-        tex("(xy)^z", "(xy)^{z}");
-        tex("(x+y)^z", "(x+y)^{z}");
-        tex("x^(yz)", "x^{yz}");
-        tex("x^-(yz)", "x^{-yz}");
-        tex("x^(y+z)", "x^{y+z}");
-        tex("x^-(y+z)", "x^{-(y+z)}");
-        tex("(x^y)^z", "(x^{y})^{z}");
-        tex("pir^2", "\\pi r^{2}");
-    });
-
-    test("square root", function() {
-        tex("sqrt(x)", "\\sqrt{x}");
-        tex("sqrt(x)y", "\\sqrt{x}y");
-        tex("1/sqrt(x)", "\\frac{1}{\\sqrt{x}}");
-        tex("1/sqrt(x)y", "\\frac{y}{\\sqrt{x}}");
-
-        tex("sqrt(2)/2", "\\frac{\\sqrt{2}}{2}");
-        tex("sqrt(2)^2", "(\\sqrt{2})^{2}");
-    });
-
-    test("absolute value", function() {
-        tex("|x|", "\\left|x\\right|");
-        tex("|x|y", "\\left|x\\right|y");
-    })
-
-    test("logarithms", function() {
-        tex("lnx", "\\ln(x)");
-        tex("logx", "\\log_{10}(x)");
-        tex("lnx^y", "\\ln(x^{y})");
-        tex("logx^y", "\\log_{10}(x^{y})");
-        tex("(lnx)^y", "[\\ln(x)]^{y}");
-        tex("(logx)^y", "[\\log_{10}(x)]^{y}");
-    });
-
-    test("trig functions", function() {
-        tex("sinx", "\\sin(x)");
-
-        tex("arcsin x", "\\arcsin(x)");
-        tex("sin^-1 x", "\\arcsin(x)");
-
-        tex("(sinx)^2", "\\sin^{2}(x)");
-        tex("sin^2 x", "\\sin^{2}(x)");
-
-        tex("1/(sinx)^2", "\\frac{1}{\\sin^{2}(x)}");
-        tex("1/sin^2x", "\\frac{1}{\\sin^{2}(x)}");
-
-        tex("sin^2 x + cos^2 x = 1", "\\sin^{2}(x)+\\cos^{2}(x) = 1");
-    });
-
-    test("multiplication with numbers", function() {
-        tex("4*10", "4 \\cdot 10");
-        tex("10^5", "10^{5}");
-        tex("4*10^5", "4 \\cdot 10^{5}");
-        tex("10^5x", "10^{5}x");
-        tex("4*10^5x", "4 \\cdot 10^{5}x");
-        tex("x*(10+4)^5", "x(10+4)^{5}");
-
-        tex("-1*2", "-1 \\cdot 2");
-        tex("1*-2", "1 \\cdot -2");
-        tex("-1*-2", "-1 \\cdot -2");
-        tex("-1*2*3", "-1 \\cdot 2 \\cdot 3");
-    });
-
-    test("inverses and division", function() {
-        tex("x^-1", "x^{-1}");
-        tex("2x^-1", "2x^{-1}");
-        tex("1/x", "\\frac{1}{x}");
-        tex("-1/x", "\\frac{-1}{x}");
-        tex("2/x", "\\frac{2}{x}");
-        tex("1/x^2", "\\frac{1}{x^{2}}");
-        tex("2/x^2", "\\frac{2}{x^{2}}");
-        tex("1/1/x", "\\frac{1}{x}");
-        tex("1/(1/x)", "\\frac{1}{\\frac{1}{x}}");
-        tex("1/x/x", "\\frac{1}{xx}");
-        tex("1/(x/x)", "\\frac{1}{\\frac{x}{x}}");
-        tex("-1/1/x", "\\frac{-1}{x}");
-        tex("-1/(1/x)", "\\frac{-1}{\\frac{1}{x}}");
-        tex("-1/x/x", "\\frac{-1}{xx}");
-        tex("-1/(x/x)", "\\frac{-1}{\\frac{x}{x}}");
-    });
-
-    test("distributive property", function() {
-        tex("ab+c", "ab+c");
-        tex("ab+ac", "ab+ac");
-        tex("a(b+c)", "a(b+c)");
-    });
-
-    test("numerical exponents", function() {
-        tex("9^4", "9^{4}");
-        tex("-9^4", "-9^{4}");
-        tex("1-9^4", "1-9^{4}");
-    });
-
-    test("negating a Mul", function() {
-        tex("-3x", "-3x");
-        tex("--3x", "--3x");
-        tex("-x*3", "-3x");
-        tex("--x*3", "--3x");
-    });
-
-    test("equations", function() {
-        tex("y=x", "y = x");
-        tex("y<x", "y < x");
-        tex("y>x", "y > x");
-        tex("y<>x", "y \\ne x");
-        tex("y=/=x", "y \\ne x");
-        tex("y<=x", "y \\le x");
-        tex("y>=x", "y \\ge x");
-    });
-
-    test("function variables", function() {
-        tex("f(x)", "fx");
-        tex("f(x)", "f(x)", {functions: ["f"]});
-        tex("f(sin x)", "f(\\sin(x))", {functions: ["f"]});
-        tex("sin f(x)", "\\sin(f(x))", {functions: ["f"]});
-    });
-
-    var texopt = function(input, expected) {
-        var options = {
-            display: false,
-            dynamic: false,
-            times: false
-        };
-        var optlist = _.toArray(arguments).slice(2);
-        _.each(optlist, function(opt) { options[opt] = true; });
-
-        var message = input + " renders with options as " + expected;
-        strictEqual(parse(input).asTex(options), expected, message);
-    };
-
-    test("options", function() {
-        texopt("x", "x");
-        texopt("x", "\\displaystyle x", "display");
-        texopt("a(b+c(d+e))", "a(b+c(d+e))");
-        texopt("a(b+c(d+e))", "a\\left(b+c\\left(d+e\\right)\\right)", "dynamic");
-        texopt("2*2", "2 \\cdot 2");
-        texopt("2*2", "2 \\times 2", "times");
-
-        texopt("1*2(3+4)", "\\displaystyle 1 \\times 2\\left(3+4\\right)",
-            "display", "dynamic", "times");
-    });
-
-
     QUnit.module("evaluating");
 
     var val = function(input, expected, vars) {
@@ -1033,19 +820,11 @@
         strictEqual(actual, expected, message);
     };
 
-    var expandtex = function(input, expected) {
-        var actual = parse(input).expand().tex();
-        var message = input + " expands and is rendered as " + expected;
-        strictEqual(actual, expected, message);
-    };
-
     test("distribute over multiplication", function() {
         expand("a(b+c)", "ab+ac");
-        expandtex("a(b+c)", "ab+ac");
         expandrepr("a(b+c)", "Add(Mul(Var(a),Var(b)),Mul(Var(a),Var(c)))");
 
         expand("a(b-c)", "ab-ac");
-        expandtex("a(b-c)", "ab-ac");
         expandrepr("a(b-c)", "Add(Mul(Var(a),Var(b)),Mul(Var(a),-1,Var(c)))");
 
         expand("a(b+c)d", "abd+acd");
@@ -1120,12 +899,6 @@
     var collectrepr = function(input, expected) {
         var actual = parse(input).collect().repr();
         var message = input + " collects as " + expected;
-        strictEqual(actual, expected, message);
-    };
-
-    var collecttex = function(input, expected) {
-        var actual = parse(input).collect().tex();
-        var message = input + " collects and is rendered as " + expected;
         strictEqual(actual, expected, message);
     };
 
@@ -1224,16 +997,6 @@
 
         collect("sin(-x)cos(-x)", "-sin(x)cos(x)");
         collect("sin(-x)/cos(-x)", "-tan(x)");
-    });
-
-    test("collect then output tex", function() {
-        // user-friendly tex representation is not guaranteed after collect()
-        collect("-x", "-1x");
-        collecttex("-x", "-1x");
-        collect("a-b", "a+-1b");
-        collecttex("a-b", "a+-1b");
-        collect("a/b", "ab^-1");
-        collecttex("a/b", "ab^{-1}");
     });
 
     test("collect over an equation", function() {

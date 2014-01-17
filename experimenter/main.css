@@ -1,0 +1,42 @@
+body {
+    font-size: 28px;
+}
+
+.code {
+    font-size: 12px;
+}
+
+.input-toggle {
+    font-family: "Courier New";
+    font-size: 75%;
+}
+
+.info-element {
+    font-family: "Courier New";
+}
+
+.info-element .description {
+    display: inline-block;
+    min-width: 500px;
+    vertical-align: top;
+}
+
+.info-element .value {
+    display: inline-block;
+}
+
+.info {
+    color: #333;
+}
+
+.info.error {
+    opacity: 0.5;
+}
+
+.math-input {
+    min-width: 100%;
+    border: 1px solid #aaa;
+    padding: 3px;
+    font-size: 72px;
+    background: #fff;
+}

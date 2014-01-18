@@ -1073,7 +1073,7 @@ _.extend(Mul, {
         if (isInt(right) && left instanceof Mul && _.any(left.terms, isInt)) {
 
             // search from the right
-            var reversed = left.terms.slice().reverse()
+            var reversed = left.terms.slice().reverse();
             var num = _.find(reversed, isRational);
 
             if (!isInt(num)) {
@@ -1691,7 +1691,7 @@ _.extend(Trig.prototype, {
         },
         arcsin: {
             eval: Math.asin,
-            tex: "\\arcsin",
+            tex: "\\arcsin"
         },
         arccos: {
             eval: Math.acos,

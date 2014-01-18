@@ -10,8 +10,7 @@ grunt.initConfig({
     pkg: grunt.file.readJSON("package.json"),
     concat: {
         options: {
-            banner: "/*! KAS | https://github.com/Khan/KAS */\n",
-            separator: ";"
+            banner: "/*! KAS | https://github.com/Khan/KAS */\n"
         },
         dist: {
             src: srcFiles,

@@ -87,7 +87,7 @@ var grammar = {
             ["triglog", "$$ = $1;"]
         ],
         "trig": [
-            ["TRIG", "$$ = [yytext];"],
+            ["TRIG", "$$ = [yytext];"]
         ],
         "trigfunc": [
             ["trig", "$$ = $1;"],

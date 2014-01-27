@@ -245,10 +245,22 @@ _.extend(Expr.prototype, {
             this.getVars(/* excludeFunc */ true),
             other.getVars(/* excludeFunc */ true));
 
+        // If the numbers are large we would like to do a relative comparison
+        // rather than an absolute one, but if they're small enough then an
+        // absolute comparison makes more sense
+        var getDelta = function(num1, num2) {
+            if (Math.abs(num1) < 1 || Math.abs(num2) < 1) {
+                return Math.abs(num1 - num2);
+            } else {
+                return Math.abs(1 - num1 / num2);
+            }
+        };
+
         var equalNumbers = function(num1, num2) {
+            var delta = getDelta(num1, num2);
             return ((num1 === num2) || /* needed if either is +/- Infinity */
                     (isNaN(num1) && isNaN(num2)) ||
-                    (Math.abs(num1 - num2) < Math.pow(10, -TOLERANCE)));
+                    (delta < Math.pow(10, -TOLERANCE)));
         };
 
         // if no variables, only need to evaluate once

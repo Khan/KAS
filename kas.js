@@ -3355,6 +3355,14 @@ KAS.parse = function(input, options) {
             parser.yy.functions = [];
         }
 
+        // If ',' is the decimal dividor in your country, replace any ','s
+        // with '.'s.
+        // This isn't perfect, since the output will all still have '.'s.
+        // TODO(jack): Fix the output to have ','s in this case
+        if (options && options.decimal_separator) {
+            input = input.split(options.decimal_separator).join(".");
+        }
+
         var expr = parser.parse(input).completeParse();
         return { parsed: true, expr: expr };
     } catch (e) {

@@ -14,3 +14,7 @@ First, make any changes in `src/parser-generator.js`
 
     npm install
     grunt parser
+
+License
+-------
+[MIT License](http://opensource.org/licenses/MIT)

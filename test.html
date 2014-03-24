@@ -929,6 +929,44 @@
     });
 
 
+    QUnit.module("findGCD");
+
+    var findGCD = function(a, b, reference) {
+        var actual = parse(a).findGCD(parse(b)).repr();
+        var expected = parse(reference).repr();
+
+        var message = "(" + a + ").findGCD(" + b + ") = " + expected;
+        strictEqual(actual, expected, message);
+    };
+
+    test("findGCD on ints", function() {
+        findGCD("40", "30", "10");
+        findGCD("14", "21", "7");
+        findGCD("13", "26", "13");
+    });
+
+    test("findGCD on rationals", function() {
+        findGCD("40/3", "55/6", "5/6");
+        findGCD("3/4", "1/2", "1/4");
+        findGCD("3/7", "12/22", "3/77");
+        findGCD("3/10", "4/15", "1/30");
+        findGCD("2/3", "23/6", "1/6");
+        findGCD("2/3", "22/6", "1/3");
+
+        findGCD("2/3", "2", "2/3");
+        findGCD("2/3", "3", "1/3");
+        findGCD("1/2", "4", "1/2");
+        findGCD("4", "3/4", "1/4");
+        findGCD("3", "3/4", "3/4");
+    });
+
+    test("findGCD on floats", function() {
+        // Feel free to change this when we do something other
+        // than a naive "return 1" for floats
+        findGCD("1.23", "1.42", "1");
+        findGCD("1", String(Math.PI), "1");
+    });
+
     QUnit.module("transforming");
 
     var factor = function(input, reference) {
@@ -945,6 +983,10 @@
         factor("x^3+x^2", "x^2(x+1)");
         factor("2x+xy", "x(2+y)");
         factor("2xy+xy^2", "xy(2+y)");
+        factor("2+2/3", "2/3(3+1)");  // a little questionable, but 2/3 is what
+                                      // wolframalpha returns for the gcd, so
+                                      // we pull it out
+        factor("2x+1.1", "2x+1.1");
     });
 
     test("factoring Muls", function() {
@@ -1199,6 +1241,10 @@
         simplify("((nx^5)^5)/(n^-2x^2)^-3", "n^-1 x^31");
 
         simplify("1/(xya)+1/(xyb)", "(1/a+1/b) 1/x 1/y");
+
+        // Simplify rationals correctly
+        simplify("2*(x+1/3)", "2*x+2/3");
+        simplify("-1*(1/3+x)", "-1*x+-1/3");
     });
 
     var isSimplified = function(input, expectedResult, options) {

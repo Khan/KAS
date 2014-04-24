@@ -823,6 +823,23 @@
         comp("arcsec x", "arccos (1/x)");
         comp("arccot x", "arctan (1/x)");
 
+        // Make sure trig functions that are the same for all integer values
+        // are not the same
+        comp("-2sin(pi x) + 4", "4", false);
+        comp("2sin(pi x) + 4", "-2sin(pi x) + 4", false);
+        comp("sin(pi x)", "0", false);
+        comp("0", "sin(pi x)", false);
+        comp("cos(pi x)", "cos(2 pi x)", false);
+        comp("sin(pi x)", "sin(500pi x)", false);
+        comp("sin(500pi x)", "sin(pi x)", false);
+
+        // Check that floating point error isn't killing us
+        // TODO(jack): These don't seem to test much; make better tests
+        comp("0", "sin(7pi)");
+        comp("sin(7pi)", "0");
+        comp("0", "sin(500pi)");
+        comp("sin(500pi)", "0");
+
         // Handle denominators the same way regardless of a fraction's format
         comp("x=1.2^2", "x=1.44");
         comp("x=1.2^2", "x=36/25");

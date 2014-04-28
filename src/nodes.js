@@ -1179,7 +1179,8 @@ _.extend(Mul, {
     // e.g. -1*x*2  ->  -1*x*2  not simplified
 
     // also fold multiplicative terms into open Trig and Log nodes
-    // e.g. sin(x)*x -> sin(x*x)
+    // e.g. (sin x)*x -> sin(x)*x
+    // e.g. sin(x)*x -> sin(x)*x
     // e.g. sin(x)*(x) -> sin(x)*x
     // e.g. sin(x)*sin(y) -> sin(x)*sin(y)
     fold: function(expr) {
@@ -1192,7 +1193,8 @@ _.extend(Mul, {
 
             if (trigLog) {
                 var last = _.last(expr.terms);
-                if (last.hints.parens || last.has(Trig) || last.has(Log)) {
+                if (trigLog.hints.parens || last.hints.parens ||
+                          last.has(Trig) || last.has(Log)) {
                     trigLog.hints.open = false;
                 } else {
                     var newTrigLog;

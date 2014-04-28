@@ -312,6 +312,8 @@
         repr("", "Add()");
         repr("1.", "1");
         repr("1/2", "1/2");
+        repr("1/-2", "-1/2");
+        repr("x/-2", "Mul(Var(x),-1/2)");
         repr("a+b", "Add(Var(a),Var(b))");
         repr("a+b+c", "Add(Var(a),Var(b),Var(c))");
         repr("a-b", "Add(Var(a),Mul(-1,Var(b)))");
@@ -401,6 +403,8 @@
         tex("1x/2", "\\frac{1x}{2}");
         tex("-x/2", "-\\frac{x}{2}");
         tex("x/-2", "-\\frac{x}{2}");
+        tex("x/-2/-3", "--\\frac{x}{2 \\cdot 3}");
+        tex("--x/2/3", "--\\frac{x}{2 \\cdot 3}");
         tex("a-x/2", "a-\\frac{x}{2}");
 
         tex("1*-2", "1 \\cdot -2");

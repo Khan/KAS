@@ -1130,7 +1130,13 @@ _.extend(Mul, {
                     }
                 } else {
                     // e.g. x / 3 -> x*1/3
-                    return [a, new Rational(1, b.eval())];
+                    // e.g. x / -3 -> x*-1/3
+                    var inverse = new Rational(1, b.eval());
+                    if (b.eval() < 0) {
+                        return [a, inverse.addHint("negate")];
+                    } else {
+                        return [a, inverse];
+                    }
                 }
             } else {
                 var pow;

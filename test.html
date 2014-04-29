@@ -811,6 +811,10 @@
         comp("7/3x+x=15", "(2+1/3)x+x=15");
         comp("7/3x+x=15", "(1+1/3)x+x=15", false);
 
+        // Symmetric equations
+        comp("x^2+y^2=r^2", "r^2=x^2+y^2");
+        comp("23^1.5=110.304", "110.304=23^1.5");
+
         // TODO(alex): make sure that I have both positive and negative
         // test cases for all functionality
         comp("6.12*10^-2", "6.12*10^-2");

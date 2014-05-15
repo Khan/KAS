@@ -75,8 +75,9 @@
         print("\\phi", "phi");
     });
 
-    test("ignore \\space", function() {
+    test("ignore TeX spaces", function() {
         print("a\\space b", "a*b");
+        print("a\\ b", "a*b");
     });
 
     test("positive and negative rationals", function() {

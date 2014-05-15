@@ -9,6 +9,7 @@ var grammar = {
         rules: [
             ["\\s+",                "/* skip whitespace */"],
             ["\\\\space",           "/* skip \\space */"],
+            ["\\\\ ",               "/* skip '\\ ' */"],
             ["[0-9]+\\.?",          "return \"INT\""],
             ["([0-9]+)?\\.[0-9]+",  "return \"FLOAT\""],
             ["\\*\\*",              "return \"^\""],
@@ -32,7 +33,7 @@ var grammar = {
             ["\\|",                 "return \"|\""],
             ["\\\\left\\|",         "return \"LEFT|\""],
             ["\\\\right\\|",        "return \"RIGHT|\""],
-            ["\\!",                 "return \"!\""],
+            ["\\!",                 "return \"!\""],    // not yet interpreted
             ["<=|>=|<>|<|>|=",      "return \"SIGN\""],
             ["\\\\le",              "yytext = \"<=\"; return \"SIGN\""],
             ["\\\\ge",              "yytext = \">=\"; return \"SIGN\""],

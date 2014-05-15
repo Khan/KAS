@@ -367,8 +367,6 @@
         print("2\\ge1", "2>=1");
         print("1<>2", "1<>2");
         print("1=/=2", "1<>2");
-        print("1/=2", "1<>2");
-        print("1!=2", "1<>2");
         print("1\\ne2", "1<>2");
         print("a\u2260b", "a<>b");
         print("a\u2264b", "a<=b");
@@ -764,8 +762,8 @@
         var forms = [
             "y=2x-5",
             "-2x+5=-y",
-            "2x-5!=y",
-            "2x-y!=5",
+            "2x-5<>y",
+            "2x-y<>5",
             "(y+5)/2=x",
             "(y+5)/x=2",
             "1/2(y+5)=x",
@@ -776,7 +774,7 @@
         ];
 
         _.each(forms, function(form) {
-            if (form.indexOf("!=") !== -1) {
+            if (form.indexOf("<>") !== -1) {
                 asExpr(form, "-y+2x-5");
             } else {
                 asExpr(form, "y-2x+5");

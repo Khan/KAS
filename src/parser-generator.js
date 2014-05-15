@@ -38,8 +38,6 @@ var grammar = {
             ["\\\\le",              "yytext = \"<=\"; return \"SIGN\""],
             ["\\\\ge",              "yytext = \">=\"; return \"SIGN\""],
             ["=\\/=",               "yytext = \"<>\"; return \"SIGN\""],
-            ["\\/=",                "yytext = \"<>\"; return \"SIGN\""],
-            ["\\!=",                "yytext = \"<>\"; return \"SIGN\""],
             ["\\\\ne",              "yytext = \"<>\"; return \"SIGN\""],
             ["\u2260",              "yytext = \"<>\"; return \"SIGN\""],    // ne
             ["\u2264",              "yytext = \"<=\"; return \"SIGN\""],    // le

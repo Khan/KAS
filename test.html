@@ -110,6 +110,21 @@
         print("\\frac{1}{2}2", "1/2*2");
     });
 
+    test("rationals using \\dfrac", function() {
+        print("\\dfrac{1}{2}", "1/2");
+        print("\\dfrac{-1}{2}", "-1/2");
+        print("\\dfrac{1}{-2}", "-1/2");
+        print("\\dfrac{-1}{-2}", "-1*-1/2");
+        print("\\dfrac{42}{42}", "42/42");
+        print("\\dfrac{42}{1}", "42/1");
+        print("\\dfrac{0}{42}", "0/42");
+
+        print("2\\dfrac{1}{2}", "2*1/2");
+        print("\\dfrac{1}{2}\\dfrac{1}{2}", "1/2*1/2");
+        print("-\\dfrac{1}{2}", "-1/2");
+        print("\\dfrac{1}{2}2", "1/2*2");
+    });
+
     test("parens", function() {
         print("(0)", "0");
         print("(ab)", "a*b");
@@ -811,7 +826,7 @@
         comp("2+2", "4");
         comp("a(b+c)", "ab+ac");
         comp("a/b", "a*b^-1");
-        
+
         comp("1.2^2", "1.44");
         comp("1.3^2", "1.69");
         comp("1.4^2", "1.96");

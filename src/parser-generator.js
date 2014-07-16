@@ -43,6 +43,7 @@ var grammar = {
             ["\u2264",              "yytext = \"<=\"; return \"SIGN\""],    // le
             ["\u2265",              "yytext = \">=\"; return \"SIGN\""],    // ge
             ["\\\\frac",            "return \"FRAC\""],
+            ["\\\\dfrac",           "return \"FRAC\""],
             ["sqrt|\\\\sqrt",       "return \"sqrt\""],
             ["abs|\\\\abs",         "return \"abs\""],
             ["ln|\\\\ln",           "return \"ln\""],

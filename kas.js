@@ -3007,6 +3007,15 @@ _.extend(Func.prototype, {
         return this.symbol + "(" + this.arg.tex() + ")";
     },
 
+    eval: function(vars) {
+        var arg = this.arg;
+        var func = vars[this.symbol];
+        var newVars = _.extend(vars, {
+            x: arg.eval(vars)
+        });
+        return KAS.parse(func).expr.eval(newVars);
+    },
+
     getVars: function(excludeFunc) {
         if (excludeFunc) {
             return this.arg.getVars();

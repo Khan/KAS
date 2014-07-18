@@ -665,10 +665,10 @@
 
     QUnit.module("evaluating");
 
-    var val = function(input, expected, vars) {
+    var val = function(input, expected, vars, functions) {
         if (vars === undefined) vars = {};
         var message = input + " evaluates as " + expected;
-        strictEqual(parse(input).eval(vars), expected, message);
+        strictEqual(parse(input, {functions: functions}).eval(vars), expected, message);
     };
 
     test("empty", function() {
@@ -703,6 +703,10 @@
         val("x_a + x_bc", 7, {x_a: 1, x_b: 2, c: 3});
     });
 
+    test("function expressions", function() {
+        val("f(2)", 4, {"f": "2x"}, ["f"]);
+        val("f(4+8)", 48, {"f": "4x"}, ["f"]);
+    });
 
     QUnit.module("checking form");
 

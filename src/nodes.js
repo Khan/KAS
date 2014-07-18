@@ -2235,6 +2235,17 @@ _.extend(Var.prototype, {
         return this.symbol + sub;
     },
 
+    // Provide a way to easily evalate expressions with the common case,
+    // subscripts that consist of a single number or symbol e.g. x_a or x_42
+    prettyPrint: function() {
+        var sub = this.subscript;
+        if (sub && (sub instanceof Num || sub instanceof Symbol)) {
+            return this.symbol + "_" + sub.print();
+        } else {
+            return this.print();
+        }
+    },
+
     tex: function() {
         var sub = "";
         if (this.subscript) {
@@ -2247,10 +2258,10 @@ _.extend(Var.prototype, {
     repr: function() { return "Var(" + this.print() + ")"; },
 
     eval: function(vars) {
-        return vars[this.print()];
+        return vars[this.prettyPrint()];
     },
 
-    getVars: function() { return [this.symbol]; },
+    getVars: function() { return [this.prettyPrint()]; },
 
     isPositive: function() { return false; }
 });

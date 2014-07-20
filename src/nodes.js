@@ -2206,7 +2206,7 @@ _.extend(Func.prototype, {
     eval: function(vars) {
         var arg = this.arg;
         var func = vars[this.symbol];
-        var newVars = _.extend(vars, {
+        var newVars = _.extend(_.clone(vars), {
             x: arg.eval(vars)
         });
         return KAS.parse(func).expr.eval(newVars);

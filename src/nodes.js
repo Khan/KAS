@@ -83,6 +83,17 @@ _.extend(Expr.prototype, {
     // evaluate numerically with given variable mapping
     eval: abstract,
 
+    codegen: abstract,
+
+    compile: function() {
+        var code = this.codegen();
+        try {
+            return new Function("vars", "return " + code + ";");
+        } catch (e) {
+            throw new Error("Function did not compile: " + code);
+        }
+    },
+
     // returns a string unambiguously representing the expression
     // should be valid as input
     // e.g. this.equals(parse(this.print())) === true
@@ -521,6 +532,20 @@ _.extend(Add.prototype, {
         return _.reduce(this.terms, function(memo, term) { return memo + term.eval(vars, options); }, 0);
     },
 
+    codegen: function() {
+        if (this.terms.length === 0) {
+            return 0;
+        }
+        var code = "";
+        _.each(this.terms, function(term, i) {
+            if (i !== 0) {
+                code += " + ";
+            }
+            code += "(" + term.codegen() + ")";
+        });
+        return code;
+    },
+
     print: function() {
         return _.invoke(this.terms, "print").join("+");
     },
@@ -644,6 +669,17 @@ _.extend(Mul.prototype, {
 
     eval: function(vars, options) {
         return _.reduce(this.terms, function(memo, term) { return memo * term.eval(vars, options); }, 1);
+    },
+
+    codegen: function() {
+        var code = "";
+        _.each(this.terms, function(term, i) {
+            if (i !== 0) {
+                code += " * ";
+            }
+            code += "(" + term.codegen() + ")";
+        });
+        return code;
     },
 
     print: function() {
@@ -1264,6 +1300,11 @@ _.extend(Pow.prototype, {
         return Math.pow(this.base.eval(vars, options), this.exp.eval(vars, options));
     },
 
+    codegen: function() {
+        return "Math.pow(" + this.base.codegen() +
+            ", " + this.exp.codegen() + ")";
+    },
+
     print: function() {
         var base = this.base.print();
         if (this.base instanceof Seq || this.base instanceof Pow) {
@@ -1596,6 +1637,11 @@ _.extend(Log.prototype, {
         return Math.log(this.power.eval(vars, options)) / Math.log(this.base.eval(vars, options));
     },
 
+    codegen: function() {
+        return "(Math.log(" + this.power.codegen() +
+            ") / Math.log(" + this.base.codegen() + "))";
+    },
+
     print: function() {
         var power = "(" + this.power.print() + ")";
         if (this.isNatural()) {
@@ -1708,16 +1754,19 @@ _.extend(Trig.prototype, {
     functions: {
         sin: {
             eval: Math.sin,
+            codegen: "Math.sin((",
             tex: "\\sin",
             expand: function() { return this; }
         },
         cos: {
             eval: Math.cos,
+            codegen: "Math.cos((",
             tex: "\\cos",
             expand: function() { return this; }
         },
         tan: {
             eval: Math.tan,
+            codegen: "Math.tan((",
             tex: "\\tan",
             expand: function() {
                 return Mul.handleDivide(Trig.sin(this.arg), Trig.cos(this.arg));
@@ -1725,6 +1774,7 @@ _.extend(Trig.prototype, {
         },
         csc: {
             eval: function(arg) { return 1 / Math.sin(arg); },
+            codegen: "Math.sin(1/(",
             tex: "\\csc",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.sin(this.arg));
@@ -1732,6 +1782,7 @@ _.extend(Trig.prototype, {
         },
         sec: {
             eval: function(arg) { return 1 / Math.cos(arg); },
+            codegen: "Math.cos(1/(",
             tex: "\\sec",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.cos(this.arg));
@@ -1739,6 +1790,7 @@ _.extend(Trig.prototype, {
         },
         cot: {
             eval: function(arg) { return 1 / Math.tan(arg); },
+            codegen: "Math.tan(1/(",
             tex: "\\cot",
             expand: function() {
                 return Mul.handleDivide(Trig.cos(this.arg), Trig.sin(this.arg));
@@ -1746,26 +1798,32 @@ _.extend(Trig.prototype, {
         },
         arcsin: {
             eval: Math.asin,
+            codegen: "Math.asin((",
             tex: "\\arcsin"
         },
         arccos: {
             eval: Math.acos,
+            codegen: "Math.acos((",
             tex: "\\arccos"
         },
         arctan: {
             eval: Math.atan,
+            codegen: "Math.atan((",
             tex: "\\arctan"
         },
         arccsc: {
             eval: function(arg) { return Math.asin(1 / arg); },
+            codegen: "Math.asin(1/(",
             tex: "\\operatorname{arccsc}"
         },
         arcsec: {
             eval: function(arg) { return Math.acos(1 / arg); },
+            codegen: "Math.acos(1/(",
             tex: "\\operatorname{arcsec}"
         },
         arccot: {
             eval: function(arg) { return Math.atan(1 / arg); },
+            codegen: "Math.atan(1/(",
             tex: "\\operatorname{arccot}"
         }
     },
@@ -1786,6 +1844,11 @@ _.extend(Trig.prototype, {
         var func = this.functions[this.type].eval;
         var arg = this.arg.eval(vars, options);
         return func(arg);
+    },
+
+    codegen: function() {
+        var func = this.functions[this.type].codegen;
+        return func + this.arg.codegen() + "))";
     },
 
     print: function() {
@@ -1900,6 +1963,7 @@ _.extend(Abs.prototype, {
     func: Abs,
     args: function() { return [this.arg]; },
     eval: function(vars, options) { return Math.abs(this.arg.eval(vars, options)); },
+    codegen: function() { return "Math.abs(" + this.arg.codegen() + ")"; },
     print: function() { return "abs(" + this.arg.print() + ")"; },
 
     tex: function() {
@@ -2217,6 +2281,11 @@ _.extend(Func.prototype, {
         return parsedFunc;
     },
 
+    codegen: function() {
+        return 'vars["' + this.symbol + '"](' +
+            this.arg.codegen() + ')';
+    },
+
     getVars: function(excludeFunc) {
         if (excludeFunc) {
             return this.arg.getVars();
@@ -2275,6 +2344,10 @@ _.extend(Var.prototype, {
         return vars[this.prettyPrint()];
     },
 
+    codegen: function() {
+        return 'vars["' + this.prettyPrint() + '"]';
+    },
+
     getVars: function() { return [this.prettyPrint()]; },
 
     isPositive: function() { return false; }
@@ -2295,6 +2368,14 @@ _.extend(Const.prototype, {
             return Math.PI;
         } else if (this.symbol === "e") {
             return Math.E;
+        }
+    },
+
+    codegen: function() {
+        if (this.symbol === "pi") {
+            return "Math.PI";
+        } else if (this.symbol === "e") {
+            return "Math.E";
         }
     },
 
@@ -2410,6 +2491,7 @@ _.extend(Rational.prototype, {
     func: Rational,
     args: function() { return [this.n, this.d]; },
     eval: function() { return this.n / this.d; },
+    codegen: function() { return this.print(); },
 
     print: function() {
         return this.n.toString() + "/" + this.d.toString();
@@ -2534,6 +2616,7 @@ _.extend(Float.prototype, {
     func: Float,
     args: function() { return [this.n]; },
     eval: function() { return this.n; },
+    codegen: function() { return this.n.toString(); },
 
     // TODO(alex): when we internationalize number parsing/display
     // we should make sure to use the appropriate decimal mark here

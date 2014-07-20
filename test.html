@@ -710,6 +710,69 @@
         val("g(1)", -1, {f: "x", g: "-f(x)"}, ["f", "g"]);
     });
 
+    QUnit.module("compilation");
+
+    var compile = function(input, expected, vars, functions) {
+        if (vars === undefined) vars = {};
+        var func = parse(input, {functions: functions}).compile();
+        console.log(func);
+        var result;
+        try {
+            result = func(vars);
+        } catch (e) {
+            throw new Error("invalid function: " + func.toString());
+        }
+        console.log(result, expected);
+        var message = input + " evaluates as " + expected + " by func: " +
+            func.toString();
+        ok(Math.abs(result - expected) < 1e-9, message);
+    };
+
+    test("empty", function() {
+        compile("", 0);
+    });
+
+    test("simple expressions", function() {
+        compile("1+2+3+4", 10);
+        compile("1+2-3+4", 4);
+        compile("1*2*3*4", 24);
+        compile("1*2/3*4", 2 + 2/3);
+        compile("4^3^2^1", 262144);
+        compile("-1", -1);
+        compile("--1", 1);
+        compile("---1", -1);
+        compile("2^-2", .25);
+        compile("8^(1/3)", 2);
+        compile("0^0", 1);
+        compile(".25*4", 1);
+        compile("ln e", 1);
+        compile("log 10", 1);
+        compile("log_2 2", 1);
+    });
+
+    test("variable expressions", function() {
+        compile("x", 3, {x: 3});
+        compile("x^2", 9, {x: 3});
+        compile("(x^2+y^2)^.5", 5, {x: 3, y: 4});
+        compile("log x_0", 1, {x_0: 10});
+        compile("log x_0 + log x_1", 3, {x_0: 10, x_1: 100});
+        compile("log x_42", 1, {x_42: 10});
+        compile("x_a + x_bc", 7, {x_a: 1, x_b: 2, c: 3});
+    });
+
+    test("function expressions", function() {
+        compile("f(2)", 4, {"f": function(x) { return 2 * x; }}, ["f"]);
+        compile("f(4+8)", 48, {"f": function(x) { return 4 * x; }}, ["f"]);
+        compile("f(x-1)-f(x)", -7, {"f": function(x) { return Math.pow(x, 3); }, "x": 2}, ["f"]);
+    });
+
+    test("trig expressions", function() {
+        // Make sure trig functions that are the same for all integer values
+        // are not the same
+        compile("-2sin(pi x) + 4", 4, {x: 32});
+        compile("sin(pi x)", 0, {x: 6});
+    });
+
     QUnit.module("checking form");
 
     var norm = function(input, reference) {

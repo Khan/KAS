@@ -1321,8 +1321,8 @@ Add.prototype = new Seq();
 _.extend(Add.prototype, {
     func: Add,
 
-    eval: function(vars) {
-        return _.reduce(this.terms, function(memo, term) { return memo + term.eval(vars); }, 0);
+    eval: function(vars, options) {
+        return _.reduce(this.terms, function(memo, term) { return memo + term.eval(vars, options); }, 0);
     },
 
     print: function() {
@@ -1446,8 +1446,8 @@ Mul.prototype = new Seq();
 _.extend(Mul.prototype, {
     func: Mul,
 
-    eval: function(vars) {
-        return _.reduce(this.terms, function(memo, term) { return memo * term.eval(vars); }, 1);
+    eval: function(vars, options) {
+        return _.reduce(this.terms, function(memo, term) { return memo * term.eval(vars, options); }, 1);
     },
 
     print: function() {
@@ -2064,8 +2064,8 @@ _.extend(Pow.prototype, {
     func: Pow,
     args: function() { return [this.base, this.exp]; },
 
-    eval: function(vars) {
-        return Math.pow(this.base.eval(vars), this.exp.eval(vars));
+    eval: function(vars, options) {
+        return Math.pow(this.base.eval(vars, options), this.exp.eval(vars, options));
     },
 
     print: function() {
@@ -2396,8 +2396,8 @@ _.extend(Log.prototype, {
     func: Log,
     args: function() { return [this.base, this.power]; },
 
-    eval: function(vars) {
-        return Math.log(this.power.eval(vars)) / Math.log(this.base.eval(vars));
+    eval: function(vars, options) {
+        return Math.log(this.power.eval(vars, options)) / Math.log(this.base.eval(vars, options));
     },
 
     print: function() {
@@ -2586,9 +2586,9 @@ _.extend(Trig.prototype, {
         return _.contains(["sin", "cos"], this.type);
     },
 
-    eval: function(vars) {
+    eval: function(vars, options) {
         var func = this.functions[this.type].eval;
-        var arg = this.arg.eval(vars);
+        var arg = this.arg.eval(vars, options);
         return func(arg);
     },
 
@@ -2703,7 +2703,7 @@ Abs.prototype = new Expr();
 _.extend(Abs.prototype, {
     func: Abs,
     args: function() { return [this.arg]; },
-    eval: function(vars) { return Math.abs(this.arg.eval(vars)); },
+    eval: function(vars, options) { return Math.abs(this.arg.eval(vars, options)); },
     print: function() { return "abs(" + this.arg.print() + ")"; },
 
     tex: function() {
@@ -3007,13 +3007,18 @@ _.extend(Func.prototype, {
         return this.symbol + "(" + this.arg.tex() + ")";
     },
 
-    eval: function(vars) {
+    eval: function(vars, options) {
         var arg = this.arg;
         var func = vars[this.symbol];
-        var newVars = _.extend(vars, {
-            x: arg.eval(vars)
+        var newVars = _.extend(_.clone(vars), {
+            x: arg.eval(vars, options)
         });
-        return KAS.parse(func).expr.eval(newVars);
+        var parsedFunc = KAS.parse(func, options);
+        if (parsedFunc.parsed) {
+            return parsedFunc.expr.eval(newVars, options);
+        }
+        // If parsedFunc isn't actually parsed, return its error
+        return parsedFunc;
     },
 
     getVars: function(excludeFunc) {
@@ -3070,7 +3075,7 @@ _.extend(Var.prototype, {
 
     repr: function() { return "Var(" + this.print() + ")"; },
 
-    eval: function(vars) {
+    eval: function(vars, options) {
         return vars[this.prettyPrint()];
     },
 
@@ -3089,7 +3094,7 @@ _.extend(Const.prototype, {
     args: function() { return [this.symbol]; },
     recurse: function() { return this; },
 
-    eval: function(vars) {
+    eval: function(vars, options) {
         if (this.symbol === "pi") {
             return Math.PI;
         } else if (this.symbol === "e") {

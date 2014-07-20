@@ -668,7 +668,7 @@
     var val = function(input, expected, vars, functions) {
         if (vars === undefined) vars = {};
         var message = input + " evaluates as " + expected;
-        strictEqual(parse(input, {functions: functions}).eval(vars), expected, message);
+        strictEqual(parse(input, {functions: functions}).eval(vars, {functions: functions}), expected, message);
     };
 
     test("empty", function() {
@@ -707,6 +707,7 @@
         val("f(2)", 4, {"f": "2x"}, ["f"]);
         val("f(4+8)", 48, {"f": "4x"}, ["f"]);
         val("f(x-1)-f(x)", -7, {"f": "x^3", "x": 2}, ["f"]);
+        val("g(1)", -1, {f: "x", g: "-f(x)"}, ["f", "g"]);
     });
 
     QUnit.module("checking form");

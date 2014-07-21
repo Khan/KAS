@@ -1,4 +1,5 @@
 /*! KAS | https://github.com/Khan/KAS */
+// This is a @generated file
 window.KAS = {};
 (function(KAS) {
 

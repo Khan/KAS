@@ -169,7 +169,8 @@ var grammar = {
     }
 };
 
-var prelude = "window.KAS = {};\n(function(KAS) {\n\n";
+var prelude = "// This is a @gene" + "rated file\n" +
+              "window.KAS = {};\n(function(KAS) {\n\n";
 var parser = (new jison.Parser(grammar)).generate({moduleType: "js"});
 var postlude = "\n\nKAS.parser = parser;\n})(KAS);";
 

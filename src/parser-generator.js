@@ -16,6 +16,7 @@ var grammar = {
             ["\\*",                 "return \"*\""],
             ["\\\\cdot|\u00b7",     "return \"*\""],
             ["\\\\times|\u00d7",    "return \"*\""],
+            ["\\\\ast",             "return \"*\""],
             ["\\/",                 "return \"/\""],
             ["-",                   "return \"-\""],
             ["\u2212",              "return \"-\""],    // minus
@@ -41,6 +42,7 @@ var grammar = {
             ["\\\\geq",             "yytext = \">=\"; return \"SIGN\""],
             ["=\\/=",               "yytext = \"<>\"; return \"SIGN\""],
             ["\\\\ne",              "yytext = \"<>\"; return \"SIGN\""],
+            ["\\\\neq",             "yytext = \"<>\"; return \"SIGN\""],
             ["\u2260",              "yytext = \"<>\"; return \"SIGN\""],    // ne
             ["\u2264",              "yytext = \"<=\"; return \"SIGN\""],    // le
             ["\u2265",              "yytext = \">=\"; return \"SIGN\""],    // ge
@@ -52,6 +54,8 @@ var grammar = {
             ["log|\\\\log",         "return \"log\""],
             ["sin|cos|tan",         "return \"TRIG\""],
             ["csc|sec|cot",         "return \"TRIG\""],
+            ["sinh|cosh|tanh",      "return \"TRIG\""],
+            ["csch|sech|coth",      "return \"TRIG\""],
             ["\\\\sin",             "yytext = \"sin\"; return \"TRIG\""],
             ["\\\\cos",             "yytext = \"cos\"; return \"TRIG\""],
             ["\\\\tan",             "yytext = \"tan\"; return \"TRIG\""],
@@ -66,6 +70,12 @@ var grammar = {
             ["\\\\arccot",          "yytext = \"arccot\"; return \"TRIG\""],
             ["arcsin|arccos|arctan","return \"TRIGINV\""],
             ["arccsc|arcsec|arccot","return \"TRIGINV\""],
+            ["\\\\sinh",            "yytext = \"sinh\"; return \"TRIG\""],
+            ["\\\\cosh",            "yytext = \"cosh\"; return \"TRIG\""],
+            ["\\\\tanh",            "yytext = \"tanh\"; return \"TRIG\""],
+            ["\\\\csch",            "yytext = \"csch\"; return \"TRIG\""],
+            ["\\\\sech",            "yytext = \"sech\"; return \"TRIG\""],
+            ["\\\\coth",            "yytext = \"tanh\"; return \"TRIG\""],
             ["pi",                  "return \"CONST\""],
             ["\u03C0",              "yytext = \"pi\"; return \"CONST\""],   // pi
             ["\\\\pi",              "yytext = \"pi\"; return \"CONST\""],

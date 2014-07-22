@@ -7,6 +7,7 @@
     <!-- Include QUnit -->
     <link rel="stylesheet" href="node_modules/qunit/support/qunit/qunit/qunit.css" type="text/css" media="screen">
     <script src="node_modules/qunit/support/qunit/qunit/qunit.js"></script>
+    <script src="node_modules/qunit/support/qunit/addons/close-enough/qunit-close-enough.js"></script>
 
     <!-- Include Underscore -->
     <script src="node_modules/underscore/underscore.js"></script>
@@ -43,12 +44,12 @@
 
     var print = function(input, expected, options) {
         var message = input + " parses as " + expected;
-        strictEqual(parse(input, options).print(), expected, message);
+        QUnit.close(parse(input, options).print(), expected, 1e-9, message);
     };
 
     test("empty", function() {
         print("", "");
-    })
+    });
 
     test("positive and negative primitives", function() {
         print("0", "0");
@@ -191,6 +192,7 @@
         print("a\u00d7b", "a*b");
         print("a\\cdotb", "a*b");
         print("a\\timesb", "a*b");
+        print("a\\astb", "a*b");
     })
 
     test("division", function() {
@@ -351,6 +353,12 @@
         print("\\sin(\\theta)", "sin(theta)");
     });
 
+    test("hyperbolic functions", function() {
+        print("sinh xy", "sinh(x*y)");
+        print("1/(sinhx)^2", "sinh(x)^(-2)");
+        print("\\sinh(\\theta)", "sinh(theta)");
+    });
+
     test("formulas", function() {
         print("mx+b", "m*x+b");
         print("v^2/r", "v^(2)*r^(-1)");
@@ -383,6 +391,7 @@
         print("1<>2", "1<>2");
         print("1=/=2", "1<>2");
         print("1\\ne2", "1<>2");
+        print("1\\neq2", "1<>2");
         print("a\u2260b", "a<>b");
         print("a\u2264b", "a<=b");
         print("a\u2265b", "a>=b");
@@ -435,6 +444,7 @@
         repr("f(x+y)", "Mul(Var(f),Add(Var(x),Var(y)))");
         repr("f(x+y)", "Func(f,Add(Var(x),Var(y)))", {functions: ["f"]});
         repr("sin(theta)", "Trig(sin,Var(theta))");
+        repr("tanh(theta)", "Trig(tanh,Var(theta))");
 
         // verify that negative signs get folded into numbers
         repr("-x*3", "Mul(Var(x),-3)");
@@ -565,6 +575,11 @@
         tex("sin^2 x + cos^2 x = 1", "\\sin^{2}(x)+\\cos^{2}(x) = 1");
     });
 
+    test("hyperbolic functions", function() {
+        tex("sinhx", "\\sinh(x)");
+        tex("sinh^2 x", "\\sinh^{2}(x)");
+    });
+
     test("multiplication with numbers", function() {
         tex("4*10", "4 \\cdot 10");
         tex("10^5", "10^{5}");
@@ -691,6 +706,12 @@
         val("ln e", 1);
         val("log 10", 1);
         val("log_2 2", 1);
+    });
+
+    test("hyperbolic expressions", function() {
+        val("cosh(0.2)", 1.0200667556190757);
+        val("coth(0.2)", 5.06648956343947);
+        val("csch(3 * 2)", 0.004957534813479361);
     });
 
     test("variable expressions", function() {
@@ -945,6 +966,11 @@
         comp("arccsc x", "arcsin (1/x)");
         comp("arcsec x", "arccos (1/x)");
         comp("arccot x", "arctan (1/x)");
+
+        // Reciprocal hyperbolic trig functions
+        comp("csch x", "1/sinh x");
+        comp("sech x", "1/cosh x");
+        comp("coth x", "1/tanh x");
 
         // Make sure trig functions that are the same for all integer values
         // are not the same
@@ -1227,6 +1253,15 @@
         expand("csc(x)", "1/sin(x)");
         expand("sec(x)", "1/cos(x)");
         expand("cot(x)", "cos(x)/sin(x)");
+    });
+
+    test("expand hyperbolic functions", function() {
+        expand("sinh(x)", "sinh(x)");
+        expand("cosh(x)", "cosh(x)");
+        expand("tanh(x)", "sinh(x)/cosh(x)");
+        expand("csch(x)", "1/sinh(x)");
+        expand("sech(x)", "1/cosh(x)");
+        expand("coth(x)", "cosh(x)/sinh(x)");
     });
 
     var collect = function(input, reference) {

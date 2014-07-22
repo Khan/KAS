@@ -1443,7 +1443,7 @@ _.extend(Pow.prototype, {
                 var decimalsInBase = pow.base.getDecimalPlaces();
                 var root = new Pow(pow.base, new Rational(1, exp.d));
                 var decimalsInRoot = root.collect().getDecimalPlaces();
-                                        
+
                 if (decimalsInRoot > decimalsInBase) {
                     // Collecting over this denominator would result in an
                     // imprecise float, so avoid doing so.
@@ -1451,7 +1451,7 @@ _.extend(Pow.prototype, {
                     return new Pow(newBase, new Rational(1, exp.d));
                 }
             }
-            
+
             // e.g. 4^1.5 -> 8
             return pow.base.raiseToThe(pow.exp, options);
         } else {
@@ -1767,7 +1767,53 @@ _.extend(Trig.prototype, {
         arccot: {
             eval: function(arg) { return Math.atan(1 / arg); },
             tex: "\\operatorname{arccot}"
-        }
+        },
+        sinh: {
+            eval: function(arg) {
+                return (Math.exp(arg) - Math.exp(-arg)) / 2;
+            },
+            tex: "\\sinh",
+            expand: function() { return this; }
+        },
+        cosh: {
+            eval: function(arg) {
+                return (Math.exp(arg) + Math.exp(-arg)) / 2;
+            },
+            tex: "\\cosh",
+            expand: function() { return this; }
+        },
+        tanh: {
+            eval: function(arg) {
+                return (Math.exp(arg) - Math.exp(-arg)) / (Math.exp(arg) + Math.exp(-arg));
+            },
+            tex: "\\tanh",
+            expand: function() {
+                return Mul.handleDivide(Trig.sinh(this.arg), Trig.cosh(this.arg));
+            }
+        },
+        csch: {
+            eval: function(arg) { return 2 / (Math.exp(arg) - Math.exp(-arg)); },
+            tex: "\\csch",
+            expand: function() {
+                return Mul.handleDivide(Num.One, Trig.sinh(this.arg));
+            }
+        },
+        sech: {
+            eval: function(arg) { return 2 / (Math.exp(arg) + Math.exp(-arg)); },
+            tex: "\\sech",
+            expand: function() {
+                return Mul.handleDivide(Num.One, Trig.cosh(this.arg));
+            }
+        },
+        coth: {
+            eval: function(arg) {
+                return (Math.exp(arg) + Math.exp(-arg)) / (Math.exp(arg) - Math.exp(-arg));
+            },
+            tex: "\\coth",
+            expand: function() {
+                return Mul.handleDivide(Trig.cosh(this.arg), Trig.sinh(this.arg));
+            }
+        },
     },
 
     isEven: function() {
@@ -1889,6 +1935,14 @@ _.extend(Trig, {
 
     cos: function(arg) {
         return new Trig("cos", arg);
+    },
+
+    sinh: function(arg) {
+        return new Trig("sinh", arg);
+    },
+
+    cosh: function(arg) {
+        return new Trig("cosh", arg);
     }
 });
 
@@ -2545,7 +2599,7 @@ _.extend(Float.prototype, {
             return Float.toDecimalPlaces(
                 this.n + num.eval(),
                 Math.max(this.getDecimalPlaces(), num.getDecimalPlaces())
-            );    
+            );
         } else {
             return new Float(this.n + num.eval()).collect();
         }
@@ -2556,7 +2610,7 @@ _.extend(Float.prototype, {
             return Float.toDecimalPlaces(
                 this.n * num.eval(),
                 this.getDecimalPlaces() + num.getDecimalPlaces()
-            );    
+            );
         } else {
             return new Float(this.n * num.eval()).collect();
         }

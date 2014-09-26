@@ -26,7 +26,7 @@
     "underscore": "~1.5.1"
   },
   "devDependencies": {
-    "jison": "~0.4.4",
+    "jison": "0.4.13",
     "qunit": "~0.5.16",
     "grunt": "~0.4.0",
     "grunt-contrib-concat": "~0.1.3",

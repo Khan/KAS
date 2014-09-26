@@ -67,6 +67,7 @@
                     addInfo(out, "JSON Representation:", "<pre class='code'>"
                         + JSON.stringify(parsed, null, 2)
                         + "</pre>");
+                    addInfo(out, "Compiled", parsed.compile().toString());
                 }
             };
         </script>

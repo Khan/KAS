@@ -857,7 +857,9 @@ KAS.parser = parser;
 
 // assert that all abstract methods have been overridden
 var abstract = function() {
-    throw new Error("Abstract method - must override!");
+    // Try to give people a bit of information when this happens
+    throw new Error("Abstract method - must override for expr: " +
+            this.print());
 };
 
 // throw an error that is meant to be caught by the test suite (not user facing)
@@ -907,6 +909,17 @@ _.extend(Expr.prototype, {
 
     // evaluate numerically with given variable mapping
     eval: abstract,
+
+    codegen: abstract,
+
+    compile: function() {
+        var code = this.codegen();
+        try {
+            return new Function("vars", "return " + code + ";");
+        } catch (e) {
+            throw new Error("Function did not compile: " + code);
+        }
+    },
 
     // returns a string unambiguously representing the expression
     // should be valid as input
@@ -1346,6 +1359,12 @@ _.extend(Add.prototype, {
         return _.reduce(this.terms, function(memo, term) { return memo + term.eval(vars, options); }, 0);
     },
 
+    codegen: function() {
+        return _.map(this.terms, function(term) {
+            return "(" + term.codegen() + ")";
+        }).join(" + ") || "0";
+    },
+
     print: function() {
         return _.invoke(this.terms, "print").join("+");
     },
@@ -1469,6 +1488,12 @@ _.extend(Mul.prototype, {
 
     eval: function(vars, options) {
         return _.reduce(this.terms, function(memo, term) { return memo * term.eval(vars, options); }, 1);
+    },
+
+    codegen: function() {
+        return _.map(this.terms, function(term) {
+            return "(" + term.codegen() + ")";
+        }).join(" * ") || "0";
     },
 
     print: function() {
@@ -2089,6 +2114,11 @@ _.extend(Pow.prototype, {
         return Math.pow(this.base.eval(vars, options), this.exp.eval(vars, options));
     },
 
+    codegen: function() {
+        return "Math.pow(" + this.base.codegen() +
+            ", " + this.exp.codegen() + ")";
+    },
+
     print: function() {
         var base = this.base.print();
         if (this.base instanceof Seq || this.base instanceof Pow) {
@@ -2421,6 +2451,11 @@ _.extend(Log.prototype, {
         return Math.log(this.power.eval(vars, options)) / Math.log(this.base.eval(vars, options));
     },
 
+    codegen: function() {
+        return "(Math.log(" + this.power.codegen() +
+            ") / Math.log(" + this.base.codegen() + "))";
+    },
+
     print: function() {
         var power = "(" + this.power.print() + ")";
         if (this.isNatural()) {
@@ -2533,16 +2568,19 @@ _.extend(Trig.prototype, {
     functions: {
         sin: {
             eval: Math.sin,
+            codegen: "Math.sin((",
             tex: "\\sin",
             expand: function() { return this; }
         },
         cos: {
             eval: Math.cos,
+            codegen: "Math.cos((",
             tex: "\\cos",
             expand: function() { return this; }
         },
         tan: {
             eval: Math.tan,
+            codegen: "Math.tan((",
             tex: "\\tan",
             expand: function() {
                 return Mul.handleDivide(Trig.sin(this.arg), Trig.cos(this.arg));
@@ -2550,6 +2588,7 @@ _.extend(Trig.prototype, {
         },
         csc: {
             eval: function(arg) { return 1 / Math.sin(arg); },
+            codegen: "(1/Math.sin(",
             tex: "\\csc",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.sin(this.arg));
@@ -2557,6 +2596,7 @@ _.extend(Trig.prototype, {
         },
         sec: {
             eval: function(arg) { return 1 / Math.cos(arg); },
+            codegen: "(1/Math.cos(",
             tex: "\\sec",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.cos(this.arg));
@@ -2564,6 +2604,7 @@ _.extend(Trig.prototype, {
         },
         cot: {
             eval: function(arg) { return 1 / Math.tan(arg); },
+            codegen: "(1/Math.tan(",
             tex: "\\cot",
             expand: function() {
                 return Mul.handleDivide(Trig.cos(this.arg), Trig.sin(this.arg));
@@ -2571,31 +2612,40 @@ _.extend(Trig.prototype, {
         },
         arcsin: {
             eval: Math.asin,
+            codegen: "Math.asin((",
             tex: "\\arcsin"
         },
         arccos: {
             eval: Math.acos,
+            codegen: "Math.acos((",
             tex: "\\arccos"
         },
         arctan: {
             eval: Math.atan,
+            codegen: "Math.atan((",
             tex: "\\arctan"
         },
         arccsc: {
             eval: function(arg) { return Math.asin(1 / arg); },
+            codegen: "Math.asin(1/(",
             tex: "\\operatorname{arccsc}"
         },
         arcsec: {
             eval: function(arg) { return Math.acos(1 / arg); },
+            codegen: "Math.acos(1/(",
             tex: "\\operatorname{arcsec}"
         },
         arccot: {
             eval: function(arg) { return Math.atan(1 / arg); },
+            codegen: "Math.atan(1/(",
             tex: "\\operatorname{arccot}"
         },
         sinh: {
             eval: function(arg) {
                 return (Math.exp(arg) - Math.exp(-arg)) / 2;
+            },
+            codegen: function(argStr) {
+                return "((Math.exp(" + argStr + ") - Math.exp(-(" + argStr + "))) / 2)";
             },
             tex: "\\sinh",
             expand: function() { return this; }
@@ -2604,12 +2654,22 @@ _.extend(Trig.prototype, {
             eval: function(arg) {
                 return (Math.exp(arg) + Math.exp(-arg)) / 2;
             },
+            codegen: function(argStr) {
+                return "((Math.exp(" + argStr + ") + Math.exp(-(" + argStr + "))) / 2)";
+            },
             tex: "\\cosh",
             expand: function() { return this; }
         },
         tanh: {
             eval: function(arg) {
                 return (Math.exp(arg) - Math.exp(-arg)) / (Math.exp(arg) + Math.exp(-arg));
+            },
+            codegen: function(argStr) {
+                return "(" +
+                    "(Math.exp(" + argStr + ") - Math.exp(-(" + argStr + ")))" +
+                    " / " +
+                    "(Math.exp(" + argStr + ") + Math.exp(-(" + argStr + ")))" +
+                    ")";
             },
             tex: "\\tanh",
             expand: function() {
@@ -2618,6 +2678,9 @@ _.extend(Trig.prototype, {
         },
         csch: {
             eval: function(arg) { return 2 / (Math.exp(arg) - Math.exp(-arg)); },
+            codegen: function(argStr) {
+                return "(2 / (Math.exp(" + argStr + ") - Math.exp(-(" + argStr + "))))";
+            },
             tex: "\\csch",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.sinh(this.arg));
@@ -2625,6 +2688,9 @@ _.extend(Trig.prototype, {
         },
         sech: {
             eval: function(arg) { return 2 / (Math.exp(arg) + Math.exp(-arg)); },
+            codegen: function(argStr) {
+                return "(2 / (Math.exp(" + argStr + ") + Math.exp(-(" + argStr + "))))";
+            },
             tex: "\\sech",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.cosh(this.arg));
@@ -2633,6 +2699,13 @@ _.extend(Trig.prototype, {
         coth: {
             eval: function(arg) {
                 return (Math.exp(arg) + Math.exp(-arg)) / (Math.exp(arg) - Math.exp(-arg));
+            },
+            codegen: function(argStr) {
+                return "(" +
+                    "(Math.exp(" + argStr + ") + Math.exp(-(" + argStr + ")))" +
+                    " / " +
+                    "(Math.exp(" + argStr + ") - Math.exp(-(" + argStr + ")))" +
+                    ")";
             },
             tex: "\\coth",
             expand: function() {
@@ -2657,6 +2730,17 @@ _.extend(Trig.prototype, {
         var func = this.functions[this.type].eval;
         var arg = this.arg.eval(vars, options);
         return func(arg);
+    },
+
+    codegen: function() {
+        var func = this.functions[this.type].codegen;
+        if (typeof func === "function") {
+            return func(this.arg.codegen());
+        } else if (typeof func === "string") {
+            return func + this.arg.codegen() + "))";
+        } else {
+            throw new Error("codegen not implemented for " + this.type);
+        }
     },
 
     print: function() {
@@ -2779,6 +2863,7 @@ _.extend(Abs.prototype, {
     func: Abs,
     args: function() { return [this.arg]; },
     eval: function(vars, options) { return Math.abs(this.arg.eval(vars, options)); },
+    codegen: function() { return "Math.abs(" + this.arg.codegen() + ")"; },
     print: function() { return "abs(" + this.arg.print() + ")"; },
 
     tex: function() {
@@ -3096,6 +3181,11 @@ _.extend(Func.prototype, {
         return parsedFunc;
     },
 
+    codegen: function() {
+        return 'vars["' + this.symbol + '"](' +
+            this.arg.codegen() + ')';
+    },
+
     getVars: function(excludeFunc) {
         if (excludeFunc) {
             return this.arg.getVars();
@@ -3154,6 +3244,10 @@ _.extend(Var.prototype, {
         return vars[this.prettyPrint()];
     },
 
+    codegen: function() {
+        return 'vars["' + this.prettyPrint() + '"]';
+    },
+
     getVars: function() { return [this.prettyPrint()]; },
 
     isPositive: function() { return false; }
@@ -3174,6 +3268,14 @@ _.extend(Const.prototype, {
             return Math.PI;
         } else if (this.symbol === "e") {
             return Math.E;
+        }
+    },
+
+    codegen: function() {
+        if (this.symbol === "pi") {
+            return "Math.PI";
+        } else if (this.symbol === "e") {
+            return "Math.E";
         }
     },
 
@@ -3212,6 +3314,7 @@ _.extend(Num.prototype, {
     repr: function() { return this.print(); },
     strip: function() { return this.abs(); },
     recurse: function() { return this; },
+    codegen: function() { return this.print(); },
 
     // takes another Num and returns a new Num
     add: abstract,

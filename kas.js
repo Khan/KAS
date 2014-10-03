@@ -1000,10 +1000,26 @@ _.extend(Expr.prototype, {
             once: false
         }, options);
 
-        var simplified = this.factor(options)
-                             .collect(options)
-                             .expand(options)
-                             .collect(options);
+        // Attempt to factor and collect
+        var step1 = this.factor(options);
+        var step2 = step1.collect(options);
+
+        // Rollback if collect didn't do anything
+        if (step1.equals(step2)) {
+            step2 = this.collect(options);
+        }
+
+        // Attempt to expand and collect
+        var step3 = step2.expand(options);
+        var step4 = step3.collect(options);
+
+        // Rollback if collect didn't do anything
+        if (step3.equals(step4)) {
+            step4 = step2.collect(options);
+        }
+
+        // One round of simplification complete
+        var simplified = step4;
 
         if (options.once || this.equals(simplified)) {
             return simplified;
@@ -1247,10 +1263,6 @@ _.extend(Seq.prototype, {
 
     expand: function() {
         return this.recurse("expand").flatten();
-    },
-
-    factor: function(options) {
-        return this.recurse("factor", options).flatten();
     },
 
     // partition the sequence into its numeric and non-numeric parts
@@ -1662,6 +1674,33 @@ _.extend(Mul.prototype, {
         }
 
         return new Mul(normals.concat(inverses)).flatten();
+    },
+
+    factor: function(options) {
+        var factored = this.recurse("factor", options).flatten();
+        if (! (factored instanceof Mul)) {
+            return factored;
+        }
+
+        // Combine any factored out Rationals into one, but don't collect
+        var grouped = _.groupBy(factored.terms, function(term) {
+            return term instanceof Rational;
+        });
+
+        // Could also accomplish this by passing a new option
+        // e.g. return  memo.mul(term, {autocollect: false});
+        // TODO(alex): Decide whether this is a good use of options or not
+        var rational = _.reduce(grouped[true], function(memo, term) {
+            return {n: memo.n * term.n, d: memo.d * term.d};
+        }, {n: 1, d: 1});
+
+        if (rational.d === 1) {
+            rational = new Int(rational.n);
+        } else {
+            rational = new Rational(rational.n, rational.d);
+        }
+
+        return new Mul((grouped[false] || []).concat(rational)).flatten();
     },
 
     collect: function(options) {
@@ -2228,7 +2267,13 @@ _.extend(Pow.prototype, {
         var pow = this.recurse("factor");
         if (pow.base instanceof Mul) {
             var terms = _.map(pow.base.terms, function(term) {
-                return new Pow(term, pow.exp);
+                if (term instanceof Int && pow.exp.equals(Num.Div)) {
+                    // Anything that can be a Rational should be a Rational
+                    // e.g. 2^(-1) -> 1/2
+                    return new Rational(1, term.n);
+                } else {
+                    return new Pow(term, pow.exp);
+                }
             });
             return new Mul(terms);
         } else {
@@ -3023,11 +3068,13 @@ _.extend(Eq.prototype, {
 
     // divide through by every common factor in the expression
     // e.g. 2y-4x(=0) -> y-2x(=0)
+    // TODO(alex): Make it an option to only divide by variables/expressions
+    // guaranteed to be nonzero
     divideThrough: function(expr) {
         var isInequality = !this.isEquality();
 
-        var factored = expr.simplify({once: true})
-                           .factor({keepNegative: isInequality});
+        var simplified = expr.simplify({once: true});
+        var factored = simplified.factor({keepNegative: isInequality});
 
         if (!(factored instanceof Mul)) {
             return expr;
@@ -3070,7 +3117,15 @@ _.extend(Eq.prototype, {
             return new Pow(term, Num.Div);
         });
 
-        return new Mul(terms.concat(denominator)).collect();
+        var dividedResult = new Mul(terms.concat(denominator)).collect();
+
+        // If the end result is the same as the original factoring,
+        // rollback the factoring and discard all intermediate steps.
+        if (dividedResult.equals(factored)) {
+            return simplified;
+        } else {
+            return dividedResult;
+        }
     },
 
     isEquality: function() {

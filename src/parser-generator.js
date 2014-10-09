@@ -18,6 +18,7 @@ var grammar = {
             ["\\\\times|\u00d7",    "return \"*\""],
             ["\\\\ast",             "return \"*\""],
             ["\\/",                 "return \"/\""],
+            ["\\\\div|\u00F7",      "return \"/\""],
             ["-",                   "return \"-\""],
             ["\u2212",              "return \"-\""],    // minus
             ["\\+",                 "return \"+\""],

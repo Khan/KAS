@@ -3783,6 +3783,20 @@ KAS.parse = function(input, options) {
     }
 };
 
+KAS.Add = Add;
+KAS.Mul = Mul;
+KAS.Pow = Pow;
+KAS.Log = Log;
+KAS.Eq = Eq;
+KAS.Trig = Trig;
+KAS.Abs = Abs;
+KAS.Func = Func;
+KAS.Var = Var;
+KAS.Const = Const;
+KAS.Rational = Rational;
+KAS.Int = Int;
+KAS.Float = Float;
+
 })(KAS);
 
 (function(KAS) {

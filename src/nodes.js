@@ -15,6 +15,7 @@
             Func        1 child     e.g. f(x)
             Var         leaf node   e.g. x, x_n
             Const       leaf node   e.g. pi, e, <i>
+            Unit        leaf node   e.g. kg
         (Num)           leaf node
             Rational                e.g. 2/3
                 Int
@@ -303,7 +304,7 @@ _.extend(Expr.prototype, {
         };
 
         // if no variables, only need to evaluate once
-        if (!varList.length) {
+        if (!varList.length && !this.has(Unit) && !other.has(Unit)) {
             return equalNumbers(this.eval(), other.eval());
         }
 
@@ -324,7 +325,9 @@ _.extend(Expr.prototype, {
             });
 
             var equal;
-            if (expr1.has(Func) || expr2.has(Func)) {
+            if (expr1.has(Func) || expr2.has(Func) ||
+                    expr1.has(Unit) || expr2.has(Unit)) {
+
                 var result1 = expr1.partialEval(vars);
                 var result2 = expr2.partialEval(vars);
 
@@ -346,7 +349,9 @@ _.extend(Expr.prototype, {
 
     // evaluate as much of the expression as possible
     partialEval: function(vars) {
-        if (!this.has(Func)) {
+        if (this instanceof Unit) {
+            return this;
+        } else if (!this.has(Func)) {
             return new Float(this.eval(vars).toFixed(TOLERANCE)).collect();
         } else if (this instanceof Func) {
             return new Func(this.symbol, this.arg.partialEval(vars));
@@ -2536,6 +2541,44 @@ Const.e = new Const("e");
 Const.pi = new Const("pi");
 
 
+/* unit */
+function Unit(symbol) { this.symbol = symbol; }
+Unit.prototype = new Symbol();
+
+_.extend(Unit.prototype, {
+    func: Unit,
+    args: function() { return [this.symbol]; },
+    recurse: function() { return this; },
+
+    eval: function(vars, options) {
+        debugger;
+        return 1;
+    },
+
+    codegen: function() {
+        debugger;
+    },
+
+    print: function() { return this.symbol; },
+
+    tex: function() {
+        debugger;
+        return this.symbol;
+    },
+
+    collect: function(options) {
+        // Convert all units into the following SI base units:
+        // m, kg, s, A, K, cd, mol
+
+        // TODO(joel): Parse out SI prefixes, then add more logic here
+        if (this.symbol === 'g') {
+            return new Mul(new Unit('kg'), new Rational(1, 1000));
+        } else if (this.symbol === 'kg') {
+            return this;
+        }
+    }
+});
+
 /* abstract number node */
 function Num() {}
 Num.prototype = new Expr();
@@ -2966,6 +3009,7 @@ KAS.Abs = Abs;
 KAS.Func = Func;
 KAS.Var = Var;
 KAS.Const = Const;
+KAS.Unit = Unit;
 KAS.Rational = Rational;
 KAS.Int = Int;
 KAS.Float = Float;

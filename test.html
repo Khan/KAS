@@ -1496,6 +1496,13 @@
         simplify("-1*(1/3+x)", "-1*x+-1/3");
     });
 
+    test("simplify expressions with units", function() {
+        var x = new KAS.Mul(new KAS.Int(10), new KAS.Unit('g'));
+        var y = x.simplify();
+        strictEqual(y.print(), "1/100*kg", "10 g should simplify to 1/100 kg");
+        ok(KAS.compare(x, y));
+    });
+
     var isSimplified = function(input, expectedResult, options) {
         if (expectedResult === undefined) expectedResult = true;
         var message = input + (expectedResult ? " is " : " is NOT ") + "simplified";

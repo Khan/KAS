@@ -452,6 +452,9 @@ _.extend(Seq.prototype, {
             return term instanceof Num;
         });
 
+        // XXX using a boolean as a key just converts it to a string. I don't
+        // think this code was written with that in mind. Probably doesn't
+        // matter except for readability.
         var numbers = terms[true] || [];
         var others = terms[false] || [];
 
@@ -931,6 +934,7 @@ _.extend(Mul.prototype, {
             }
         }));
 
+        // XXX `pairs` is shadowed four or five times in this function
         var pairs = _.groupBy(summed, function(pair) {
             if (pair[0] instanceof Trig && pair[0].isBasic()) {
                 return "trig";
@@ -2541,44 +2545,6 @@ Const.e = new Const("e");
 Const.pi = new Const("pi");
 
 
-/* unit */
-function Unit(symbol) { this.symbol = symbol; }
-Unit.prototype = new Symbol();
-
-_.extend(Unit.prototype, {
-    func: Unit,
-    args: function() { return [this.symbol]; },
-    recurse: function() { return this; },
-
-    eval: function(vars, options) {
-        debugger;
-        return 1;
-    },
-
-    codegen: function() {
-        debugger;
-    },
-
-    print: function() { return this.symbol; },
-
-    tex: function() {
-        debugger;
-        return this.symbol;
-    },
-
-    collect: function(options) {
-        // Convert all units into the following SI base units:
-        // m, kg, s, A, K, cd, mol
-
-        // TODO(joel): Parse out SI prefixes, then add more logic here
-        if (this.symbol === 'g') {
-            return new Mul(new Unit('kg'), new Rational(1, 1000));
-        } else if (this.symbol === 'kg') {
-            return this;
-        }
-    }
-});
-
 /* abstract number node */
 function Num() {}
 Num.prototype = new Expr();
@@ -2999,6 +2965,297 @@ KAS.parse = function(input, options) {
     }
 };
 
+/* unit */
+function Unit(symbol) {
+    // XXX split into prefix and unit
+    this.symbol = symbol;
+}
+Unit.prototype = new Symbol();
+
+_.extend(Unit.prototype, {
+    func: Unit,
+    args: function() { return [this.symbol]; },
+    recurse: function() { return this; },
+
+    eval: function(vars, options) {
+        // This is called when comparing units. A unit doesn't affect the
+        // numerical value of its coefficient, so this needs to be 1.
+        //
+        // On the other hand, things must not evaluate to the same thing if
+        // they don't have the same type. I believe that's also true - form is
+        // checked before numerical equivalence. I do not know where, though.
+        // However, there are a couple tests checking this.
+        return 1;
+    },
+
+    codegen: function() { return "1"; },
+
+    print: function() { return this.symbol; },
+
+    tex: function() { return this.symbol; },
+
+    collect: function(options) {
+        return unitCollect(this.symbol);
+    },
+});
+
+var meter = new Unit("m");
+var gram = new Unit("g");
+var second = new Unit("s");
+var ampere = new Unit("A");
+var kelvin = new Unit("K");
+var mole = new Unit("mol");
+var candela = new Unit("cd");
+
+var baseUnits = {
+    m: meter,
+    g: gram,
+    s: second,
+    A: ampere,
+    K: kelvin,
+    mol: mole,
+    cd: candela,
+};
+
+var siPrefixes = {
+    a: new Pow(new Int(10), new Int(-18)),
+    f: new Pow(new Int(10), new Int(-15)),
+    p: new Pow(new Int(10), new Int(-12)),
+    n: new Pow(new Int(10), new Int(-9)),
+    u: new Pow(new Int(10), new Int(-6)),
+    m: new Pow(new Int(10), new Int(-3)),
+    c: new Pow(new Int(10), new Int(-2)),
+    d: new Pow(new Int(10), new Int(-1)),
+    da: new Int(10),
+    h: new Pow(new Int(10), new Int(2)),
+    k: new Pow(new Int(10), new Int(3)),
+    M: new Pow(new Int(10), new Int(6)),
+    G: new Pow(new Int(10), new Int(9)),
+    T: new Pow(new Int(10), new Int(12)),
+    P: new Pow(new Int(10), new Int(15)),
+    E: new Pow(new Int(10), new Int(18)),
+    // http://en.wikipedia.org/wiki/Metric_prefix#.22Hella.22_prefix_proposal
+    hella: new Pow(new Int(10, 27)),
+};
+
+// Use these two values to mark a unit as either SI-prefixable or not.
+var hasPrefixes = {};
+var hasntPrefixes = {};
+
+// baseUnits, siPrefixes, derivedUnits
+var unitCollect = function(symbol) {
+    // TODO recursively collect the whole tree!
+    if (_(baseUnits).has(symbol)) {
+        return baseUnits[symbol];
+    } else if (_(derivedUnits).has(symbol)) {
+        return derivedUnits[symbol].conversion;
+    } else {
+        // check for prefix
+        var prefix = _(_(siPrefixes).keys()).find(function(prefix) {
+            return new RegExp("^" + prefix).test(symbol);
+        });
+
+        if (prefix) {
+            var base = symbol.replace(new RegExp("^" + prefix), "");
+
+            // XXX check whether the unit allows prefixes
+            return new Mul(siPrefixes[prefix], unitCollect(base));
+        } else {
+            throw new Error("could not understand unit: " + symbol);
+        }
+    }
+};
+
+var makeAlias = function(str, prefixes) {
+    var splits = str.split("|");
+    var coefficientStr = splits[0].trim();
+    var unitsStr = splits[1].trim();
+
+    var coefficient = Num.One;
+    if (coefficientStr !== "") {
+        coefficient = KAS.parse(coefficientStr).expr;
+    }
+
+    var numdenomStr = unitsStr.split("/");
+    var numdenom = [coefficient];
+
+    if (numdenomStr[0]) {
+        numdenomStr[0].split(" ").map(function(x) {
+            numdenom.push(new Unit(x));
+        });
+    }
+
+    if (numdenomStr[1]) {
+        numdenomStr[0].split(" ").map(function(x) {
+            numdenom.push(new Pow(new Unit(x), Num.Div));
+        });
+    }
+
+    return {
+        conversion: new Mul(numdenom),
+        prefixes: prefixes,
+    };
+};
+
+// Note that these units must get simpler. I.e. there's no loop checking.
+//
+// makeAlias takes two parameters:
+// * a string specifying the simplification to perform
+//   - a required pipe separates the constant factor from the base units
+//   - the constant factor is parsed by KAS
+//   - the base units are in a simple format which disallows exponents and
+//     requires multiplicands to be space-separated ("m m" rather than "m^2)
+//     with an optional "/" separating numerator and denominator
+//   - prefixes are not allowed to be used in the converted to units
+//     (note that this restriction, the format of the string, and the choice to
+//     use a string in the first place are made out of laziness to minimize
+//     both typing and parsing)
+// * a boolean specifying whether or not it's acceptable to use SI units
+//
+// Where possible, these units are taken from "The International System of
+// Units (SI)" 8th edition (2006).
+var derivedUnits = {
+    // mass
+    // The atomic mass unit / dalton.
+    Da: makeAlias("1.6605388628 x 10^-24 | g", hasPrefixes),
+    u: makeAlias("| Da", hasntPrefixes),
+
+    // length
+    "meter": makeAlias("1 | m", hasntPrefixes),
+    "meters": makeAlias("1 | m", hasntPrefixes),
+    "in": makeAlias("0.0254 | m", hasntPrefixes),
+    "ft": makeAlias("0.3048 | m", hasntPrefixes),
+    "yd": makeAlias("0.9144 | m", hasntPrefixes),
+    "mi": makeAlias("1609.344 | m", hasntPrefixes),
+    "ly": makeAlias("9.4607 x 10^15 | m", hasntPrefixes),
+    "nmi": makeAlias("1852 | m", hasntPrefixes),
+    "Å": makeAlias("10^-10 | m", hasntPrefixes),
+    "pc": makeAlias("3.0857 x 10^16 | m", hasntPrefixes),
+
+    // time
+    "min": makeAlias("60 | s", hasntPrefixes),
+    "hr": makeAlias("3600 | s", hasntPrefixes),
+    "d": makeAlias("86400 | s", hasntPrefixes),
+    "wk": makeAlias("604800 | s", hasntPrefixes),
+    "fortnight": makeAlias("604800 | s", hasntPrefixes),
+    "shake": makeAlias("10^-8 | s", hasntPrefixes),
+    "olympiad": makeAlias("1.262 x 10^8 | s", hasntPrefixes),
+
+    // temperature
+    "°C": makeAlias("1 | K", hasntPrefixes),
+    "°F": makeAlias("5/9 | K", hasntPrefixes),
+    "°R": makeAlias("5/9 | K", hasntPrefixes),
+
+    // electric charge
+    "e": makeAlias("1.6021765314 x 10^-19 | C", hasntPrefixes),
+
+    // speed
+    "c": makeAlias("299792458 | m / s", hasntPrefixes),
+    "kn": makeAlias("0.514 | m / s", hasntPrefixes),
+    "kt": makeAlias("| kn", hasntPrefixes),
+    "knot": makeAlias("| kn", hasntPrefixes),
+
+    // energy
+    "J": makeAlias("| N m", hasPrefixes),
+    "BTU": makeAlias("1060 | J", hasntPrefixes),
+    "cal": makeAlias("4.184 | J", hasPrefixes),
+    "eV": makeAlias("1.602176514 x 10^-19 | J", hasPrefixes),
+    "erg": makeAlias("10^−7 | J", hasPrefixes),
+
+    // power
+    "W": makeAlias("| J / s", hasPrefixes),
+    "H-e": makeAlias("80 | W", hasntPrefixes),
+
+    // force
+    "N": makeAlias("1000 | g m / s s", hasPrefixes),
+    "lb": makeAlias("4.448 | N", hasntPrefixes),
+    "dyn": makeAlias("10^-5 | N", hasntPrefixes),
+
+    // pressure
+    "Pa": makeAlias("1 | N / m m m", hasPrefixes),
+    "bar": makeAlias("10^5 | Pa", hasPrefixes),
+    "㏔": makeAlias("1/1000 | bar", hasntPrefixes),
+    "㍴": makeAlias("| bar", hasntPrefixes),
+    "atm": makeAlias("101325 | Pa", hasntPrefixes),
+    "Torr": makeAlias("1/760 | atm", hasntPrefixes),
+    "mmHg": makeAlias("| Torr", hasntPrefixes),
+
+    // area
+    "ha": makeAlias("10^4 | m m", hasntPrefixes),
+    "b": makeAlias("10^−28 | m m", hasPrefixes),
+    "barn": makeAlias("| b", hasPrefixes),
+    "acre": makeAlias("4046.87 | m m", hasntPrefixes),
+
+    // volume
+    "L": makeAlias("0.001 | m m m", hasPrefixes),
+    "gal": makeAlias("3.785 | L", hasPrefixes),
+    "cup": makeAlias("1/16 | gal", hasntPrefixes),
+    "qt": makeAlias("1/4 | gal", hasntPrefixes),
+    "quart": makeAlias("| qt", hasntPrefixes),
+    "p": makeAlias("1/8 | g", hasntPrefixes),
+    "pt": makeAlias("| p", hasntPrefixes),
+    "pint": makeAlias("| p", hasntPrefixes),
+    "fl oz": makeAlias("1/8 | cup", hasntPrefixes),
+    "fl. oz.": makeAlias("1/8 | cup", hasntPrefixes),
+    "tbsp": makeAlias("1/16 | cup", hasntPrefixes),
+    "tsp": makeAlias("1/3 | tbsp", hasntPrefixes),
+
+    // rotational
+    // "rad":
+    "rev": makeAlias("2 pi | rad", hasntPrefixes),
+    "deg": makeAlias("180 pi | rad", hasntPrefixes),
+    "°": makeAlias("| deg", hasntPrefixes),
+    "arcminute": makeAlias("1/60 | deg", hasntPrefixes),
+    "arcsec": makeAlias("1/3600 | deg", hasntPrefixes),
+
+    // dimensionless
+    // "B": makeAlias("10 | dB", hasntPrefixes), // XXX danger - logarithmic
+    // "dB"
+    // "nP"
+    "Hu": makeAlias("1000 | dB", hasPrefixes),
+    "dozen": makeAlias("12 |", hasntPrefixes),
+    // XXX
+    "mol": makeAlias("6.0221412927 x 10^23 |", hasPrefixes),
+    "%": makeAlias("1/100 |", hasntPrefixes),
+    "percent": makeAlias("| %", hasntPrefixes),
+    "ppm": makeAlias("1/1000000 |", hasntPrefixes),
+
+    // electric / magnetic
+    "V": makeAlias("1000 | g m m / s s C", hasPrefixes),
+    "C": makeAlias("| A s", hasPrefixes),
+    "ampere": makeAlias("| A", hasntPrefixes),
+    "Ω": makeAlias("| V / A", hasPrefixes),
+    "ohm": makeAlias("| Ω", hasntPrefixes),
+    "F": makeAlias("| C / V", hasPrefixes),
+    "H": makeAlias("| ohm s", hasPrefixes),
+    "T": makeAlias("1000 | g / C s", hasPrefixes),
+    "Wb": makeAlias("1000 | g m m / C s", hasPrefixes),
+
+    "b": makeAlias("10^−28 | m m", hasPrefixes),
+    "skilodge": makeAlias("10^-31 | m m", hasntPrefixes),
+    "outhouse": makeAlias("10^-34 | m m", hasntPrefixes),
+    "shed": makeAlias("10^-52 | m m", hasntPrefixes),
+
+    // photometry
+    // TODO not sure this is right
+    "lm": makeAlias("pi x 10^4 | cd / m m", hasntPrefixes),
+    "lx": makeAlias("| lm / m m", hasntPrefixes),
+    "nit": makeAlias("| cd / m m", hasntPrefixes),
+    "sb": makeAlias("10^4 | cd / m m", hasntPrefixes),
+    "stilb": makeAlias("1 | sb", hasntPrefixes),
+    "apostilb": makeAlias("1 / pi x 10^(-4) | sb"),
+    "blondel": makeAlias("| apostilb", hasntPrefixes),
+    "asb": makeAlias("| apostilb", hasntPrefixes),
+    "la": makeAlias("| lm", hasntPrefixes),
+    "Lb": makeAlias("| lm", hasntPrefixes),
+    "sk": makeAlias("10^-7 | lm", hasntPrefixes),
+    "skot": makeAlias("| sk", hasntPrefixes),
+    "bril": makeAlias("10^-11 | lm", hasntPrefixes),
+
+    // other
+    "Hz": makeAlias("| / s", hasPrefixes),
+};
+
 KAS.Add = Add;
 KAS.Mul = Mul;
 KAS.Pow = Pow;
@@ -3013,5 +3270,7 @@ KAS.Unit = Unit;
 KAS.Rational = Rational;
 KAS.Int = Int;
 KAS.Float = Float;
+KAS.Zero = Num.Zero;
+KAS.One = Num.One;
 
 })(KAS);

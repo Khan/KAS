@@ -1496,18 +1496,95 @@
         simplify("-1*(1/3+x)", "-1*x+-1/3");
     });
 
+    var compareUnits = function(x, y) {
+        ok(KAS.compare(x.simplify(), y.simplify()).equal);
+    };
+
     test("simplify expressions with units", function() {
-        var x = new KAS.Mul(new KAS.Int(10), new KAS.Unit('g'));
-        var y = x.simplify();
-        strictEqual(y.print(), "1/100*kg", "10 g should simplify to 1/100 kg");
-        ok(KAS.compare(x, y));
+        // 1/100 cup = 1 / 400 quart
+        compareUnits(
+            new KAS.Mul(new KAS.Rational(1, 100), new KAS.Unit("cup")),
+            new KAS.Mul(new KAS.Rational(1, 400), new KAS.Unit("qt"))
+        );
+
+        // 10 g = 1 / 100 kg
+        compareUnits(
+            new KAS.Mul(new KAS.Int(10), new KAS.Unit("g")),
+            new KAS.Mul(new KAS.Rational(1, 100), new KAS.Unit("kg"))
+        );
+
+        // 9.8 kg m / s^2 = 9.8 N
+        compareUnits(
+            new KAS.Mul(new KAS.Float(9.8),
+                        new KAS.Unit("kg"),
+                        new KAS.Unit("m"),
+                        new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2))),
+            new KAS.Mul(new KAS.Float(9.8), new KAS.Unit("N"))
+        );
+
+        // 9.8 m / s^2 = 9.8 N / kg
+        compareUnits(
+            new KAS.Mul(new KAS.Float(9.8),
+                        new KAS.Unit("m"),
+                        new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2))),
+            new KAS.Mul(new KAS.Float(9.8),
+                        new KAS.Unit("N"),
+                        new KAS.Pow(new KAS.Unit("kg"), new KAS.Int(-1)))
+        );
+
+        // 9.8 m / s^2 = 9.8 s^-2 m
+        compareUnits(
+            new KAS.Mul(new KAS.Float(9.8),
+                        new KAS.Unit("m"),
+                        new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2))),
+            new KAS.Mul(new KAS.Float(9.8),
+                        new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2)),
+                        new KAS.Unit("m"))
+        );
+
+        // 50 m / m = 50
+        compareUnits(
+            new KAS.Mul(new KAS.Int(50),
+                        new KAS.Unit("m"),
+                        new KAS.Pow(new KAS.Unit("m"), new KAS.Int(-1))),
+            new KAS.Int(50)
+        );
+
+        // There's a long chain of conversions before this is fully simplified.
+        // tsp -> tbsp -> cup -> gal -> L -> m^3
+        //
+        //         1 tbsp    1 cup     1 gal   3.785 L
+        // 1 tsp * ------ * ------- * ------ * -------
+        //         3 tsp    16 tbsp   16 cup     gal
+        compareUnits(
+            new KAS.Unit("tsp"),
+            new KAS.Mul(
+                new KAS.Rational(1, 3),
+                new KAS.Rational(1, 16),
+                new KAS.Rational(1, 16),
+                new KAS.Float(3.785),
+                new KAS.Unit("L")
+            )
+        );
+
+        // 50 m != 50
+        ok(!KAS.compare(
+            new KAS.Mul(new KAS.Int(50), new KAS.Unit("m")),
+            new KAS.Int(50)
+        ).simplify);
+
+        // 50 m != 50 A
+        ok(!KAS.compare(
+            new KAS.Mul(new KAS.Int(50), new KAS.Unit("m")),
+            new KAS.Mul(new KAS.Int(50), new KAS.Unit("A"))
+        ).simplify);
     });
 
     var isSimplified = function(input, expectedResult, options) {
         if (expectedResult === undefined) expectedResult = true;
         var message = input + (expectedResult ? " is " : " is NOT ") + "simplified";
         ok(parse(input, options).isSimplified() === expectedResult, message);
-    }
+    };
 
     test("isSimplified (addition/subtraction)", function() {
         isSimplified("a+b+c");

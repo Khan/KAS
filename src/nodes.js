@@ -221,6 +221,10 @@ _.extend(Expr.prototype, {
         return _.uniq(_.flatten(_.invoke(this.exprArgs(), "getVars", excludeFunc))).sort();
     },
 
+    getUnits: function() {
+        return _.uniq(_.flatten(_.invoke(this.exprArgs(), "getUnits"))).sort();
+    },
+
     // check whether this expression node is of a particular type
     is: function(func) {
         return this instanceof func;
@@ -313,6 +317,12 @@ _.extend(Expr.prototype, {
         // TODO(alex): may want to keep track of assumptions as they're made
         var expr1 = this.collect();
         var expr2 = other.collect();
+
+        var unitList1 = this.getUnits();
+        var unitList2 = other.getUnits();
+        if (unitList1 !== unitList2) {
+            return false;
+        }
 
         for (var i = 0; i < ITERATIONS; i++) {
 
@@ -2425,6 +2435,10 @@ _.extend(Func.prototype, {
             this.arg.codegen() + ')';
     },
 
+    getUnits: function() {
+        return this.arg.getUnits();
+    },
+
     getVars: function(excludeFunc) {
         if (excludeFunc) {
             return this.arg.getVars();
@@ -2988,6 +3002,8 @@ _.extend(Unit.prototype, {
         return 1;
     },
 
+    getUnits: function() { return [this.symbol]; },
+
     codegen: function() { return "1"; },
 
     print: function() { return this.symbol; },
@@ -3042,24 +3058,39 @@ var siPrefixes = {
 var hasPrefixes = {};
 var hasntPrefixes = {};
 
-// baseUnits, siPrefixes, derivedUnits
+// Simplify units by:
+// * breaking down derived units into their components
+// * replacing prefixes with multiplication
+//
+// Note that symbol has type String, not Unit. // TODO(joel) use flow
 var unitCollect = function(symbol) {
-    // TODO recursively collect the whole tree!
     if (_(baseUnits).has(symbol)) {
         return baseUnits[symbol];
     } else if (_(derivedUnits).has(symbol)) {
         return derivedUnits[symbol].conversion;
     } else {
         // check for prefix
-        var prefix = _(_(siPrefixes).keys()).find(function(prefix) {
-            return new RegExp("^" + prefix).test(symbol);
+        var prefix = _(_(siPrefixes).keys()).find(function(testPrefix) {
+            return new RegExp("^" + testPrefix).test(symbol);
         });
 
         if (prefix) {
             var base = symbol.replace(new RegExp("^" + prefix), "");
 
-            // XXX check whether the unit allows prefixes
-            return new Mul(siPrefixes[prefix], unitCollect(base));
+            // It's okay to be here if either:
+            // * `base` is a base unit (the seven units listed in baseUnits)
+            // * `base` is a derived unit which allows prefixes
+            //
+            // Otherwise, we're trying to parse a unit label which is not
+            // allowed (mwk, mBTU, etc).
+            if (_(baseUnits).has(base) ||
+                (derivedUnits[base] &&
+                 derivedUnits[base].prefixes === hasPrefixes)) {
+
+                return new Mul(siPrefixes[prefix], unitCollect(base));
+            } else {
+                throw new Error(base + " does not allow prefixes");
+            }
         } else {
             throw new Error("could not understand unit: " + symbol);
         }
@@ -3097,7 +3128,12 @@ var makeAlias = function(str, prefixes) {
     };
 };
 
-// Note that these units must get simpler. I.e. there's no loop checking.
+// This is a mapping of derived units (or different names for a unit) to their
+// definitions. For example, an inch is defined as 0.0254 m.
+//
+// Definitions don't need to be in terms of base units. For example, tsp is
+// defined in terms of tbsp (which is defined in terms of cup -> gal -> L ->
+// m^3). However, units must get simpler. I.e. there's no loop checking.
 //
 // makeAlias takes two parameters:
 // * a string specifying the simplification to perform
@@ -3121,8 +3157,8 @@ var derivedUnits = {
     u: makeAlias("| Da", hasntPrefixes),
 
     // length
-    "meter": makeAlias("1 | m", hasntPrefixes),
-    "meters": makeAlias("1 | m", hasntPrefixes),
+    "meter": makeAlias("| m", hasntPrefixes),
+    "meters": makeAlias("| m", hasntPrefixes),
     "in": makeAlias("0.0254 | m", hasntPrefixes),
     "ft": makeAlias("0.3048 | m", hasntPrefixes),
     "yd": makeAlias("0.9144 | m", hasntPrefixes),

@@ -1496,58 +1496,59 @@
         simplify("-1*(1/3+x)", "-1*x+-1/3");
     });
 
-    var compareUnits = function(x, y) {
-        ok(KAS.compare(x.simplify(), y.simplify()).equal);
+    var compareUnits = function(x, y, msg) {
+        ok(KAS.compare(x.simplify(), y.simplify()).equal, msg);
     };
 
     test("simplify expressions with units", function() {
-        // 1/100 cup = 1 / 400 quart
+        /*
         compareUnits(
             new KAS.Mul(new KAS.Rational(1, 100), new KAS.Unit("cup")),
-            new KAS.Mul(new KAS.Rational(1, 400), new KAS.Unit("qt"))
+            new KAS.Mul(new KAS.Rational(1, 400), new KAS.Unit("qt")),
+            "1/100 cup = 1 / 400 quart"
         );
 
-        // 10 g = 1 / 100 kg
         compareUnits(
             new KAS.Mul(new KAS.Int(10), new KAS.Unit("g")),
-            new KAS.Mul(new KAS.Rational(1, 100), new KAS.Unit("kg"))
+            new KAS.Mul(new KAS.Rational(1, 100), new KAS.Unit("kg")),
+            "10 g = 1 / 100 kg"
         );
 
-        // 9.8 kg m / s^2 = 9.8 N
         compareUnits(
             new KAS.Mul(new KAS.Float(9.8),
                         new KAS.Unit("kg"),
                         new KAS.Unit("m"),
                         new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2))),
-            new KAS.Mul(new KAS.Float(9.8), new KAS.Unit("N"))
+            new KAS.Mul(new KAS.Float(9.8), new KAS.Unit("N")),
+            "9.8 kg m / s^2 = 9.8 N"
         );
 
-        // 9.8 m / s^2 = 9.8 N / kg
         compareUnits(
             new KAS.Mul(new KAS.Float(9.8),
                         new KAS.Unit("m"),
                         new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2))),
             new KAS.Mul(new KAS.Float(9.8),
                         new KAS.Unit("N"),
-                        new KAS.Pow(new KAS.Unit("kg"), new KAS.Int(-1)))
+                        new KAS.Pow(new KAS.Unit("kg"), new KAS.Int(-1))),
+            "9.8 m / s^2 = 9.8 N / kg"
         );
 
-        // 9.8 m / s^2 = 9.8 s^-2 m
         compareUnits(
             new KAS.Mul(new KAS.Float(9.8),
                         new KAS.Unit("m"),
                         new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2))),
             new KAS.Mul(new KAS.Float(9.8),
                         new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2)),
-                        new KAS.Unit("m"))
+                        new KAS.Unit("m")),
+            "9.8 m / s^2 = 9.8 s^-2 m"
         );
 
-        // 50 m / m = 50
         compareUnits(
             new KAS.Mul(new KAS.Int(50),
                         new KAS.Unit("m"),
                         new KAS.Pow(new KAS.Unit("m"), new KAS.Int(-1))),
-            new KAS.Int(50)
+            new KAS.Int(50),
+            "50 m / m = 50"
         );
 
         // There's a long chain of conversions before this is fully simplified.
@@ -1564,20 +1565,37 @@
                 new KAS.Rational(1, 16),
                 new KAS.Float(3.785),
                 new KAS.Unit("L")
-            )
+            ),
+            "tsp reduces"
+        );
+        */
+
+        ok(
+            !KAS.compare(
+                new KAS.Mul(new KAS.Int(50), new KAS.Unit("m")),
+                new KAS.Int(50)
+            ).equal,
+            "50 m != 50"
         );
 
-        // 50 m != 50
-        ok(!KAS.compare(
-            new KAS.Mul(new KAS.Int(50), new KAS.Unit("m")),
-            new KAS.Int(50)
-        ).simplify);
+        ok(
+           !KAS.compare(
+                new KAS.Mul(new KAS.Int(50), new KAS.Unit("m")),
+                new KAS.Mul(new KAS.Int(50), new KAS.Unit("A"))
+            ).equal,
+            "50 m != 50 A"
+        );
 
-        // 50 m != 50 A
-        ok(!KAS.compare(
-            new KAS.Mul(new KAS.Int(50), new KAS.Unit("m")),
-            new KAS.Mul(new KAS.Int(50), new KAS.Unit("A"))
-        ).simplify);
+        ok(
+            KAS.compare(
+                new KAS.Mul(new KAS.Int(5000), new KAS.Unit("mA")),
+                new KAS.Mul(new KAS.Int(5), new KAS.Unit("A"))
+            ).equal,
+            "5000 mA = 5 A"
+        );
+
+        // btu doesn't allow si prefixes
+        // throws(new KAS.Unit("mBTU"), "mBTU throws");
     });
 
     var isSimplified = function(input, expectedResult, options) {

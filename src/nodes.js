@@ -320,7 +320,7 @@ _.extend(Expr.prototype, {
 
         var unitList1 = this.getUnits();
         var unitList2 = other.getUnits();
-        if (unitList1 !== unitList2) {
+        if (!_.isEqual(unitList1, unitList2)) {
             return false;
         }
 
@@ -2981,10 +2981,84 @@ KAS.parse = function(input, options) {
 
 /* unit */
 function Unit(symbol) {
-    // XXX split into prefix and unit
     this.symbol = symbol;
 }
 Unit.prototype = new Symbol();
+
+// If possible, replace unit prefixes with a multiplication.
+//
+// "g" -> Unit("g")
+// "kg" -> 1000 * Unit("g")
+var unprefixify = function(symbol) {
+    if (_(baseUnits).has(symbol) || _(derivedUnits).has(symbol)) {
+        return new Unit(symbol);
+    }
+
+    // check for prefix
+    var prefix = _(_(siPrefixes).keys()).find(function(testPrefix) {
+        return new RegExp("^" + testPrefix).test(symbol);
+    });
+
+    if (prefix) {
+        var base = symbol.replace(new RegExp("^" + prefix), "");
+
+        // It's okay to be here if either:
+        // * `base` is a base unit (the seven units listed in baseUnits)
+        // * `base` is a derived unit which allows prefixes
+        //
+        // Otherwise, we're trying to parse a unit label which is not
+        // allowed (mwk, mBTU, etc).
+        if (_(baseUnits).has(base) ||
+            (derivedUnits[base] &&
+             derivedUnits[base].prefixes === hasPrefixes)) {
+
+            return new Mul(siPrefixes[prefix], new Unit(base));
+        } else {
+            throw new Error(base + " does not allow prefixes");
+        }
+    }
+};
+
+KAS.unitParse = function(input) {
+    try {
+        var expr = KAS.unitParser.parse(input);
+
+        // expr looks like:
+        // {
+        //   magnitude: 5,
+        //   unit: {
+        //     num: [
+        //       { name: "s", pow: 2 }
+        //     ],
+        //     denom: [
+        //       { name: "kg", pow: 1 }
+        //     ]
+        //   }
+        // }
+        //
+        // denom is optionally null
+
+        var unitArray = [new Float(expr.magnitude)];
+
+        _(expr.unit.num).each(function(unitSpec) {
+            unitArray.push(
+                new Pow(unprefixify(unitSpec.name), new Int(unitSpec.pow))
+            );
+        });
+
+        _(expr.unit.denom).each(function(unitSpec) {
+            unitArray.push(
+                new Pow(unprefixify(unitSpec.name), new Int(-1 * unitSpec.pow))
+            );
+        });
+
+        var unit = new Mul(unitArray);
+
+        return { parsed: true, unit: unit };
+    } catch (e) {
+        return { parsed: false, error: e.message };
+    }
+};
 
 _.extend(Unit.prototype, {
     func: Unit,
@@ -3010,27 +3084,27 @@ _.extend(Unit.prototype, {
 
     tex: function() { return this.symbol; },
 
+    // Simplify units by replacing prefixes with multiplication
     collect: function(options) {
-        return unitCollect(this.symbol);
+        if (_(baseUnits).has(this.symbol)) {
+            return this;
+        } else if (_(derivedUnits).has(this.symbol)) {
+            return derivedUnits[this.symbol].conversion;
+        } else {
+            throw new Error("could not understand unit: " + this.symbol);
+        }
     },
 });
 
-var meter = new Unit("m");
-var gram = new Unit("g");
-var second = new Unit("s");
-var ampere = new Unit("A");
-var kelvin = new Unit("K");
-var mole = new Unit("mol");
-var candela = new Unit("cd");
-
 var baseUnits = {
-    m: meter,
-    g: gram,
-    s: second,
-    A: ampere,
-    K: kelvin,
-    mol: mole,
-    cd: candela,
+    m: new Unit("m"),
+    // Note: kg is the SI base unit but we use g for consistency
+    g: new Unit("g"),
+    s: new Unit("s"),
+    A: new Unit("A"),
+    K: new Unit("K"),
+    mol: new Unit("mol"),
+    cd: new Unit("cd"),
 };
 
 var siPrefixes = {
@@ -3058,45 +3132,6 @@ var siPrefixes = {
 var hasPrefixes = {};
 var hasntPrefixes = {};
 
-// Simplify units by:
-// * breaking down derived units into their components
-// * replacing prefixes with multiplication
-//
-// Note that symbol has type String, not Unit. // TODO(joel) use flow
-var unitCollect = function(symbol) {
-    if (_(baseUnits).has(symbol)) {
-        return baseUnits[symbol];
-    } else if (_(derivedUnits).has(symbol)) {
-        return derivedUnits[symbol].conversion;
-    } else {
-        // check for prefix
-        var prefix = _(_(siPrefixes).keys()).find(function(testPrefix) {
-            return new RegExp("^" + testPrefix).test(symbol);
-        });
-
-        if (prefix) {
-            var base = symbol.replace(new RegExp("^" + prefix), "");
-
-            // It's okay to be here if either:
-            // * `base` is a base unit (the seven units listed in baseUnits)
-            // * `base` is a derived unit which allows prefixes
-            //
-            // Otherwise, we're trying to parse a unit label which is not
-            // allowed (mwk, mBTU, etc).
-            if (_(baseUnits).has(base) ||
-                (derivedUnits[base] &&
-                 derivedUnits[base].prefixes === hasPrefixes)) {
-
-                return new Mul(siPrefixes[prefix], unitCollect(base));
-            } else {
-                throw new Error(base + " does not allow prefixes");
-            }
-        } else {
-            throw new Error("could not understand unit: " + symbol);
-        }
-    }
-};
-
 var makeAlias = function(str, prefixes) {
     var splits = str.split("|");
     var coefficientStr = splits[0].trim();
@@ -3117,7 +3152,7 @@ var makeAlias = function(str, prefixes) {
     }
 
     if (numdenomStr[1]) {
-        numdenomStr[0].split(" ").map(function(x) {
+        numdenomStr[1].split(" ").map(function(x) {
             numdenom.push(new Pow(new Unit(x), Num.Div));
         });
     }

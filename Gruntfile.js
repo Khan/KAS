@@ -2,6 +2,7 @@ module.exports = function(grunt) {
 
 var srcFiles = [
     "src/parser.js",
+    "src/unitparser.js",
     "src/nodes.js",
     "src/compare.js"
 ];

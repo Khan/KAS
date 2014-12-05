@@ -14,6 +14,7 @@
 
     <!-- Include KAS -->
     <script src="src/parser.js"></script>
+    <script src="src/unitparser.js"></script>
     <script src="src/nodes.js"></script>
     <script src="src/compare.js"></script>
 </head>
@@ -1496,44 +1497,36 @@
         simplify("-1*(1/3+x)", "-1*x+-1/3");
     });
 
-    var compareUnits = function(x, y, msg) {
+    var unitEq = function(x, y, msg) {
         ok(KAS.compare(x.simplify(), y.simplify()).equal, msg);
     };
 
+    var unitNeq = function(x, y, msg) {
+        ok(!KAS.compare(x.simplify(), y.simplify()).equal, msg);
+    };
+
+    var parseEq = function(x, y, msg) {
+        unitEq(KAS.unitParse(x).unit, KAS.unitParse(y).unit, msg)
+    };
+
+    var parseNeq = function(x, y, msg) {
+        unitNeq(KAS.unitParse(x).unit, KAS.unitParse(y).unit, msg)
+    };
+
     test("simplify expressions with units", function() {
-        /*
-        compareUnits(
+        unitEq(
             new KAS.Mul(new KAS.Rational(1, 100), new KAS.Unit("cup")),
             new KAS.Mul(new KAS.Rational(1, 400), new KAS.Unit("qt")),
             "1/100 cup = 1 / 400 quart"
         );
 
-        compareUnits(
-            new KAS.Mul(new KAS.Int(10), new KAS.Unit("g")),
-            new KAS.Mul(new KAS.Rational(1, 100), new KAS.Unit("kg")),
-            "10 g = 1 / 100 kg"
-        );
+        parseEq("10 g", "0.01 kg", "10 g = 1 / 100 kg");
 
-        compareUnits(
-            new KAS.Mul(new KAS.Float(9.8),
-                        new KAS.Unit("kg"),
-                        new KAS.Unit("m"),
-                        new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2))),
-            new KAS.Mul(new KAS.Float(9.8), new KAS.Unit("N")),
-            "9.8 kg m / s^2 = 9.8 N"
-        );
+        parseEq("9.8 kg m / s^2", "9.8 N", "9.8 kg m / s^2 = 9.8 N");
 
-        compareUnits(
-            new KAS.Mul(new KAS.Float(9.8),
-                        new KAS.Unit("m"),
-                        new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2))),
-            new KAS.Mul(new KAS.Float(9.8),
-                        new KAS.Unit("N"),
-                        new KAS.Pow(new KAS.Unit("kg"), new KAS.Int(-1))),
-            "9.8 m / s^2 = 9.8 N / kg"
-        );
+        parseEq("9.8 m / s^2", "9.8 N / kg", "9.8 m / s^2 = 9.8 N / kg");
 
-        compareUnits(
+        unitEq(
             new KAS.Mul(new KAS.Float(9.8),
                         new KAS.Unit("m"),
                         new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2))),
@@ -1543,7 +1536,7 @@
             "9.8 m / s^2 = 9.8 s^-2 m"
         );
 
-        compareUnits(
+        unitEq(
             new KAS.Mul(new KAS.Int(50),
                         new KAS.Unit("m"),
                         new KAS.Pow(new KAS.Unit("m"), new KAS.Int(-1))),
@@ -1557,7 +1550,7 @@
         //         1 tbsp    1 cup     1 gal   3.785 L
         // 1 tsp * ------ * ------- * ------ * -------
         //         3 tsp    16 tbsp   16 cup     gal
-        compareUnits(
+        unitEq(
             new KAS.Unit("tsp"),
             new KAS.Mul(
                 new KAS.Rational(1, 3),
@@ -1568,7 +1561,6 @@
             ),
             "tsp reduces"
         );
-        */
 
         ok(
             !KAS.compare(
@@ -1578,24 +1570,14 @@
             "50 m != 50"
         );
 
-        ok(
-           !KAS.compare(
-                new KAS.Mul(new KAS.Int(50), new KAS.Unit("m")),
-                new KAS.Mul(new KAS.Int(50), new KAS.Unit("A"))
-            ).equal,
-            "50 m != 50 A"
-        );
+        parseNeq("50 m", "50 A", "50 m != 50 A");
 
-        ok(
-            KAS.compare(
-                new KAS.Mul(new KAS.Int(5000), new KAS.Unit("mA")),
-                new KAS.Mul(new KAS.Int(5), new KAS.Unit("A"))
-            ).equal,
-            "5000 mA = 5 A"
-        );
+        parseEq("5000 mA", "5 A", "5000 mA = 5 A");
+
+        parseNeq("5 mA", "5 A", "5 mA != 5 A");
 
         // btu doesn't allow si prefixes
-        // throws(new KAS.Unit("mBTU"), "mBTU throws");
+        throws(new KAS.Unit("mBTU"), "mBTU throws");
     });
 
     var isSimplified = function(input, expectedResult, options) {

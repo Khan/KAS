@@ -3263,7 +3263,7 @@ var derivedUnits = {
     "cup": makeAlias("1/16 | gal", hasntPrefixes),
     "qt": makeAlias("1/4 | gal", hasntPrefixes),
     "quart": makeAlias("| qt", hasntPrefixes),
-    "p": makeAlias("1/8 | g", hasntPrefixes),
+    "p": makeAlias("1/8 | gal", hasntPrefixes),
     "pt": makeAlias("| p", hasntPrefixes),
     "pint": makeAlias("| p", hasntPrefixes),
     "fl oz": makeAlias("1/8 | cup", hasntPrefixes),

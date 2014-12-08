@@ -3052,9 +3052,9 @@ KAS.unitParse = function(input) {
             );
         });
 
-        var unit = new Mul(unitArray);
+        var ret = new Mul(unitArray);
 
-        return { parsed: true, unit: unit };
+        return { parsed: true, expr: ret, unit: expr.unit };
     } catch (e) {
         return { parsed: false, error: e.message };
     }

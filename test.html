@@ -1497,6 +1497,8 @@
         simplify("-1*(1/3+x)", "-1*x+-1/3");
     });
 
+    QUnit.module("units");
+
     var unitEq = function(x, y, msg) {
         ok(KAS.compare(x.simplify(), y.simplify()).equal, msg);
     };
@@ -1506,11 +1508,18 @@
     };
 
     var parseEq = function(x, y, msg) {
-        unitEq(KAS.unitParse(x).unit, KAS.unitParse(y).unit, msg)
+        unitEq(KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg)
     };
 
     var parseNeq = function(x, y, msg) {
-        unitNeq(KAS.unitParse(x).unit, KAS.unitParse(y).unit, msg)
+        unitNeq(KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg)
+    };
+
+    var formEq = function(x, y) {
+        return _.isEqual(
+            KAS.unitParse(x).unit,
+            KAS.unitParse(y).unit
+        );
     };
 
     test("simplify expressions with units", function() {
@@ -1576,9 +1585,21 @@
 
         parseNeq("5 mA", "5 A", "5 mA != 5 A");
 
+        ok(!formEq("5000 mA", "5 A"), "m A !== A")
+        ok(!formEq("10 g", "0.01 kg"), "g !== kg");
+        ok(!formEq("9.8 kg m / s^2", "9.8 N"), "kg m / s^2 !== N");
+        ok(!formEq("9.8 m / s^2", "9.8 N / kg"), "m / s^2 !== N / kg");
+
+        ok(formEq("5000 A", "5 A"), "A === 5 A");
+        ok(formEq("10 kg", "0.01 kg"), "kg = kg");
+        // ok(formEq("9.8 kg m / s^2", "9.8 m kg / s^2"), "kg m / s^2 === m kg / s^2");
+        ok(formEq("9.8 m / s^2", "9.8 m / s^2"), "m / s^2 === m / s^2");
+
         // btu doesn't allow si prefixes
         throws(new KAS.Unit("mBTU"), "mBTU throws");
     });
+
+    QUnit.module("isSimplified");
 
     var isSimplified = function(input, expectedResult, options) {
         if (expectedResult === undefined) expectedResult = true;

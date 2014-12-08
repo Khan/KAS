@@ -2208,7 +2208,6 @@ _.extend(Eq.prototype, {
     // e.g. y/2=x/4 -> y/2-x/4(=0) -> 2y-x(=0)
     // unless unfactored is specified, will then divide through
     asExpr: function(unfactored) {
-
         var isZero = function(expr) {
             return expr instanceof Num && expr.isSimple() && expr.eval() === 0;
         };
@@ -2376,6 +2375,32 @@ _.extend(Eq.prototype, {
         return expr.equals(simplified) &&
                this.left.isSimplified() &&
                this.right.isSimplified();
+    }
+});
+
+_.extend(Eq.prototype, {
+    // Assumptions: Expression is of the form a+bx, and we solve for x
+    solveLinearEquationForVariable: function(expr, variable) {
+        if (!expr.is(Add) || expr.terms.length !== 2) {
+            throw new Error("Can only handle linear equations of the form " + 
+                            "a + bx (= 0)");
+        }
+
+        var hasVar = function(term) {
+            return term.has(Var) && _.contains(term.getVars(), variable.symbol);
+        };
+
+        var a, b;
+
+        if (hasVar(expr.terms[0])) {
+            a = Mul.handleNegative(expr.terms[1]);
+            b = Mul.handleDivide(expr.terms[0], variable);
+        } else {
+            a = Mul.handleNegative(expr.terms[0]);
+            b = Mul.handleDivide(expr.terms[1], variable);
+        }
+
+        return Mul.handleDivide(a, b).simplify();
     }
 });
 

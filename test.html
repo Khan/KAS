@@ -1516,10 +1516,10 @@
     };
 
     var formEq = function(x, y) {
-        return _.isEqual(
+        return KAS.compare(
             KAS.unitParse(x).unit,
             KAS.unitParse(y).unit
-        );
+        ).equal;
     };
 
     test("simplify expressions with units", function() {
@@ -1585,14 +1585,14 @@
 
         parseNeq("5 mA", "5 A", "5 mA != 5 A");
 
-        ok(!formEq("5000 mA", "5 A"), "m A !== A")
+        ok(!formEq("mA", "A"), "mA !== A")
         ok(!formEq("10 g", "0.01 kg"), "g !== kg");
         ok(!formEq("9.8 kg m / s^2", "9.8 N"), "kg m / s^2 !== N");
         ok(!formEq("9.8 m / s^2", "9.8 N / kg"), "m / s^2 !== N / kg");
 
         ok(formEq("5000 A", "5 A"), "A === 5 A");
         ok(formEq("10 kg", "0.01 kg"), "kg = kg");
-        // ok(formEq("9.8 kg m / s^2", "9.8 m kg / s^2"), "kg m / s^2 === m kg / s^2");
+        ok(formEq("9.8 kg m / s^2", "9.8 m kg / s^2"), "kg m / s^2 === m kg / s^2");
         ok(formEq("9.8 m / s^2", "9.8 m / s^2"), "m / s^2 === m / s^2");
 
         // btu doesn't allow si prefixes

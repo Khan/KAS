@@ -75,12 +75,12 @@
   }
 */
 var parser = (function(){
-var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,6],$V1=[1,11],$V2=[8,16],$V3=[6,11],$V4=[6,11,13,16];
+var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,11],$V1=[1,9],$V2=[8,16],$V3=[6,11],$V4=[6,11,13,16];
 var parser = {trace: function trace() { },
 yy: {},
 symbols_: {"error":2,"unitvalue":3,"magnitude":4,"unit":5,"EOF":6,"float":7,"POW":8,"nat":9,"multatoms":10,"DIV":11,"expatom":12,"MUL":13,"atom":14,"^":15,"ATOM":16,"FLOAT":17,"NAT":18,"$accept":0,"$end":1},
 terminals_: {2:"error",6:"EOF",8:"POW",11:"DIV",13:"MUL",15:"^",16:"ATOM",17:"FLOAT",18:"NAT"},
-productions_: [0,[3,3],[4,3],[4,1],[5,3],[5,1],[10,3],[10,2],[10,1],[12,3],[12,1],[14,1],[7,1],[7,1],[9,1]],
+productions_: [0,[3,3],[3,2],[4,3],[4,1],[5,3],[5,1],[10,3],[10,2],[10,1],[12,3],[12,1],[14,1],[7,1],[7,1],[9,1]],
 performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
 /* this == yyval */
 
@@ -89,20 +89,29 @@ switch (yystate) {
 case 1:
 
             return {
+                type: "unitMagnitude",
                 magnitude: $$[$0-2],
                 unit: $$[$0-1],
             };
         
 break;
 case 2:
+
+            return {
+                type: "unitStandalone",
+                unit: $$[$0-1],
+            }
+        
+break;
+case 3:
  /* XXX keep track of the exact thing the user entered? */
             this.$ = $$[$0-2] * Math.pow(10, $$[$0]);
         
 break;
-case 3: case 13:
+case 4: case 14:
  this.$ = $$[$0]; 
 break;
-case 4:
+case 5:
 
             this.$ = {
                 num: $$[$0-2],
@@ -110,7 +119,7 @@ case 4:
             };
         
 break;
-case 5:
+case 6:
 
             this.$ = {
                 num: $$[$0],
@@ -118,16 +127,16 @@ case 5:
             };
         
 break;
-case 6:
+case 7:
  this.$ = [$$[$0-2]].concat($$[$0]); 
 break;
-case 7:
+case 8:
  this.$ = [$$[$0-1]].concat($$[$0]); 
 break;
-case 8:
+case 9:
  this.$ = [$$[$0]]; 
 break;
-case 9:
+case 10:
 
             this.$ = {
                 name: $$[$0-2],
@@ -135,7 +144,7 @@ case 9:
             };
         
 break;
-case 10:
+case 11:
 
             this.$ = {
                 name: $$[$0],
@@ -143,16 +152,16 @@ case 10:
             };
         
 break;
-case 11:
+case 12:
  this.$ = yytext; 
 break;
-case 12: case 14:
+case 13: case 15:
  this.$ = +$$[$0]; 
 break;
 }
 },
-table: [{3:1,4:2,7:3,9:5,17:[1,4],18:$V0},{1:[3]},{5:7,10:8,12:9,14:10,16:$V1},{8:[1,12],16:[2,3]},o($V2,[2,12]),o($V2,[2,13]),o([6,8,11,13,16],[2,14]),{6:[1,13]},{6:[2,5],11:[1,14]},o($V3,[2,8],{12:9,14:10,10:16,13:[1,15],16:$V1}),o($V4,[2,10],{15:[1,17]}),o([6,11,13,15,16],[2,11]),{9:18,18:$V0},{1:[2,1]},{10:19,12:9,14:10,16:$V1},{10:20,12:9,14:10,16:$V1},o($V3,[2,7]),{9:21,18:$V0},{16:[2,2]},{6:[2,4]},o($V3,[2,6]),o($V4,[2,9])],
-defaultActions: {13:[2,1],18:[2,2],19:[2,4]},
+table: [{3:1,4:2,5:3,7:4,9:7,10:5,12:8,14:10,16:$V0,17:[1,6],18:$V1},{1:[3]},{5:12,10:5,12:8,14:10,16:$V0},{6:[1,13]},{8:[1,14],16:[2,4]},{6:[2,6],11:[1,15]},o($V2,[2,13]),o($V2,[2,14]),o($V3,[2,9],{12:8,14:10,10:17,13:[1,16],16:$V0}),o([6,8,11,13,16],[2,15]),o($V4,[2,11],{15:[1,18]}),o([6,11,13,15,16],[2,12]),{6:[1,19]},{1:[2,2]},{9:20,18:$V1},{10:21,12:8,14:10,16:$V0},{10:22,12:8,14:10,16:$V0},o($V3,[2,8]),{9:23,18:$V1},{1:[2,1]},{16:[2,3]},{6:[2,5]},o($V3,[2,7]),o($V4,[2,10])],
+defaultActions: {13:[2,2],19:[2,1],20:[2,3],21:[2,5]},
 parseError: function parseError(str, hash) {
     if (hash.recoverable) {
         this.trace(str);

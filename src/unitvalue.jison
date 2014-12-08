@@ -70,9 +70,17 @@ unitvalue
     : magnitude unit EOF
         %{
             return {
+                type: "unitMagnitude",
                 magnitude: $1,
                 unit: $2,
             };
+        }%
+    | unit EOF
+        %{
+            return {
+                type: "unitStandalone",
+                unit: $1,
+            }
         }%
     ;
 

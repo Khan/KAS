@@ -3021,9 +3021,9 @@ var unprefixify = function(symbol) {
 
 KAS.unitParse = function(input) {
     try {
-        var expr = KAS.unitParser.parse(input);
+        var parseResult = KAS.unitParser.parse(input);
 
-        // expr looks like:
+        // parseResult looks like:
         // {
         //   magnitude: 5,
         //   unit: {
@@ -3038,26 +3038,50 @@ KAS.unitParse = function(input) {
         //
         // denom is optionally null
 
-        var unitArray = [new Float(expr.magnitude)];
+        var unitArray = [];
 
-        _(expr.unit.num).each(function(unitSpec) {
+        _(parseResult.unit.num).each(function(unitSpec) {
             unitArray.push(
                 new Pow(unprefixify(unitSpec.name), new Int(unitSpec.pow))
             );
         });
 
-        _(expr.unit.denom).each(function(unitSpec) {
+        _(parseResult.unit.denom).each(function(unitSpec) {
             unitArray.push(
                 new Pow(unprefixify(unitSpec.name), new Int(-1 * unitSpec.pow))
             );
         });
 
-        var ret = new Mul(unitArray);
+        var unit = new Mul(unitArray).flatten();
 
-        return { parsed: true, expr: ret, unit: expr.unit };
+        if (parseResult.type === "unitMagnitude") {
+            // in the first case we have a magnitude coefficient as well as the
+            // unit itself.
+            var coefArray =
+                [new Float(parseResult.magnitude)].concat(unitArray);
+            var expr = new Mul(coefArray);
+            return {
+                parsed: true,
+                unit: unit,
+                expr: expr,
+                type: parseResult.type
+            };
+        } else {
+
+            // in the second case it's just the unit with no magnitude.
+            return {
+                parsed: true,
+                unit: unit,
+                type: parseResult.type
+            };
+        }
     } catch (e) {
         return { parsed: false, error: e.message };
     }
+};
+
+KAS.unitCompare = function(x, y) {
+    // strip all leaves but units, then compare
 };
 
 _.extend(Unit.prototype, {

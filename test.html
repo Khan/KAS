@@ -1515,6 +1515,19 @@
         unitNeq(KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg)
     };
 
+    var solveUnitVariable = function(original, newUnit, expected, msg) {
+        var originalParsed = KAS.unitParse(original).expr;
+        var newUnitParsed = KAS.unitParse(newUnit).unit;
+        var x = new KAS.Var("x");
+        var equality = new KAS.Eq(
+            originalParsed,
+            "=",
+            new KAS.Mul(x, newUnitParsed)
+        );
+        var answer = equality.solveLinearEquationForVariable(x);
+        ok(KAS.compare(answer, expected).equal, msg)
+    };
+
     var formEq = function(x, y) {
         return KAS.compare(
             KAS.unitParse(x).unit,
@@ -1590,13 +1603,29 @@
         ok(!formEq("kg m / s^2", "N"), "kg m / s^2 !== N");
         ok(!formEq("m / s^2", "N / kg"), "m / s^2 !== N / kg");
 
-        ok(formEq("A", "A"), "A === 5 A");
+        ok(formEq("A", "A"), "A === A");
         ok(formEq("kg", "kg"), "kg = kg");
         ok(formEq("kg m / s^2", "m kg / s^2"), "kg m / s^2 === m kg / s^2");
         ok(formEq("m / s^2", "m / s^2"), "m / s^2 === m / s^2");
 
         // btu doesn't allow si prefixes
         throws(new KAS.Unit("mBTU"), "mBTU throws");
+
+        solveUnitVariable(
+            "2.5 gal", "cup", new KAS.Int(40), "2.5 gal = [40] cup"
+        );
+
+        solveUnitVariable(
+            "1 tsp", "cm^3", new KAS.Float(4.929), "1 tsp = [4.929] cm^3"
+        );
+
+        solveUnitVariable(
+            "1 dozen qt", "gal", new KAS.Int(3), "1 dozen qt = [3] gal"
+        );
+
+        solveUnitVariable(
+            "1 day", "sec", new KAS.Int(60*60*24), "1 day = [60*60*24] sec"
+        );
     });
 
     QUnit.module("isSimplified");

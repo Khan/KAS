@@ -2380,9 +2380,10 @@ _.extend(Eq.prototype, {
 
 _.extend(Eq.prototype, {
     // Assumptions: Expression is of the form a+bx, and we solve for x
-    solveLinearEquationForVariable: function(expr, variable) {
+    solveLinearEquationForVariable: function(variable) {
+        var expr = this.asExpr();
         if (!expr.is(Add) || expr.terms.length !== 2) {
-            throw new Error("Can only handle linear equations of the form " + 
+            throw new Error("Can only handle linear equations of the form " +
                             "a + bx (= 0)");
         }
 
@@ -3041,6 +3042,8 @@ var unprefixify = function(symbol) {
         } else {
             throw new Error(base + " does not allow prefixes");
         }
+    } else {
+        return new Unit(symbol);
     }
 };
 
@@ -3195,15 +3198,23 @@ var makeAlias = function(str, prefixes) {
     var numdenom = [coefficient];
 
     if (numdenomStr[0]) {
-        numdenomStr[0].split(" ").map(function(x) {
-            numdenom.push(new Unit(x));
-        });
+        numdenomStr[0]
+            .split(" ")
+            .filter(function(x) {
+                return x !== "";
+            }).map(function(x) {
+                numdenom.push(new Unit(x));
+            });
     }
 
     if (numdenomStr[1]) {
-        numdenomStr[1].split(" ").map(function(x) {
-            numdenom.push(new Pow(new Unit(x), Num.Div));
-        });
+        numdenomStr[1]
+            .split(" ")
+            .filter(function(x) {
+                return x !== "";
+            }).map(function(x) {
+                numdenom.push(new Pow(new Unit(x), Num.Div));
+            });
     }
 
     return {
@@ -3255,9 +3266,11 @@ var derivedUnits = {
     // time
     "min": makeAlias("60 | s", hasntPrefixes),
     "hr": makeAlias("3600 | s", hasntPrefixes),
-    "d": makeAlias("86400 | s", hasntPrefixes),
+    "sec": makeAlias("| s", hasntPrefixes),
+    // TODO(joel) make day work
+    "day": makeAlias("86400 | s", hasntPrefixes),
     "wk": makeAlias("604800 | s", hasntPrefixes),
-    "fortnight": makeAlias("604800 | s", hasntPrefixes),
+    "fortnight": makeAlias("14 | day", hasntPrefixes),
     "shake": makeAlias("10^-8 | s", hasntPrefixes),
     "olympiad": makeAlias("1.262 x 10^8 | s", hasntPrefixes),
 

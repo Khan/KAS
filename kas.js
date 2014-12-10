@@ -4623,10 +4623,6 @@ KAS.unitParse = function(input) {
     }
 };
 
-KAS.unitCompare = function(x, y) {
-    // strip all leaves but units, then compare
-};
-
 _.extend(Unit.prototype, {
     func: Unit,
     args: function() { return [this.symbol]; },

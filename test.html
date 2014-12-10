@@ -1615,8 +1615,11 @@
             "2.5 gal", "cup", new KAS.Int(40), "2.5 gal = [40] cup"
         );
 
+        //         1 tbsp    1 cup     1 gal    3785 L    1 m^3    ( 100 cm ) 3
+        // 1 tsp * ------ * ------- * ------ * -------- * ------ * (--------)
+        //         3 tsp    16 tbsp   16 cup   1000 gal   1000 L   (    m   )
         solveUnitVariable(
-            "1 tsp", "cm^3", new KAS.Float(4.929), "1 tsp = [4.929] cm^3"
+            "1 tsp", "cm^3", new KAS.Rational(3785, 768), "1 tsp = [3785/768] cm^3"
         );
 
         solveUnitVariable(

@@ -2824,12 +2824,7 @@ _.extend(Float.prototype, {
     },
 
     collect: function() {
-        var floor = Math.floor(this.n);
-        if (this.n === floor) {
-            return new Int(floor);
-        } else {
-            return this;
-        }
+        return this;
     },
 
     negate: function() { return new Float(-this.n); },
@@ -2859,9 +2854,13 @@ _.extend(Float.prototype, {
     // only to be used on non-repeating decimals (e.g. user-provided)
     asRational: function() {
         var parts = this.n.toString().split(".");
-        var numerator = Number(parts.join(""));
-        var denominator = Math.pow(10, parts[1].length);
-        return new Rational(numerator, denominator).collect();
+        if (parts.length === 1) {
+            return new Rational(this.n, 1);
+        } else {
+            var numerator = Number(parts.join(""));
+            var denominator = Math.pow(10, parts[1].length);
+            return new Rational(numerator, denominator).collect();
+        }
     },
 
     getDenominator: function() {
@@ -3053,7 +3052,7 @@ KAS.unitParse = function(input) {
 
         // parseResult looks like:
         // {
-        //   magnitude: 5,
+        //   magnitude: "5",
         //   unit: {
         //     num: [
         //       { name: "s", pow: 2 }
@@ -3086,12 +3085,13 @@ KAS.unitParse = function(input) {
             // in the first case we have a magnitude coefficient as well as the
             // unit itself.
             var coefArray =
-                [new Float(parseResult.magnitude)].concat(unitArray);
+                [new Float(+parseResult.magnitude)].concat(unitArray);
             var expr = new Mul(coefArray);
             return {
                 parsed: true,
                 unit: unit,
                 expr: expr,
+                coefficient: parseResult.magnitude,
                 type: parseResult.type
             };
         } else {
@@ -3100,7 +3100,7 @@ KAS.unitParse = function(input) {
             return {
                 parsed: true,
                 unit: unit,
-                type: parseResult.type
+                type: parseResult.type,
             };
         }
     } catch (e) {

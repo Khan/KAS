@@ -86,8 +86,8 @@ unitvalue
 
 magnitude
     : float POW nat
-        %{ /* XXX keep track of the exact thing the user entered? */
-            $$ = $1 * Math.pow(10, $3);
+        %{
+            $$ = $1 + $3;
         }%
     | float
         { $$ = $1; }
@@ -143,11 +143,11 @@ atom
 
 float
     : FLOAT
-        { $$ = +$1; }
+        { $$ = $1; }
     | nat
         { $$ = $1; }
     ;
 
 nat : NAT
-        { $$ = +$1; }
+        { $$ = $1; }
     ;

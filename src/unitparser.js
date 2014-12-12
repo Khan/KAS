@@ -104,11 +104,11 @@ case 2:
         
 break;
 case 3:
- /* XXX keep track of the exact thing the user entered? */
-            this.$ = $$[$0-2] * Math.pow(10, $$[$0]);
+
+            this.$ = $$[$0-2] + $$[$0];
         
 break;
-case 4: case 14:
+case 4: case 13: case 14: case 15:
  this.$ = $$[$0]; 
 break;
 case 5:
@@ -154,9 +154,6 @@ case 11:
 break;
 case 12:
  this.$ = yytext; 
-break;
-case 13: case 15:
- this.$ = +$$[$0]; 
 break;
 }
 },

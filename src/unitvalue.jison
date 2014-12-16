@@ -42,6 +42,7 @@ appear as part of "x 10^".
 "*"                                               return 'MUL';
 [0-9]+"."[0-9]+                                   return 'FLOAT';
 [0-9]+                                            return 'NAT';
+"-"                                               return 'NEG';
 
 /*
 Atom, meaning a single unit without exponent.
@@ -85,9 +86,9 @@ unitvalue
     ;
 
 magnitude
-    : float POW nat
+    : float POW int
         %{
-            $$ = $1 + $3;
+            $$ = $1 + "e" + $3;
         }%
     | float
         { $$ = $1; }
@@ -149,5 +150,12 @@ float
     ;
 
 nat : NAT
+        { $$ = $1; }
+    ;
+
+int
+    : NEG NAT
+        { $$ = "-" + $2; }
+    | NAT
         { $$ = $1; }
     ;

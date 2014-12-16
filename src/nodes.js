@@ -222,7 +222,7 @@ _.extend(Expr.prototype, {
     },
 
     getUnits: function() {
-        return _.uniq(_.flatten(_.invoke(this.exprArgs(), "getUnits"))).sort();
+        return _.flatten(_.invoke(this.exprArgs(), "getUnits"));
     },
 
     // check whether this expression node is of a particular type
@@ -705,6 +705,22 @@ _.extend(Mul.prototype, {
         return _.map(this.terms, function(term) {
             return (term instanceof Add) ? "(" + term.print() + ")" : term.print();
         }).join("*");
+    },
+
+    getUnits: function() {
+        var tmUnits = _(this.terms)
+            .chain()
+            .map(function(term) {
+                return term.getUnits();
+            })
+            .flatten()
+            .value();
+
+        tmUnits.sort(function(a, b) {
+            return a.unit < b.unit;
+        });
+
+        return tmUnits;
     },
 
     // since we don't care about commutativity, we can render a Mul any way we choose
@@ -1345,6 +1361,15 @@ _.extend(Pow.prototype, {
 
     eval: function(vars, options) {
         return Math.pow(this.base.eval(vars, options), this.exp.eval(vars, options));
+    },
+
+    getUnits: function() {
+        return this.base.getUnits().map(function(unit) {
+            return {
+                unit: unit.unit,
+                pow: unit.pow * this.exp.n
+            }
+        }.bind(this));
     },
 
     codegen: function() {
@@ -2824,6 +2849,8 @@ _.extend(Float.prototype, {
     },
 
     collect: function() {
+        // We used to simplify Floats to Ints here whenever possible, but no
+        // longer do so in order to preserve significant figures.
         return this;
     },
 
@@ -3124,7 +3151,7 @@ _.extend(Unit.prototype, {
         return 1;
     },
 
-    getUnits: function() { return [this.symbol]; },
+    getUnits: function() { return [{ unit: this.symbol, pow: 1 }]; },
 
     codegen: function() { return "1"; },
 
@@ -3297,7 +3324,9 @@ var derivedUnits = {
 
     // force
     "N": makeAlias("1000 | g m / s s", hasPrefixes),
-    "lb": makeAlias("4448 / 1000 | N", hasntPrefixes),
+    // "lb": makeAlias("4448 / 1000 | N", hasntPrefixes),
+    // 4.4482216152605
+    "lb": makeAlias("4448221615 / 1000000000 | N", hasntPrefixes),
     "dyn": makeAlias("10^-5 | N", hasntPrefixes),
 
     // pressure

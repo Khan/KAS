@@ -1508,14 +1508,14 @@
     };
 
     var parseEq = function(x, y, msg) {
-        unitEq(KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg)
+        unitEq(KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg);
     };
 
     var parseNeq = function(x, y, msg) {
-        unitNeq(KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg)
+        unitNeq(KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg);
     };
 
-    var solveUnitVariable = function(original, newUnit, expected, msg) {
+    var solveUnitVariable = function(original, newUnit, expected) {
         var originalParsed = KAS.unitParse(original).expr;
         var newUnitParsed = KAS.unitParse(newUnit).unit;
         var x = new KAS.Var("x");
@@ -1525,7 +1525,9 @@
             new KAS.Mul(x, newUnitParsed)
         );
         var answer = equality.solveLinearEquationForVariable(x);
-        ok(KAS.compare(answer, expected).equal, msg)
+
+        var msg = original + " = [" + expected.print() + "] " + newUnit;
+        ok(Math.round(answer.eval()) == Math.round(expected.eval()), msg);
     };
 
     var formEq = function(x, y) {
@@ -1533,6 +1535,11 @@
             KAS.unitParse(x).unit,
             KAS.unitParse(y).unit
         ).equal;
+    };
+
+    var parseMagnitude = function(str, expected) {
+        var parsed = KAS.unitParse(str).coefficient;
+        ok(+parsed, expected);
     };
 
     test("simplify expressions with units", function() {
@@ -1593,10 +1600,11 @@
         );
 
         parseNeq("50 m", "50 A", "50 m != 50 A");
-
         parseEq("5000 mA", "5 A", "5000 mA = 5 A");
-
         parseNeq("5 mA", "5 A", "5 mA != 5 A");
+
+        parseNeq("9.8 kg m / s^2", "9.8 J", "9.8 kg m / s^2 != 9.8 J");
+        parseEq("9.8 kg m / s^2", "9.8 J/m", "9.8 kg m / s^2 = 9.8 J/m");
 
         ok(!formEq("mA", "A"), "mA !== A")
         ok(!formEq("g", "kg"), "g !== kg");
@@ -1612,24 +1620,37 @@
         throws(new KAS.Unit("mBTU"), "mBTU throws");
 
         solveUnitVariable(
-            "2.5 gal", "cup", new KAS.Int(40), "2.5 gal = [40] cup"
+            "2.5 gal", "cup", new KAS.Int(40)
         );
 
         //         1 tbsp    1 cup     1 gal    3785 L    1 m^3    ( 100 cm ) 3
         // 1 tsp * ------ * ------- * ------ * -------- * ------ * (--------)
         //         3 tsp    16 tbsp   16 cup   1000 gal   1000 L   (    m   )
         solveUnitVariable(
-            "1 tsp", "cm^3", new KAS.Rational(3785, 768),
-            "1 tsp = [3785/768] cm^3"
+            "1 tsp", "cm^3", new KAS.Rational(3785, 768)
         );
 
         solveUnitVariable(
-            "1 dozen qt", "gal", new KAS.Int(3), "1 dozen qt = [3] gal"
+            "1 dozen qt", "gal", new KAS.Int(3)
         );
 
         solveUnitVariable(
-            "1 day", "sec", new KAS.Int(60*60*24), "1 day = [60*60*24] sec"
+            "1 day", "sec", new KAS.Int(60*60*24)
         );
+
+        solveUnitVariable(
+            "5 kg m / s^2", "N", new KAS.Int(5)
+        );
+
+        // This was originally broken due to a scientific notation parsing
+        // problem. Leaving it around because it doesn't hurt anything.
+        solveUnitVariable(
+            "5 x 10^5 N", "lb", new KAS.Int(112404)
+        );
+
+        parseMagnitude("5 x 10^5 N", 500000);
+        parseMagnitude("1.23456 x 10^5 N", 123456);
+        parseMagnitude("3.14 x 10^-2 N", 0.0314);
     });
 
     QUnit.module("isSimplified");

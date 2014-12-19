@@ -3078,6 +3078,10 @@ var unprefixify = function(symbol) {
             throw new Error(base + " does not allow prefixes");
         }
     } else {
+        if (!_(baseUnits).has(symbol) && !_(derivedUnits).has(symbol)) {
+            throw new Error(symbol + " is not a unit");
+        }
+
         return new Unit(symbol);
     }
 };

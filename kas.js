@@ -1841,6 +1841,15 @@ _.extend(Expr.prototype, {
             return false;
         }
 
+        // Compare at a set number (currently 12) of points to determine
+        // equality.
+        //
+        // `range` (and `vars`) is the only variable that varies through the
+        // iterations. For each of range = 10, 100, and 1000, each random
+        // variable is picked from (-range, range).
+        //
+        // Note that because there are 12 iterations and three ranges, each
+        // range is checked four times.
         for (var i = 0; i < ITERATIONS; i++) {
 
             var vars = {};
@@ -4586,6 +4595,10 @@ var unprefixify = function(symbol) {
             throw new Error(base + " does not allow prefixes");
         }
     } else {
+        if (!_(baseUnits).has(symbol) && !_(derivedUnits).has(symbol)) {
+            throw new Error(symbol + " is not a unit");
+        }
+
         return new Unit(symbol);
     }
 };

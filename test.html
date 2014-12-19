@@ -1619,6 +1619,9 @@
         // btu doesn't allow si prefixes
         throws(new KAS.Unit("mBTU"), "mBTU throws");
 
+        throws(new KAS.Unit("tbspa"), "tbspa throws");
+        throws(new KAS.Unit("xyz"), "xyz throws");
+
         solveUnitVariable(
             "2.5 gal", "cup", new KAS.Int(40)
         );

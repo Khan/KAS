@@ -2416,6 +2416,7 @@ _.extend(Eq.prototype, {
     // Assumptions: Expression is of the form a+bx, and we solve for x
     solveLinearEquationForVariable: function(variable) {
         var expr = this.asExpr();
+
         if (!expr.is(Add) || expr.terms.length !== 2) {
             throw new Error("Can only handle linear equations of the form " +
                             "a + bx (= 0)");
@@ -2671,6 +2672,9 @@ _.extend(Num.prototype, {
     // e.g. for reals, ints and floats are simple
     isSimple: abstract,
 
+    // getDecimalPlaces returns the number significant figures right of the
+    // decimal point.
+    //
     // Based on http://stackoverflow.com/a/10454560/2571482
     getDecimalPlaces: function() {
         var match = ("" + this.n).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
@@ -2788,6 +2792,10 @@ _.extend(Rational.prototype, {
 
     getDenominator: function() {
         return new Int(this.d);
+    },
+
+    getDecimalPlaces: function() {
+        return new Float(this.eval()).getDecimalPlaces();
     },
 
     isSimple: function() { return false; },

@@ -1656,6 +1656,15 @@
         parseMagnitude("3.14 x 10^-2 N", 0.0314);
     });
 
+    test("getDecimalPlaces", function() {
+        ok(new KAS.Float(3).getDecimalPlaces() === 0);
+        ok(new KAS.Float(3.14).getDecimalPlaces() === 2);
+        ok(new KAS.Float(3.14e1).getDecimalPlaces() === 1);
+        ok(new KAS.Float(3.14e-2).getDecimalPlaces() === 4);
+
+        ok(new KAS.Rational(1,2).getDecimalPlaces() === 1);
+    });
+
     QUnit.module("isSimplified");
 
     var isSimplified = function(input, expectedResult, options) {

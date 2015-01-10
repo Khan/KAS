@@ -704,6 +704,14 @@ _.extend(Mul.prototype, {
         return _.reduce(this.terms, function(memo, term) { return memo * term.eval(vars, options); }, 1);
     },
 
+    completeParse: function() {
+        if (this.terms.length === 1) {
+            return this.terms[0].completeParse();
+        } else {
+            return this.recurse("completeParse");
+        }
+    },
+
     codegen: function() {
         return _.map(this.terms, function(term) {
             return "(" + term.codegen() + ")";
@@ -776,6 +784,9 @@ _.extend(Mul.prototype, {
                 inverses.push(new Pow(new Int(term.d), Num.Div));
                 var number = new Int(term.n);
                 number.hints = term.hints;
+                if (term.n < 0) {
+                    negatives += "-";
+                }
                 return _.any(term.hints) ? number : null;
             } else {
                 return term;
@@ -1231,15 +1242,16 @@ _.extend(Mul, {
         var divide = function(a, b) {
             if (b instanceof Int) {
                 if (a instanceof Int) {
-                    if (a.n < 0 && b.n < 0) {
-                        // e.g. -2 / -3 -> -1*-2/3
-                        return [Num.Neg, new Rational(a.n, -b.n).addHint("fraction")];
-                    } else {
-                        // e.g. 2 / 3 -> 2/3
-                        // e.g. -2 / 3 -> -2/3
-                        // e.g. 2 / -3 -> -2/3
-                        return [new Rational(a.n, b.n).addHint("fraction")];
-                    }
+                   var terms = [];
+                   if (a.n < 0) {
+                       terms.push(Num.Neg);
+                   }
+                   if (b.n < 0) {
+                       terms.push(Num.Neg);
+                   }
+                   terms.push(new Int(Math.abs(a.n)));
+                   terms.push(new Rational(1, Math.abs(b.n)));
+                   return terms;
                 } else {
                     // e.g. x / 3 -> x*1/3
                     // e.g. x / -3 -> x*-1/3
@@ -3277,6 +3289,7 @@ var makeAlias = function(str, prefixes) {
 //
 // Where possible, these units are taken from "The International System of
 // Units (SI)" 8th edition (2006).
+
 var derivedUnits = {
     // mass
     // The atomic mass unit / dalton.

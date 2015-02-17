@@ -1093,6 +1093,22 @@
         comp("720m+480(m-5)=42000", "720m+480m-2400=42000");
         comp("2w+50/w=25", "w(12.5-w)=25");
         comp("(n*(8+4n))/2>19206", "6n+2n(n-1)>19206");
+
+        // Correctly handle exponents with negative bases and variables in exponent
+        comp("( 2)^n", "( 2)^(n-1)", false);
+        comp("( 2)^n", "( 2)^(n)");
+        comp("( 2)^n", "( 2)^(n+1)", false);
+
+        comp("(-2)^n", "(-2)^(n-1)", false);
+        comp("(-2)^n", "(-2)^(n)");
+        comp("(-2)^n", "(-2)^(n+1)", false);
+
+        comp("(-2)^(a)", "(-2)^(ab)", false);
+        comp("(-2)^(a)", "(-2)^(a^b)", false);
+
+        // This is incorrect, but accurately captures the current behavior
+        // See comment in `Expr.compare()` for more details
+        comp("(-2)^(n+0.1)", "(-2)^(n+1.1)");
     });
 
     test("simplify can't yet handle these", function() {

@@ -336,11 +336,29 @@ _.extend(Expr.prototype, {
         for (var i = 0; i < ITERATIONS; i++) {
 
             var vars = {};
-            // one third total iterations each with range 10, 100, and 1000
+
+            // One third total iterations each with range 10, 100, and 1000
             var range = Math.pow(10, 1 + Math.floor(3 * i / ITERATIONS));
 
+            // Half of the iterations should only use integer values.
+            // This is because expressions like (-2)^x are common but result
+            // in NaN when evaluated in JS with non-integer values of x.
+            // Without this, (-2)^x and (-2)^(x+1) both end up always being NaN
+            // and thus equivalent. With this, the most common failure case is
+            // avoided. However, less common cases such as (-2)^(x+0.1) and
+            // (-2)^(x+1.1) will still both evaluate to NaN and result in a
+            // false positive.
+            // 
+            // Note that the above is only true in vanilla JS Number-land,
+            // which has no concept of complex numbers. The solution is simple:
+            // Integrate a library for handling complex numbers.
+            // 
+            // TODO(alex): Add support for complex numbers, then remove this.
+            var useFloats = i % 2 === 0;
+
             _.each(varList, function(v) {
-                vars[v] = randomFloat(-range, range);
+                vars[v] = useFloats ? randomFloat(-range, range)
+                                    : _.random(-range, range);
             });
 
             var equal;

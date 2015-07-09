@@ -27,6 +27,8 @@ var grammar = {
             ["\\)",                 "return \")\""],
             ["\\\\left\\(",         "return \"(\""],
             ["\\\\right\\)",        "return \")\""],
+            ["\\[",                 "return \"[\""],
+            ["\\]",                 "return \"]\""],
             ["\\{",                 "return \"{\""],
             ["\\}",                 "return \"}\""],
             ["\\\\left\\{",         "return \"{\""],
@@ -167,6 +169,7 @@ var grammar = {
         "invocation": [
             ["sqrt ( additive )", "$$ = yy.Pow.sqrt($3);"],
             ["sqrt { additive }", "$$ = yy.Pow.sqrt($3);"],
+            ["sqrt [ additive ] { additive }", "$$ = new yy.Pow.nthroot($6, $3);"],
             ["abs ( additive )", "$$ = new yy.Abs($3);"],
             ["| additive |", "$$ = new yy.Abs($2);"],
             ["LEFT| additive RIGHT|", "$$ = new yy.Abs($2);"],

@@ -247,6 +247,30 @@
         print("\\sqrt{2+2}", "(2+2)^(1/2)");
     });
 
+    test("nth root", function() {
+        print("sqrt[3]{x}", "x^(1/3)");
+        print("sqrt[4]{x}y", "x^(1/4)*y");
+        print("1/sqrt[5]{x}", "x^(-1/5)");
+        print("1/sqrt[7]{x}y", "x^(-1/7)*y");
+
+        print("sqrt[3]{2}/2", "2^(1/3)*1/2");
+        print("sqrt[3]{2}^2", "(2^(1/3))^(2)");
+
+        print("\\sqrt[4]{x}", "x^(1/4)");
+        print("\\sqrt[4]{x}y", "x^(1/4)*y");
+        print("1/\\sqrt[4]{x}", "x^(-1/4)");
+        print("1/\\sqrt[4]{x}y", "x^(-1/4)*y");
+
+        print("\\sqrt[5]{2}/2", "2^(1/5)*1/2");
+        print("\\sqrt[5]{2}^2", "(2^(1/5))^(2)");
+
+        print("\\sqrt[6]{2}", "2^(1/6)");
+        print("\\sqrt[6]{2+2}", "(2+2)^(1/6)");
+
+        print("\\sqrt[2]{2}", "2^(1/2)");
+        print("\\sqrt[2]{2+2}", "(2+2)^(1/2)");
+    });
+
     test("absolute value", function() {
         print("abs(x)", "abs(x)");
         print("abs(abs(x))", "abs(abs(x))");
@@ -547,6 +571,20 @@
 
         tex("sqrt(2)/2", "\\frac{\\sqrt{2}}{2}");
         tex("sqrt(2)^2", "(\\sqrt{2})^{2}");
+    });
+
+    test("nth root", function() {
+        // This is an unfortunate case, but only nth degree roots with integer
+        // n's get nicely printed as tex.
+        tex("sqrt[z]{x}", "x^{\\frac{1}{z}}");
+
+        tex("sqrt[3]{x}", "\\sqrt[3]{x}");
+        tex("sqrt[3]{x}z", "\\sqrt[3]{x}z");
+        tex("1/sqrt[4]{x}", "\\frac{1}{\\sqrt[4]{x}}");
+        tex("1/sqrt[4]{x}y", "\\frac{y}{\\sqrt[4]{x}}");
+
+        tex("sqrt[9]{2}/2", "\\frac{\\sqrt[9]{2}}{2}");
+        tex("sqrt[9]{2}^2", "(\\sqrt[9]{2})^{2}");
     });
 
     test("absolute value", function() {
@@ -1407,6 +1445,7 @@
 
     test("collect over roots", function() {
         collect("sqrt(2)^2", "2");
+        collect("sqrt[3]{3}^3", "3");
         collect("(2^(1/3))^3", "2");
     });
 
@@ -1500,6 +1539,7 @@
         simplify("(3x)^2", "9x^2");
 
         simplify("(2sqrt(2))^4", "64");
+        simplify("(3sqrt[3]{3})^9", "531441");
 
         // from "Simplifying expressions with exponents"
         simplify("((nx^5)^5)", "n^5 x^25");

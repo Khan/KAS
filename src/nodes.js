@@ -123,8 +123,6 @@ _.extend(Expr.prototype, {
         if (options.dynamic) {
             tex = tex.replace(/\(/g, "\\left(");
             tex = tex.replace(/\)/g, "\\right)");
-            tex = tex.replace(/\[/g, "\\left[");
-            tex = tex.replace(/\]/g, "\\right]");
         }
         if (options.times) {
             tex = tex.replace(/\\cdot/g, "\\times");
@@ -1420,8 +1418,18 @@ _.extend(Pow.prototype, {
 
         } else if (this.isRoot()) {
 
-            // e.g. x ^ 1/2 w/hint -> sqrt(x)
-            return "\\sqrt{" + this.base.tex() + "}";
+            if (this.exp.n !== 1) {
+                error("Node marked with hint 'root' does not have exponent " +
+                      "of form 1/x.");
+            }
+
+            if (this.exp.d === 2) {
+                // e.g. x ^ 1/2 w/hint -> sqrt{x}
+                return "\\sqrt{" + this.base.tex() + "}";
+            } else {
+                // e.g. x ^ 1/y w/hint -> sqrt[y]{x}
+                return "\\sqrt[" + this.exp.d + "]{" + this.base.tex() + "}";
+            }
 
         } else if (this.base instanceof Trig && !this.base.isInverse() &&
             this.exp instanceof Num && this.exp.isSimple() &&
@@ -1630,7 +1638,7 @@ _.extend(Pow.prototype, {
     },
 
     isRoot: function() {
-        return this.exp instanceof Num && this.exp.hints.root;
+        return this.exp instanceof Rational && this.exp.hints.root;
     },
 
     isSquaredTrig: function() {
@@ -1726,7 +1734,15 @@ _.extend(Pow.prototype, {
 _.extend(Pow, {
     sqrt: function(arg) {
         return new Pow(arg, Num.Sqrt);
-    }
+    },
+
+    nthroot: function(radicand, degree) {
+        var exp = Mul.fold(Mul.handleDivide(new Int(1), degree));
+
+        // FIXME(johnsullivan): If oneOverDegree ends up being a pow object,
+        //     this "root" hint is lost between here and when tex() is called.
+        return new Pow(radicand, exp.addHint("root"));
+    },
 });
 
 

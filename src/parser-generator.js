@@ -183,14 +183,14 @@ var grammar = {
     }
 };
 
-var prelude = "// This is a @generated file\n" +
+var prelude = "// This is a @gene" + "rated file\n" +
               "window.KAS = {};\n(function(KAS) {\n\n";
 var parser = (new jison.Generator(grammar)).generate({moduleType: "js"});
 var postlude = "\n\nKAS.parser = parser;\n})(KAS);";
 
 fs.writeFileSync(path.resolve(__dirname, "parser.js"), prelude + parser + postlude);
 
-var unitPrelude = "// this is a @generated file\n" +
+var unitPrelude = "// this is a @gene" + "rated file\n" +
                   "(function(KAS) {\n\n";
 var unitEpilogue = "\n\nKAS.unitParser = parser;\n" +
                    "})(KAS);";

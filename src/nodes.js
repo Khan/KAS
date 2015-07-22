@@ -3243,7 +3243,7 @@ var siPrefixes = {
     P: new Pow(new Int(10), new Int(15)),
     E: new Pow(new Int(10), new Int(18)),
     // http://en.wikipedia.org/wiki/Metric_prefix#.22Hella.22_prefix_proposal
-    hella: new Pow(new Int(10, 27)),
+    hella: new Pow(new Int(10), new Int(27)),
 };
 
 // Use these two values to mark a unit as either SI-prefixable or not.
@@ -3444,7 +3444,7 @@ var derivedUnits = {
     "nit": makeAlias("| cd / m m", hasntPrefixes),
     "sb": makeAlias("10^4 | cd / m m", hasntPrefixes),
     "stilb": makeAlias("1 | sb", hasntPrefixes),
-    "apostilb": makeAlias("1 / pi x 10^(-4) | sb"),
+    "apostilb": makeAlias("1 / pi x 10^(-4) | sb", hasntPrefixes),
     "blondel": makeAlias("| apostilb", hasntPrefixes),
     "asb": makeAlias("| apostilb", hasntPrefixes),
     "la": makeAlias("| lm", hasntPrefixes),

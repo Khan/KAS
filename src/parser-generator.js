@@ -178,7 +178,7 @@ var grammar = {
         "primitive": [
             ["subscriptable", "$$ = $1;"],
             ["invocation", "$$ = $1;"],
-            ["FRAC { additive } { additive }", "$$ = yy.Mul.fold(yy.Mul.handleDivide($3, $6));"]
+            ["FRAC { additive } { additive }", "$$ = yy.Mul.handleDivide($3, $6);"]
         ]
     }
 };

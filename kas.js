@@ -1870,11 +1870,11 @@ _.extend(Expr.prototype, {
             // avoided. However, less common cases such as (-2)^(x+0.1) and
             // (-2)^(x+1.1) will still both evaluate to NaN and result in a
             // false positive.
-            // 
+            //
             // Note that the above is only true in vanilla JS Number-land,
             // which has no concept of complex numbers. The solution is simple:
             // Integrate a library for handling complex numbers.
-            // 
+            //
             // TODO(alex): Add support for complex numbers, then remove this.
             var useFloats = i % 2 === 0;
 
@@ -2909,7 +2909,30 @@ _.extend(Pow.prototype, {
     args: function() { return [this.base, this.exp]; },
 
     eval: function(vars, options) {
-        return Math.pow(this.base.eval(vars, options), this.exp.eval(vars, options));
+        var evaledBase = this.base.eval(vars, options);
+        var evaledExp = this.exp.eval(vars, options);
+
+        // Math.pow unequivocally returns NaN when provided with both a
+        // negative base and a fractional exponent. However, in some cases, we
+        // know that our exponent is actually valid for use with negative
+        // bases (e.g., (-5)^(1/3)).
+        //
+        // Here, we explicitly check for such cases. We really only handle a
+        // limited subset (by requiring that the exponent is rational with an
+        // odd denominator), but it's still useful.
+        //   See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
+        if (evaledBase < 0) {
+            var simplifiedExp = this.exp.simplify();
+            if (simplifiedExp instanceof Rational) {
+                var oddDenominator = Math.abs(simplifiedExp.d) % 2 === 1;
+                if (oddDenominator) {
+                    var oddNumerator = Math.abs(simplifiedExp.n) % 2 === 1;
+                    var sign = (oddNumerator) ? -1 : 1;
+                    return sign * Math.pow(-1 * evaledBase, evaledExp);
+                }
+            }
+        }
+        return Math.pow(evaledBase, evaledExp);
     },
 
     getUnits: function() {
@@ -4437,11 +4460,11 @@ _.extend(Float.prototype, {
         if (options && options.preciseFloats &&
                 exp instanceof Int && exp.n > 1) {
             return Float.toDecimalPlaces(
-                Math.pow(this.n, exp.n),
+                new Pow(this, exp).eval(),
                 this.getDecimalPlaces() * exp.n
             );
         } else {
-            return new Float(Math.pow(this.n, exp.eval())).collect();
+            return new Float(new Pow(this, exp).eval()).collect();
         }
     },
 

@@ -219,6 +219,10 @@ _.extend(Expr.prototype, {
         return _.uniq(_.flatten(_.invoke(this.exprArgs(), "getVars", excludeFunc))).sort();
     },
 
+    getConsts: function() {
+        return _.uniq(_.flatten(_.invoke(this.exprArgs(), "getConsts"))).sort();
+    },
+
     getUnits: function() {
         return _.flatten(_.invoke(this.exprArgs(), "getUnits"));
     },
@@ -2562,7 +2566,11 @@ _.extend(Func.prototype, {
         } else {
             return _.union(this.arg.getVars(), [this.symbol]).sort();
         }
-    }
+    },
+
+    getConsts: function() {
+        return this.arg.getConsts();
+    },
 });
 
 
@@ -2669,7 +2677,11 @@ _.extend(Const.prototype, {
         } else {
             return Mul.handleNegative(this);
         }
-    }
+    },
+
+    getConsts: function() {
+        return [this.print()];
+    },
 });
 
 Const.e = new Const("e");

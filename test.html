@@ -1857,6 +1857,22 @@
         isSimplified("y=(4a+4b)/(2c+2d)", false);
     });
 
+    var hasConsts = function(input, expectedConsts, options) {
+        deepEqual(parse(input, options).getConsts(), expectedConsts);
+    };
+
+    test("getConsts", function() {
+        hasConsts("4", []);
+        hasConsts("4x", []);
+        hasConsts("4pi", ["pi"]);
+        hasConsts("4e", ["e"]);
+        hasConsts("4pi+e", ["e", "pi"]);
+        hasConsts("4pi+pi", ["pi"]);
+        hasConsts("4cos(pi)", ["pi"]);
+        hasConsts("4cos(xpi)", ["pi"]);
+        hasConsts("(4x)/(2pi)", ["pi"]);
+        hasConsts("4sec(x)", []);
+    });
 })(KAS);
 </script>
 

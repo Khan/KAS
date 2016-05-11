@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+/* TODO(charlie): fix these lint errors (http://eslint.org/docs/rules): */
+/* eslint-disable no-var, comma-dangle, max-len, comma-spacing */
+
 var fs = require("fs");
 var path = require("path");
 var jison = require("jison");

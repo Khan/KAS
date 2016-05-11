@@ -1522,6 +1522,9 @@ return new Parser;
 
 KAS.unitParser = parser;
 })(KAS);
+/* TODO(charlie): fix these lint errors (http://eslint.org/docs/rules): */
+/* eslint-disable indent, no-undef, no-var, one-var, no-dupe-keys, no-new-func, no-redeclare, no-unused-vars, comma-dangle, max-len, prefer-spread, space-infix-ops, space-unary-ops */
+
 (function(KAS) {
 
 /*  The node hierarcy is as follows:
@@ -2944,7 +2947,7 @@ _.extend(Pow.prototype, {
             return {
                 unit: unit.unit,
                 pow: unit.pow * this.exp.n
-            }
+            };
         }.bind(this));
     },
 
@@ -4945,6 +4948,9 @@ var derivedUnits = {
     "b": makeAlias("10^−28 | m m", hasPrefixes),
     "barn": makeAlias("| b", hasPrefixes),
     "acre": makeAlias("4046.87 | m m", hasntPrefixes),
+    "skilodge": makeAlias("10^-31 | m m", hasntPrefixes),
+    "outhouse": makeAlias("10^-34 | m m", hasntPrefixes),
+    "shed": makeAlias("10^-52 | m m", hasntPrefixes),
 
     // volume
     "L": makeAlias("1/1000 | m m m", hasPrefixes),
@@ -4991,11 +4997,6 @@ var derivedUnits = {
     "T": makeAlias("1000 | g / C s", hasPrefixes),
     "Wb": makeAlias("1000 | g m m / C s", hasPrefixes),
 
-    "b": makeAlias("10^−28 | m m", hasPrefixes),
-    "skilodge": makeAlias("10^-31 | m m", hasntPrefixes),
-    "outhouse": makeAlias("10^-34 | m m", hasntPrefixes),
-    "shed": makeAlias("10^-52 | m m", hasntPrefixes),
-
     // photometry
     // TODO not sure this is right
     "lm": makeAlias("pi x 10^4 | cd / m m", hasntPrefixes),
@@ -5034,6 +5035,9 @@ KAS.Zero = Num.Zero;
 KAS.One = Num.One;
 
 })(KAS);
+
+/* TODO(charlie): fix these lint errors (http://eslint.org/docs/rules): */
+/* eslint-disable no-var, no-undef, comma-dangle, indent, max-len */
 
 (function(KAS) {
 

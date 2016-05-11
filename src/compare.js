@@ -1,3 +1,6 @@
+/* TODO(charlie): fix these lint errors (http://eslint.org/docs/rules): */
+/* eslint-disable no-var, no-undef, comma-dangle, indent, max-len */
+
 (function(KAS) {
 
 // assumes that both expressions have already been parsed

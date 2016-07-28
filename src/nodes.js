@@ -1422,6 +1422,8 @@ _.extend(Pow.prototype, {
                     var sign = (oddNumerator) ? -1 : 1;
                     return sign * Math.pow(-1 * evaledBase, evaledExp);
                 }
+            } else if (simplifiedExp instanceof Float) {
+                return -1 * Math.pow(-evaledBase, evaledExp);
             }
         }
         return Math.pow(evaledBase, evaledExp);

@@ -729,6 +729,12 @@
         strictEqual(parse(input, {functions: functions}).eval(vars, {functions: functions}), expected, message);
     };
 
+    var finite = function(input, expectedBool, vars, functions) {
+        if (vars === undefined) vars = {};
+        var message = input + " is " + (expectedBool ? "" : "NOT ") + "finite";
+        strictEqual(isFinite(parse(input, {functions: functions}).eval(vars, {functions: functions})), expectedBool, message);
+    }
+
     test("empty", function() {
         val("", 0);
     });
@@ -749,6 +755,25 @@
         val("ln e", 1);
         val("log 10", 1);
         val("log_2 2", 1);
+        finite("1/0", false);             
+    });
+
+    test("trigonometric expressions", function () {
+        val("sin(-pi)", 0);
+        val("cos(-pi)", -1);
+        val("tan(-pi)", 0);
+        val("sin(-pi/2)", -1);
+        val("cos(-pi/2)", 0);
+        finite("tan(-pi/2)", false);
+        val("sin(0)", 0);
+        val("cos(0)", 1);
+        val("tan(0)", 0);
+        val("sin(pi/2)", 1);
+        val("cos(pi/2)", 0);
+        finite("tan(pi/2)", false);
+        val("sin(pi)", 0);
+        val("cos(pi)", -1);
+        val("tan(pi)", 0);
     });
 
     test("hyperbolic expressions", function() {
@@ -786,7 +811,7 @@
             throw new Error("invalid function: " + func.toString());
         }
         var message = input + " should evaluate to " + expected +
-			", was " + result + "; by func: " + func.toString();
+            ", was " + result + "; by func: " + func.toString();
         ok(Math.abs(result - expected) < 1e-9, message);
     };
 

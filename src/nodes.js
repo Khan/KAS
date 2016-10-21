@@ -1907,26 +1907,51 @@ _.extend(Log, {
 function Trig(type, arg) { this.type = type; this.arg = arg; }
 Trig.prototype = new Expr();
 
+Trig.shifted = {
+    sin: function(arg) {
+        var region = Math.round(arg / Math.PI);  
+        if (region % 2 == 0) {
+            var shiftedArg = arg - region * Math.PI;
+        } else {
+            var shiftedArg = region * Math.PI - arg;
+        }
+        return Math.sin(shiftedArg);
+    },
+
+    cos: function (arg) {
+        var region = Math.round(arg / Math.PI + 1/2);
+        if (region % 2 == 0) {
+            var shiftedArg = region * Math.PI - arg - Math.PI/2;
+        } else {
+            var shiftedArg = arg + Math.PI/2 - region * Math.PI;
+        }
+        return -Math.sin(shiftedArg);
+    },
+
+    tan: function (arg) { return Trig.shifted.sin(arg) / Trig.shifted.cos(arg); },
+
+}
+
 _.extend(Trig.prototype, {
     func: Trig,
     args: function() { return [this.type, this.arg]; },
 
     functions: {
         sin: {
-            eval: Math.sin,
-            codegen: "Math.sin((",
+            eval: Trig.shifted.sin,
+            codegen: "KAS.Trig.shifted.sin((",
             tex: "\\sin",
             expand: function() { return this; }
         },
         cos: {
-            eval: Math.cos,
-            codegen: "Math.cos((",
+            eval: Trig.shifted.cos,
+            codegen: "KAS.Trig.shifted.cos((",
             tex: "\\cos",
             expand: function() { return this; }
         },
         tan: {
-            eval: Math.tan,
-            codegen: "Math.tan((",
+            eval: Trig.shifted.tan,
+            codegen: "KAS.Trig.shifted.tan((",
             tex: "\\tan",
             expand: function() {
                 return Mul.handleDivide(Trig.sin(this.arg), Trig.cos(this.arg));

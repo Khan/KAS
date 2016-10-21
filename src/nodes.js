@@ -730,7 +730,7 @@ _.extend(Mul.prototype, {
     codegen: function() {
         return _.map(this.terms, function(term) {
             return "(" + term.codegen() + ")";
-        }).join(" * ") || "0";
+        }).join(" * ") || "1";
     },
 
     print: function() {

@@ -730,7 +730,7 @@ _.extend(Mul.prototype, {
     codegen: function() {
         return _.map(this.terms, function(term) {
             return "(" + term.codegen() + ")";
-        }).join(" * ") || "0";
+        }).join(" * ") || "1";
     },
 
     print: function() {
@@ -1907,50 +1907,85 @@ _.extend(Log, {
 function Trig(type, arg) { this.type = type; this.arg = arg; }
 Trig.prototype = new Expr();
 
+Trig.shifted = {
+    sin: function(arg) {
+        var region = Math.round(arg / Math.PI);  
+        if (region % 2 == 0) {
+            var shiftedArg = arg - region * Math.PI;
+        } else {
+            var shiftedArg = region * Math.PI - arg;
+        }
+        return Math.sin(shiftedArg);
+    },
+
+    cos: function (arg) {
+        var region = Math.round(arg / Math.PI + 1/2);
+        if (region % 2 == 0) {
+            var shiftedArg = region * Math.PI - arg - Math.PI/2;
+        } else {
+            var shiftedArg = arg + Math.PI/2 - region * Math.PI;
+        }
+        return -Math.sin(shiftedArg);
+    },
+
+    tan: function (arg) { 
+        return Trig.shifted.sin(arg) / Trig.shifted.cos(arg); 
+    },
+    csc: function (arg) {
+        return 1 / Trig.shifted.sin(arg);
+    },
+    sec: function (arg) {
+        return 1 / Trig.shifted.cos(arg);
+    },
+    cot: function (arg) {
+        return Trig.shifted.cos(arg) / Trig.shifted.sin(arg);
+    }
+};
+
 _.extend(Trig.prototype, {
     func: Trig,
     args: function() { return [this.type, this.arg]; },
 
     functions: {
         sin: {
-            eval: Math.sin,
-            codegen: "Math.sin((",
+            eval: Trig.shifted.sin,
+            codegen: "KAS.Trig.shifted.sin((",
             tex: "\\sin",
             expand: function() { return this; }
         },
         cos: {
-            eval: Math.cos,
-            codegen: "Math.cos((",
+            eval: Trig.shifted.cos,
+            codegen: "KAS.Trig.shifted.cos((",
             tex: "\\cos",
             expand: function() { return this; }
         },
         tan: {
-            eval: Math.tan,
-            codegen: "Math.tan((",
+            eval: Trig.shifted.tan,
+            codegen: "KAS.Trig.shifted.tan((",
             tex: "\\tan",
             expand: function() {
                 return Mul.handleDivide(Trig.sin(this.arg), Trig.cos(this.arg));
             }
         },
         csc: {
-            eval: function(arg) { return 1 / Math.sin(arg); },
-            codegen: "(1/Math.sin(",
+            eval: Trig.shifted.csc,
+            codegen: "KAS.Trig.shifted.csc((",
             tex: "\\csc",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.sin(this.arg));
             }
         },
         sec: {
-            eval: function(arg) { return 1 / Math.cos(arg); },
-            codegen: "(1/Math.cos(",
+            eval: Trig.shifted.sec,
+            codegen: "KAS.Trig.shifted.sec((",
             tex: "\\sec",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.cos(this.arg));
             }
         },
         cot: {
-            eval: function(arg) { return 1 / Math.tan(arg); },
-            codegen: "(1/Math.tan(",
+            eval: Trig.shifted.cot,
+            codegen: "KAS.Trig.shifted.cot((",
             tex: "\\cot",
             expand: function() {
                 return Mul.handleDivide(Trig.cos(this.arg), Trig.sin(this.arg));

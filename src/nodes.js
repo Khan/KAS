@@ -1928,9 +1928,19 @@ Trig.shifted = {
         return -Math.sin(shiftedArg);
     },
 
-    tan: function (arg) { return Trig.shifted.sin(arg) / Trig.shifted.cos(arg); },
-
-}
+    tan: function (arg) { 
+        return Trig.shifted.sin(arg) / Trig.shifted.cos(arg); 
+    },
+    csc: function (arg) {
+        return 1 / Trig.shifted.sin(arg);
+    },
+    sec: function (arg) {
+        return 1 / Trig.shifted.cos(arg);
+    },
+    cot: function (arg) {
+        return Trig.shifted.cos(arg) / Trig.shifted.sin(arg);
+    }
+};
 
 _.extend(Trig.prototype, {
     func: Trig,
@@ -1958,24 +1968,24 @@ _.extend(Trig.prototype, {
             }
         },
         csc: {
-            eval: function(arg) { return 1 / Math.sin(arg); },
-            codegen: "(1/Math.sin(",
+            eval: Trig.shifted.csc,
+            codegen: "KAS.Trig.shifted.csc((",
             tex: "\\csc",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.sin(this.arg));
             }
         },
         sec: {
-            eval: function(arg) { return 1 / Math.cos(arg); },
-            codegen: "(1/Math.cos(",
+            eval: Trig.shifted.sec,
+            codegen: "KAS.Trig.shifted.sec((",
             tex: "\\sec",
             expand: function() {
                 return Mul.handleDivide(Num.One, Trig.cos(this.arg));
             }
         },
         cot: {
-            eval: function(arg) { return 1 / Math.tan(arg); },
-            codegen: "(1/Math.tan(",
+            eval: Trig.shifted.cot,
+            codegen: "KAS.Trig.shifted.cot((",
             tex: "\\cot",
             expand: function() {
                 return Mul.handleDivide(Trig.cos(this.arg), Trig.sin(this.arg));

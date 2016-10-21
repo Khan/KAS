@@ -38,6 +38,13 @@
     var shiftedSin = KAS.Trig.shifted.sin;
     var shiftedCos = KAS.Trig.shifted.cos;
     var shiftedTan = KAS.Trig.shifted.tan;
+    var shiftedCsc = KAS.Trig.shifted.csc;
+    var shiftedSec = KAS.Trig.shifted.sec;
+    var shiftedCot = KAS.Trig.shifted.cot;
+
+    var csc = function (arg) { return 1 / Math.sin(arg); };
+    var sec = function (arg) { return 1 / Math.cos(arg); };
+    var cot = function (arg) { return 1 / Math.tan(arg); };
 
     // Here's a list of benchmark values of sine every pi/60 radians in [0, 2pi]
     // These were calculated in sympy.
@@ -52,50 +59,57 @@
 
     // Here are some max precision benchmark values for tangent.
     var TAN_VALUES = 
-        [NaN, -19.08113668772821, -9.514364454222585, -6.313751514675043, 
-         -4.704630109478454, -3.732050807568877, -3.077683537175253,  
-         -2.605089064693802, -2.246036773904216, -1.962610505505151,
-         -1.732050807568877,  -1.539864963814583, -1.376381920471174, 
-         -1.234897156535051, -1.110612514829193,  -1.000000000000000, 
-         -0.9004040442978399, -0.8097840331950071,  -0.7265425280053609, 
-         -0.6494075931975106, -0.5773502691896258,  -0.5095254494944288, 
-         -0.4452286853085362, -0.3838640350354158,  -0.3249196962329063, 
-         -0.2679491924311227, -0.2125565616700221,  -0.1583844403245363, 
-         -0.1051042352656765, -0.05240777928304120,  0, 0.05240777928304120, 
-         0.1051042352656765, 0.1583844403245363,  0.2125565616700221, 
-         0.2679491924311227, 0.3249196962329063, 0.3838640350354158, 
-         0.4452286853085362, 0.5095254494944288,  0.5773502691896258,
-        0.6494075931975106, 0.7265425280053609,  0.8097840331950071, 
-        0.9004040442978399, 1.000000000000000,  1.110612514829193, 
-        1.234897156535051, 1.376381920471174, 1.539864963814583, 1.732050807568877, 
-        1.962610505505151,  2.246036773904216, 2.605089064693802, 3.077683537175253,
-        3.732050807568877, 4.704630109478454, 6.313751514675043,  9.514364454222585, 
-    19.08113668772821];
+        [NaN, -19.08113668772821, -9.514364454222585, -6.313751514675043, -4.704630109478454, -3.732050807568877, -3.077683537175253, -2.605089064693802, -2.246036773904216, -1.962610505505151, -1.732050807568877, -1.539864963814583, -1.376381920471174, -1.234897156535051, -1.110612514829193, -1.000000000000000, -0.9004040442978399, -0.8097840331950071, -0.7265425280053609, -0.6494075931975106, -0.5773502691896258, -0.5095254494944288, -0.4452286853085362, -0.3838640350354158, -0.3249196962329063, -0.2679491924311227, -0.2125565616700221, -0.1583844403245363, -0.1051042352656765, -0.05240777928304120, 0, 0.05240777928304120, 0.1051042352656765, 0.1583844403245363, 0.2125565616700221, 0.2679491924311227, 0.3249196962329063, 0.3838640350354158, 0.4452286853085362, 0.5095254494944288, 0.5773502691896258, 0.6494075931975106, 0.7265425280053609, 0.8097840331950071, 0.9004040442978399, 1.000000000000000, 1.110612514829193, 1.234897156535051, 1.376381920471174, 1.539864963814583, 1.732050807568877, 1.962610505505151, 2.246036773904216, 2.605089064693802, 3.077683537175253, 3.732050807568877, 4.704630109478454, 6.313751514675043, 9.514364454222585, 19.08113668772821];
+
+    var CSC_VALUES = 
+        [NaN, 19.107322609297398, 9.5667722335056263, 6.3924532214996612, 4.8097343447441308, 3.8637033051562734, 3.2360679774997895, 2.7904281096253359, 2.4585933355742382, 2.2026892645852667, 2.0000000000000001, 1.8360784587766633, 1.7013016167040798, 1.5890157290657494, 1.4944765498646086, 1.4142135623730950, 1.3456327296063761, 1.2867595658931674, 1.2360679774997897, 1.1923632928359475, 1.1547005383792516, 1.1223262376343608, 1.0946362785060468, 1.0711449936370290, 1.0514622242382672, 1.0352761804100830, 1.0223405948650293, 1.0124651257880029, 1.0055082795635164, 1.0013723459979210, 1.0000000000000000, 1.0013723459979210, 1.0055082795635164, 1.0124651257880030, 1.0223405948650293, 1.0352761804100831, 1.0514622242382672, 1.0711449936370291, 1.0946362785060467, 1.1223262376343608, 1.1547005383792515, 1.1923632928359475, 1.2360679774997896, 1.2867595658931674, 1.3456327296063759, 1.4142135623730950, 1.4944765498646089, 1.5890157290657494, 1.7013016167040802, 1.8360784587766630, 2.0000000000000004, 2.2026892645852663, 2.4585933355742387, 2.7904281096253352, 3.2360679774997904, 3.8637033051562715, 4.8097343447441318, 6.3924532214996559, 9.5667722335056282, 19.107322609297339, NaN, -19.107322609297466, -9.5667722335055965, -6.3924532214996559, -4.8097343447441318, -3.8637033051562765, -3.2360679774997869, -2.7904281096253352, -2.4585933355742387, -2.2026892645852678, -1.9999999999999992, -1.8360784587766630, -1.7013016167040802, -1.5890157290657501, -1.4944765498646084, -1.4142135623730950, -1.3456327296063763, -1.2867595658931670, -1.2360679774997896, -1.1923632928359475, -1.1547005383792517, -1.1223262376343606, -1.0946362785060467, -1.0711449936370291, -1.0514622242382673, -1.0352761804100830, -1.0223405948650293, -1.0124651257880030, -1.0055082795635164, -1.0013723459979210, -1.0000000000000000, -1.0013723459979210, -1.0055082795635164, -1.0124651257880030, -1.0223405948650293, -1.0352761804100830, -1.0514622242382673, -1.0711449936370291, -1.0946362785060467, -1.1223262376343606, -1.1547005383792517, -1.1923632928359475, -1.2360679774997896, -1.2867595658931670, -1.3456327296063763, -1.4142135623730950, -1.4944765498646084, -1.5890157290657501, -1.7013016167040802, -1.8360784587766630, -1.9999999999999992, -2.2026892645852678, -2.4585933355742387, -2.7904281096253352, -3.2360679774997869, -3.8637033051562765, -4.8097343447441318, -6.3924532214996559, -9.5667722335055965, -19.107322609297466];
 
     test("synchronization", function () {
         ok(TAN_VALUES.length == HALF_PERIOD, "tan has right sampling rate");
+        ok(CSC_VALUES.length == FULL_PERIOD, "csc has right sampling rate");
     });
 
     // What value should we get for sin(index*2pi/FULL_PERIOD)?
     var sin_benchmark = function (index) {
         index %= FULL_PERIOD;  // why is -1 % 120 == -1?
-        index = index < 0 ? index + FULL_PERIOD : index;
+        if (index < 0) index += FULL_PERIOD;
         return SIN_VALUES[index];
     };
 
     // What value should we get for cos(index*2pi/FULL_PERIOD)?
     var cos_benchmark = function (index) {
         index = (index + QUARTER_PER) % FULL_PERIOD;
-        index = index < 0 ? index + FULL_PERIOD : index;
+        if (index < 0) index += FULL_PERIOD;
         return SIN_VALUES[index];
-    }
+    };
 
     // What value should we get for tan(index*pi/60)?
     var tan_benchmark = function (index) {
         index = (index + QUARTER_PER) % HALF_PERIOD;
-        index = index < 0 ? index + FULL_PERIOD / 2 : index;
+        if (index < 0) index += HALF_PERIOD;
         return TAN_VALUES[index];
-    }
+    };
+
+    // What value should we get for csc(index*2pi/FULL_PERIOD)?
+    var csc_benchmark = function (index) {
+        index %= FULL_PERIOD;
+        if (index < 0) index += FULL_PERIOD;
+        return CSC_VALUES[index];
+    };
+
+    // What value should we get for sec(index*2pi/FULL_PERIOD)?
+    var sec_benchmark = function (index) {
+        index = (index + QUARTER_PER) % FULL_PERIOD;
+        if (index < 0) index += FULL_PERIOD;
+        return CSC_VALUES[index];
+    };
+
+    // What value should we get for cot(index*pi/60)?
+    var cot_benchmark = function (index) {
+        index = - index % HALF_PERIOD;
+        if (index < 0) index += HALF_PERIOD;
+        return TAN_VALUES[index];
+    };
 
     // Which hits this benchmark better?
     var benchmark_test = function(testee, benchmark, lower, upper, tol) {
@@ -124,6 +138,15 @@
         test("sanity check: Math.tan on " + range, function () {
             benchmark_test(Math.tan, tan_benchmark, LOWER_BD, UPPER_BD, 1e-11);
         });
+        test("sanity check: Math.csc on " + range, function () { 
+            benchmark_test(csc, csc_benchmark, LOWER_BD, UPPER_BD, 1e-11);
+        });
+        test("sanity check: Math.sec on " + range, function () {
+            benchmark_test(sec, sec_benchmark, LOWER_BD, UPPER_BD, 1e-11);
+        });
+        test("sanity check: Math.cot on " + range, function () {
+            benchmark_test(cot, cot_benchmark, LOWER_BD, UPPER_BD, 1e-11);
+        });
 
         test("calibration: shifted.sin on " + range, function () { 
             benchmark_test(shiftedSin, sin_benchmark, LOWER_BD, UPPER_BD, 1e-13);
@@ -133,6 +156,15 @@
         });
         test("calibration: shifted.tan on " + range, function () {
             benchmark_test(shiftedTan, tan_benchmark, LOWER_BD, UPPER_BD, 1e-11);
+        });
+        test("calibration: shifted.csc on " + range, function () { 
+            benchmark_test(shiftedCsc, csc_benchmark, LOWER_BD, UPPER_BD, 1e-11);
+        });
+        test("calibration: shifted.sec on " + range, function () {
+            benchmark_test(shiftedSec, sec_benchmark, LOWER_BD, UPPER_BD, 1e-11);
+        });
+        test("calibration: shifted.cot on " + range, function () {
+            benchmark_test(shiftedCot, cot_benchmark, LOWER_BD, UPPER_BD, 1e-11);
         });
     };
     run_benchmark_tests();
@@ -166,6 +198,15 @@
         });
         test("important values: shifted.tan on " + range, function () {
             important_values(shiftedTan, Math.tan, tan_benchmark, LOWER_BD, UPPER_BD);
+        });
+        test("important values: shifted.csc on " + range, function () { 
+            important_values(shiftedCsc, csc, csc_benchmark, LOWER_BD, UPPER_BD);
+        });
+        test("important values: shifted.sec on " + range, function () {
+            important_values(shiftedSec, sec, sec_benchmark, LOWER_BD, UPPER_BD);
+        });
+        test("important values: shifted.cot on " + range, function () {
+            important_values(shiftedCot, cot, cot_benchmark, LOWER_BD, UPPER_BD);
         });
     };
     run_important_values_tests();

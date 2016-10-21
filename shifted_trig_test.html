@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>KAS shifted trigonometry tests</title>
+
+    <!-- Include QUnit -->
+    <link rel="stylesheet" href="node_modules/qunit/support/qunit/qunit/qunit.css" type="text/css" media="screen">
+    <script src="node_modules/qunit/support/qunit/qunit/qunit.js"></script>
+    <script src="node_modules/qunit/support/qunit/addons/close-enough/qunit-close-enough.js"></script>
+
+    <!-- Include Underscore -->
+    <script src="node_modules/underscore/underscore.js"></script>
+
+    <!-- Include KAS -->
+    <script src="src/parser.js"></script>
+    <script src="src/unitparser.js"></script>
+    <script src="src/nodes.js"></script>
+    <script src="src/compare.js"></script>
+</head>
+<body>
+
+<h1 id="qunit-header">KAS shifted trigonometry tests</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+
+<div id="qunit-fixture">
+    <div id="solutionarea">
+    </div>
+    <div class="problem">
+    </div>
+</div>
+
+<script type="text/javascript">
+(function(KAS) {
+    var shiftedSin = KAS.Trig.shifted.sin;
+    var shiftedCos = KAS.Trig.shifted.cos;
+    var shiftedTan = KAS.Trig.shifted.tan;
+
+    // Here's a list of benchmark values of sine every pi/60 radians in [0, 2pi]
+    // These were calculated in sympy.
+    var SIN_VALUES = 
+        [0, 0.052335956242943833, 0.10452846326765347, 0.15643446504023087, 0.20791169081775934, 0.25881904510252076, 0.30901699437494742, 0.35836794954530027, 0.40673664307580021, 0.45399049973954679, 0.50000000000000000, 0.54463903501502708, 0.58778525229247313, 0.62932039104983745, 0.66913060635885821, 0.70710678118654752, 0.74314482547739424, 0.77714596145697088, 0.80901699437494742, 0.83867056794542403, 0.86602540378443865, 0.89100652418836786, 0.91354545764260090, 0.93358042649720175, 0.95105651629515357, 0.96592582628906829, 0.97814760073380564, 0.98768834059513773, 0.99452189536827334, 0.99862953475457387, 1.0000000000000000, 0.99862953475457387, 0.99452189536827334, 0.98768834059513773, 0.97814760073380564, 0.96592582628906829, 0.95105651629515357, 0.93358042649720175, 0.91354545764260090, 0.89100652418836786, 0.86602540378443865, 0.83867056794542403, 0.80901699437494742, 0.77714596145697088, 0.74314482547739424, 0.70710678118654752, 0.66913060635885821, 0.62932039104983745, 0.58778525229247313, 0.54463903501502708, 0.50000000000000000, 0.45399049973954679, 0.40673664307580021, 0.35836794954530027, 0.30901699437494742, 0.25881904510252076, 0.20791169081775934, 0.15643446504023087, 0.10452846326765347, 0.052335956242943833, 0, -0.052335956242943833, -0.10452846326765347, -0.15643446504023087, -0.20791169081775934, -0.25881904510252076, -0.30901699437494742, -0.35836794954530027, -0.40673664307580021, -0.45399049973954679, -0.50000000000000000, -0.54463903501502708, -0.58778525229247313, -0.62932039104983745, -0.66913060635885821, -0.70710678118654752, -0.74314482547739424, -0.77714596145697088, -0.80901699437494742, -0.83867056794542403, -0.86602540378443865, -0.89100652418836786, -0.91354545764260090, -0.93358042649720175, -0.95105651629515357, -0.96592582628906829, -0.97814760073380564, -0.98768834059513773, -0.99452189536827334, -0.99862953475457387, -1.0000000000000000, -0.99862953475457387, -0.99452189536827334, -0.98768834059513773, -0.97814760073380564, -0.96592582628906829, -0.95105651629515357, -0.93358042649720175, -0.91354545764260090, -0.89100652418836786, -0.86602540378443865, -0.83867056794542403, -0.80901699437494742, -0.77714596145697088, -0.74314482547739424, -0.70710678118654752, -0.66913060635885821, -0.62932039104983745, -0.58778525229247313, -0.54463903501502708, -0.50000000000000000, -0.45399049973954679, -0.40673664307580021, -0.35836794954530027, -0.30901699437494742, -0.25881904510252076, -0.20791169081775934, -0.15643446504023087, -0.10452846326765347, -0.052335956242943833]
+
+    // FULL_PERIOD satisfies SIN_VALUES[i] == sin(2i/FULL_PERIOD*pi)
+    // i.e. How many samples in 2pi?
+    var FULL_PERIOD = SIN_VALUES.length;
+    var HALF_PERIOD = FULL_PERIOD / 2;
+    var QUARTER_PER = FULL_PERIOD / 4;
+
+    // Here are some max precision benchmark values for tangent.
+    var TAN_VALUES = 
+        [NaN, -19.08113668772821, -9.514364454222585, -6.313751514675043, 
+         -4.704630109478454, -3.732050807568877, -3.077683537175253,  
+         -2.605089064693802, -2.246036773904216, -1.962610505505151,
+         -1.732050807568877,  -1.539864963814583, -1.376381920471174, 
+         -1.234897156535051, -1.110612514829193,  -1.000000000000000, 
+         -0.9004040442978399, -0.8097840331950071,  -0.7265425280053609, 
+         -0.6494075931975106, -0.5773502691896258,  -0.5095254494944288, 
+         -0.4452286853085362, -0.3838640350354158,  -0.3249196962329063, 
+         -0.2679491924311227, -0.2125565616700221,  -0.1583844403245363, 
+         -0.1051042352656765, -0.05240777928304120,  0, 0.05240777928304120, 
+         0.1051042352656765, 0.1583844403245363,  0.2125565616700221, 
+         0.2679491924311227, 0.3249196962329063, 0.3838640350354158, 
+         0.4452286853085362, 0.5095254494944288,  0.5773502691896258,
+        0.6494075931975106, 0.7265425280053609,  0.8097840331950071, 
+        0.9004040442978399, 1.000000000000000,  1.110612514829193, 
+        1.234897156535051, 1.376381920471174, 1.539864963814583, 1.732050807568877, 
+        1.962610505505151,  2.246036773904216, 2.605089064693802, 3.077683537175253,
+        3.732050807568877, 4.704630109478454, 6.313751514675043,  9.514364454222585, 
+    19.08113668772821];
+
+    test("synchronization", function () {
+        ok(TAN_VALUES.length == HALF_PERIOD, "tan has right sampling rate");
+    });
+
+    // What value should we get for sin(index*2pi/FULL_PERIOD)?
+    var sin_benchmark = function (index) {
+        index %= FULL_PERIOD;  // why is -1 % 120 == -1?
+        index = index < 0 ? index + FULL_PERIOD : index;
+        return SIN_VALUES[index];
+    };
+
+    // What value should we get for cos(index*2pi/FULL_PERIOD)?
+    var cos_benchmark = function (index) {
+        index = (index + QUARTER_PER) % FULL_PERIOD;
+        index = index < 0 ? index + FULL_PERIOD : index;
+        return SIN_VALUES[index];
+    }
+
+    // What value should we get for tan(index*pi/60)?
+    var tan_benchmark = function (index) {
+        index = (index + QUARTER_PER) % HALF_PERIOD;
+        index = index < 0 ? index + FULL_PERIOD / 2 : index;
+        return TAN_VALUES[index];
+    }
+
+    // Which hits this benchmark better?
+    var benchmark_test = function(testee, benchmark, lower, upper, tol) {
+        if (tol === undefined) tol = 1e-15;
+        for (var i = lower; i <= upper; i++) {
+            if (isFinite(benchmark(i))) {
+                var message = "At 2*" + i + "*pi/" + FULL_PERIOD + " we get " 
+                                + benchmark(i);
+                QUnit.close(testee(i/HALF_PERIOD*Math.PI), benchmark(i), tol, message);
+            }
+        }
+    }
+
+    var run_benchmark_tests = function () {
+        var LOWER_BD = -20 * FULL_PERIOD;  // start testing at -40*pi
+        var UPPER_BD = 20 * FULL_PERIOD;  // stop testing at  40*pi
+        var range = "[" + (2 * LOWER_BD/FULL_PERIOD) + "pi, " 
+                    + (2* UPPER_BD/FULL_PERIOD) + "pi]";
+
+        test("sanity check: Math.sin on " + range, function () { 
+            benchmark_test(Math.sin, sin_benchmark, LOWER_BD, UPPER_BD, 1e-13);
+        });
+        test("sanity check: Math.cos on " + range, function () {
+            benchmark_test(Math.cos, cos_benchmark, LOWER_BD, UPPER_BD, 1e-13);
+        });
+        test("sanity check: Math.tan on " + range, function () {
+            benchmark_test(Math.tan, tan_benchmark, LOWER_BD, UPPER_BD, 1e-11);
+        });
+
+        test("calibration: shifted.sin on " + range, function () { 
+            benchmark_test(shiftedSin, sin_benchmark, LOWER_BD, UPPER_BD, 1e-13);
+        });
+        test("calibration: shifted.cos on " + range, function () {
+            benchmark_test(shiftedCos, cos_benchmark, LOWER_BD, UPPER_BD, 1e-13);
+        });
+        test("calibration: shifted.tan on " + range, function () {
+            benchmark_test(shiftedTan, tan_benchmark, LOWER_BD, UPPER_BD, 1e-11);
+        });
+    };
+    run_benchmark_tests();
+    
+
+    // Some pedagogically relevant values of trig functions are every pi/2 radians.
+    var important_values = function(testee, lib, bench, lower, upper) {
+        for (var i = lower - (lower % QUARTER_PER); i <= upper; i += QUARTER_PER) {
+            if (isFinite(bench(i))) {
+                var testee_err = Math.abs(testee(i/HALF_PERIOD*Math.PI) - bench(i));
+                var lib_err = Math.abs(lib(i/HALF_PERIOD*Math.PI) - bench(i));
+                var message = "shifted error (" + testee_err + ") <= "
+                             + "library error (" + lib_err + ") at "
+                             + i/HALF_PERIOD + "pi"
+
+                ok(testee_err <= lib_err, message);
+            }
+        }
+    }
+
+    var run_important_values_tests = function () {
+        var LOWER_BD = -3 * FULL_PERIOD;
+        var UPPER_BD = 3 * FULL_PERIOD;
+        var range = "[" + LOWER_BD/HALF_PERIOD + "pi, " + UPPER_BD/HALF_PERIOD + "pi]";
+
+        test("important values: shifted.sin on " + range, function () { 
+            important_values(shiftedSin, Math.sin, sin_benchmark, LOWER_BD, UPPER_BD);
+        });
+        test("important values: shifted.cos on " + range, function () {
+            important_values(shiftedCos, Math.cos, cos_benchmark, LOWER_BD, UPPER_BD);
+        });
+        test("important values: shifted.tan on " + range, function () {
+            important_values(shiftedTan, Math.tan, tan_benchmark, LOWER_BD, UPPER_BD);
+        });
+    };
+    run_important_values_tests();
+
+})(KAS);
+</script>
+
+</html>

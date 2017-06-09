@@ -81,7 +81,9 @@ _.extend(Expr.prototype, {
     recurse: function(method) {
         var passed = Array.prototype.slice.call(arguments, 1);
         var args = _.map(this.args(), function(arg) {
-            return _.isString(arg) ? arg : arg[method].apply(arg, passed);
+            return (_.isString(arg) || typeof arg == "boolean")
+                ? arg
+                : arg[method].apply(arg, passed);
         });
         return this.construct(args);
     },
@@ -1384,12 +1386,16 @@ _.extend(Mul, {
 
 
 /* exponentiation */
-function Pow(base, exp) { this.base = base; this.exp = exp; }
+function Pow(base, exp, isRadical) {
+    this.base = base;
+    this.exp = exp;
+    this.isRadical = isRadical;
+}
 Pow.prototype = new Expr();
 
 _.extend(Pow.prototype, {
     func: Pow,
-    args: function() { return [this.base, this.exp]; },
+    args: function() { return [this.base, this.exp, this.isRadical]; },
 
     eval: function(vars, options) {
         var evaledBase = this.base.eval(vars, options);
@@ -1445,6 +1451,9 @@ _.extend(Pow.prototype, {
         var base = this.base.print();
         if (this.base instanceof Seq || this.base instanceof Pow) {
             base = "(" + base + ")";
+        }
+        if (this.isRadical) {
+            return "(R) " + base + "^(" + this.exp.print() + ")";
         }
         return base + "^(" + this.exp.print() + ")";
     },
@@ -1522,7 +1531,7 @@ _.extend(Pow.prototype, {
             };
 
             // compute and cache powers of 2 up to n
-            var cache = { 1: pow.base };
+            var cache = {1: pow.base};
             for (var i = 2; i <= n; i *= 2) {
                 var mul = new Mul(cache[i / 2], cache[i / 2]);
                 cache[i] = mul.expand().collect();
@@ -1775,12 +1784,12 @@ _.extend(Pow, {
         return new Pow(arg, Num.Sqrt);
     },
 
-    nthroot: function(radicand, degree) {
+    nthroot: function(radicand, degree, isRadical) {
         var exp = Mul.fold(Mul.handleDivide(new Int(1), degree));
 
         // FIXME(johnsullivan): If oneOverDegree ends up being a pow object,
         //     this "root" hint is lost between here and when tex() is called.
-        return new Pow(radicand, exp.addHint("root"));
+        return new Pow(radicand, exp.addHint("root"), isRadical);
     },
 });
 
@@ -3115,9 +3124,9 @@ KAS.parse = function(input, options) {
         }
 
         var expr = parser.parse(input).completeParse();
-        return { parsed: true, expr: expr };
+        return {parsed: true, expr: expr};
     } catch (e) {
-        return { parsed: false, error: e.message };
+        return {parsed: false, error: e.message};
     }
 };
 
@@ -3221,7 +3230,7 @@ KAS.unitParse = function(input) {
             };
         }
     } catch (e) {
-        return { parsed: false, error: e.message };
+        return {parsed: false, error: e.message};
     }
 };
 
@@ -3241,7 +3250,7 @@ _.extend(Unit.prototype, {
         return 1;
     },
 
-    getUnits: function() { return [{ unit: this.symbol, pow: 1 }]; },
+    getUnits: function() { return [{unit: this.symbol, pow: 1}]; },
 
     codegen: function() { return "1"; },
 

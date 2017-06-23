@@ -1386,7 +1386,7 @@ _.extend(Mul, {
 
 
 /* exponentiation */
-function Pow(base, exp, isRadical) {
+function Pow(base, exp, isRadical = false) {
     this.base = base;
     this.exp = exp;
     this.isRadical = isRadical;

@@ -75,7 +75,7 @@
   }
 */
 var parser = (function(){
-var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o;},$V0=[1,11],$V1=[1,9],$V2=[8,17],$V3=[6,11],$V4=[6,11,13,17];
+var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,11],$V1=[1,9],$V2=[8,17],$V3=[6,11],$V4=[6,11,13,17];
 var parser = {trace: function trace() { },
 yy: {},
 symbols_: {"error":2,"unitvalue":3,"magnitude":4,"unit":5,"EOF":6,"float":7,"POW":8,"int":9,"multatoms":10,"DIV":11,"expatom":12,"MUL":13,"atom":14,"^":15,"nat":16,"ATOM":17,"FLOAT":18,"NAT":19,"NEG":20,"$accept":0,"$end":1},
@@ -100,7 +100,7 @@ case 2:
             return {
                 type: "unitStandalone",
                 unit: $$[$0-1],
-            };
+            }
         
 break;
 case 3:
@@ -161,12 +161,12 @@ break;
 }
 },
 table: [{3:1,4:2,5:3,7:4,10:5,12:8,14:10,16:7,17:$V0,18:[1,6],19:$V1},{1:[3]},{5:12,10:5,12:8,14:10,17:$V0},{6:[1,13]},{8:[1,14],17:[2,4]},{6:[2,6],11:[1,15]},o($V2,[2,13]),o($V2,[2,14]),o($V3,[2,9],{12:8,14:10,10:17,13:[1,16],17:$V0}),o([6,8,11,13,17],[2,15]),o($V4,[2,11],{15:[1,18]}),o([6,11,13,15,17],[2,12]),{6:[1,19]},{1:[2,2]},{9:20,19:[1,22],20:[1,21]},{10:23,12:8,14:10,17:$V0},{10:24,12:8,14:10,17:$V0},o($V3,[2,8]),{16:25,19:$V1},{1:[2,1]},{17:[2,3]},{19:[1,26]},{17:[2,17]},{6:[2,5]},o($V3,[2,7]),o($V4,[2,10]),{17:[2,16]}],
-defaultActions: {13:[2, 2], 19:[2, 1], 20:[2, 3], 22:[2, 17], 23:[2, 5], 26:[2, 16]},
+defaultActions: {13:[2,2],19:[2,1],20:[2,3],22:[2,17],23:[2,5],26:[2,16]},
 parseError: function parseError(str, hash) {
     if (hash.recoverable) {
         this.trace(str);
     } else {
-        function _parseError(msg, hash) {
+        function _parseError (msg, hash) {
             this.message = msg;
             this.hash = hash;
         }
@@ -179,7 +179,7 @@ parse: function parse(input) {
     var self = this, stack = [0], tstack = [], vstack = [null], lstack = [], table = this.table, yytext = '', yylineno = 0, yyleng = 0, recovering = 0, TERROR = 2, EOF = 1;
     var args = lstack.slice.call(arguments, 1);
     var lexer = Object.create(this.lexer);
-    var sharedState = {yy: {}};
+    var sharedState = { yy: {} };
     for (var k in this.yy) {
         if (Object.prototype.hasOwnProperty.call(this.yy, k)) {
             sharedState.yy[k] = this.yy[k];
@@ -205,7 +205,7 @@ parse: function parse(input) {
         lstack.length = lstack.length - n;
     }
     _token_stack:
-        var lex = function() {
+        var lex = function () {
             var token;
             token = lexer.lex() || EOF;
             if (typeof token !== 'number') {
@@ -242,7 +242,7 @@ parse: function parse(input) {
                     token: this.terminals_[symbol] || symbol,
                     line: lexer.yylineno,
                     loc: yyloc,
-                    expected: expected,
+                    expected: expected
                 });
             }
         if (action[0] instanceof Array && action.length > 1) {
@@ -275,12 +275,12 @@ parse: function parse(input) {
                 first_line: lstack[lstack.length - (len || 1)].first_line,
                 last_line: lstack[lstack.length - 1].last_line,
                 first_column: lstack[lstack.length - (len || 1)].first_column,
-                last_column: lstack[lstack.length - 1].last_column,
+                last_column: lstack[lstack.length - 1].last_column
             };
             if (ranges) {
                 yyval._$.range = [
                     lstack[lstack.length - (len || 1)].range[0],
-                    lstack[lstack.length - 1].range[1],
+                    lstack[lstack.length - 1].range[1]
                 ];
             }
             r = this.performAction.apply(yyval, [
@@ -290,7 +290,7 @@ parse: function parse(input) {
                 sharedState.yy,
                 action[1],
                 vstack,
-                lstack,
+                lstack
             ].concat(args));
             if (typeof r !== 'undefined') {
                 return r;
@@ -327,7 +327,7 @@ parseError:function parseError(str, hash) {
     },
 
 // resets the lexer, sets new input
-setInput:function(input, yy) {
+setInput:function (input, yy) {
         this.yy = yy || this.yy || {};
         this._input = input;
         this._more = this._backtrack = this.done = false;
@@ -338,17 +338,17 @@ setInput:function(input, yy) {
             first_line: 1,
             first_column: 0,
             last_line: 1,
-            last_column: 0,
+            last_column: 0
         };
         if (this.options.ranges) {
-            this.yylloc.range = [0, 0];
+            this.yylloc.range = [0,0];
         }
         this.offset = 0;
         return this;
     },
 
 // consumes and returns one char from the input
-input:function() {
+input:function () {
         var ch = this._input[0];
         this.yytext += ch;
         this.yyleng++;
@@ -371,7 +371,7 @@ input:function() {
     },
 
 // unshifts one char (or a string) into the input
-unput:function(ch) {
+unput:function (ch) {
         var len = ch.length;
         var lines = ch.split(/(?:\r\n?|\n)/g);
 
@@ -395,7 +395,7 @@ unput:function(ch) {
             last_column: lines ?
                 (lines.length === oldLines.length ? this.yylloc.first_column : 0)
                  + oldLines[oldLines.length - lines.length].length - lines[0].length :
-              this.yylloc.first_column - len,
+              this.yylloc.first_column - len
         };
 
         if (this.options.ranges) {
@@ -406,20 +406,20 @@ unput:function(ch) {
     },
 
 // When called from action, caches matched text and appends it on next action
-more:function() {
+more:function () {
         this._more = true;
         return this;
     },
 
 // When called from action, signals the lexer that this rule fails to match the input, so the next matching rule (regex) should be tested instead.
-reject:function() {
+reject:function () {
         if (this.options.backtrack_lexer) {
             this._backtrack = true;
         } else {
             return this.parseError('Lexical error on line ' + (this.yylineno + 1) + '. You can only invoke reject() in the lexer when the lexer is of the backtracking persuasion (options.backtrack_lexer = true).\n' + this.showPosition(), {
                 text: "",
                 token: null,
-                line: this.yylineno,
+                line: this.yylineno
             });
 
         }
@@ -427,18 +427,18 @@ reject:function() {
     },
 
 // retain first n characters of the match
-less:function(n) {
+less:function (n) {
         this.unput(this.match.slice(n));
     },
 
 // displays already matched input, i.e. for error messages
-pastInput:function() {
+pastInput:function () {
         var past = this.matched.substr(0, this.matched.length - this.match.length);
         return (past.length > 20 ? '...':'') + past.substr(-20).replace(/\n/g, "");
     },
 
 // displays upcoming input, i.e. for error messages
-upcomingInput:function() {
+upcomingInput:function () {
         var next = this.match;
         if (next.length < 20) {
             next += this._input.substr(0, 20-next.length);
@@ -447,14 +447,14 @@ upcomingInput:function() {
     },
 
 // displays the character position where the lexing error occurred, i.e. for error messages
-showPosition:function() {
+showPosition:function () {
         var pre = this.pastInput();
         var c = new Array(pre.length + 1).join("-");
         return pre + this.upcomingInput() + "\n" + c + "^";
     },
 
 // test the lexed token: return FALSE when not a match, otherwise return token
-test_match:function(match, indexed_rule) {
+test_match:function (match, indexed_rule) {
         var token,
             lines,
             backup;
@@ -467,7 +467,7 @@ test_match:function(match, indexed_rule) {
                     first_line: this.yylloc.first_line,
                     last_line: this.last_line,
                     first_column: this.yylloc.first_column,
-                    last_column: this.yylloc.last_column,
+                    last_column: this.yylloc.last_column
                 },
                 yytext: this.yytext,
                 match: this.match,
@@ -479,7 +479,7 @@ test_match:function(match, indexed_rule) {
                 _input: this._input,
                 yy: this.yy,
                 conditionStack: this.conditionStack.slice(0),
-                done: this.done,
+                done: this.done
             };
             if (this.options.ranges) {
                 backup.yylloc.range = this.yylloc.range.slice(0);
@@ -496,7 +496,7 @@ test_match:function(match, indexed_rule) {
             first_column: this.yylloc.last_column,
             last_column: lines ?
                          lines[lines.length - 1].length - lines[lines.length - 1].match(/\r?\n?/)[0].length :
-                         this.yylloc.last_column + match[0].length,
+                         this.yylloc.last_column + match[0].length
         };
         this.yytext += match[0];
         this.match += match[0];
@@ -526,7 +526,7 @@ test_match:function(match, indexed_rule) {
     },
 
 // return next match in input
-next:function() {
+next:function () {
         if (this.done) {
             return this.EOF;
         }
@@ -578,7 +578,7 @@ next:function() {
             return this.parseError('Lexical error on line ' + (this.yylineno + 1) + '. Unrecognized text.\n' + this.showPosition(), {
                 text: "",
                 token: null,
-                line: this.yylineno,
+                line: this.yylineno
             });
         }
     },
@@ -637,7 +637,7 @@ stateStackSize:function stateStackSize() {
         return this.conditionStack.length;
     },
 options: {},
-performAction: function anonymous(yy, yy_, $avoiding_name_collisions, YY_START) {
+performAction: function anonymous(yy,yy_,$avoiding_name_collisions,YY_START) {
 var YYSTATE=YY_START;
 switch($avoiding_name_collisions) {
 case 0:return 11;
@@ -671,12 +671,12 @@ break;
 }
 },
 rules: [/^(?:\/)/,/^(?:\()/,/^(?:\))/,/^(?:(\*|x|\u00d7|\u2219|\u22c5|\u00b7)\s*10\s*\^)/,/^(?:\^)/,/^(?:\*)/,/^(?:[0-9]+\.[0-9]+)/,/^(?:[0-9]+)/,/^(?:-)/,/^(?:\u00b0( ?)[cCfF])/,/^(?:fl\.? oz\.?)/,/^(?:[\u00b5]?([A-Za-z-]+|[\u2103\u2109\u212b]))/,/^(?:\s+)/,/^(?:$)/],
-conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13],"inclusive":true}},
+conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13],"inclusive":true}}
 });
 return lexer;
 })();
 parser.lexer = lexer;
-function Parser() {
+function Parser () {
   this.yy = {};
 }
 Parser.prototype = parser;parser.Parser = Parser;

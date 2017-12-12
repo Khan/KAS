@@ -151,7 +151,7 @@ var grammar = {
             ["power", "$$ = $1;"]
         ],
         "power": [
-            ["primitive ^ negative", "$$ = new yy.Pow($1, $3, false);"],
+            ["primitive ^ negative", "$$ = new yy.Pow($1, $3);"],
             ["primitive", "$$ = $1;"]
         ],
         "variable": [
@@ -170,9 +170,9 @@ var grammar = {
             ["FUNC", "$$ = yytext;"]
         ],
         "invocation": [
-            ["sqrt ( additive )", "$$ = yy.Pow.sqrt($3, true);"],
-            ["sqrt { additive }", "$$ = yy.Pow.sqrt($3, true);"],
-            ["sqrt [ additive ] { additive }", "$$ = new yy.Pow.nthroot($6, $3, true);"],
+            ["sqrt ( additive )", "$$ = yy.Pow.sqrt($3);"],
+            ["sqrt { additive }", "$$ = yy.Pow.sqrt($3);"],
+            ["sqrt [ additive ] { additive }", "$$ = new yy.Pow.nthroot($6, $3);"],
             ["abs ( additive )", "$$ = new yy.Abs($3);"],
             ["| additive |", "$$ = new yy.Abs($2);"],
             ["LEFT| additive RIGHT|", "$$ = new yy.Abs($2);"],
@@ -203,6 +203,6 @@ var unitParserOutfile = path.resolve(__dirname, "unitparser.js");
 
 var unitParserSource = fs.readFileSync(unitParserInfile);
 var unitParser = new jison.Generator(unitParserSource.toString());
-var generatedParser = unitParser.generate({moduleType: "js"});
+var generatedParser = unitParser.generate({ moduleType: "js" });
 fs.writeFileSync(unitParserOutfile,
                  unitPrelude + generatedParser + unitEpilogue);

@@ -187,7 +187,15 @@ var grammar = {
 };
 
 var prelude = "// This is a @gene" + "rated file\n" +
-              "window.KAS = {};\n(function(KAS) {\n\n";
+              "var _, KAS = {};\n\n" +
+              "if (typeof module === \"object\" && module.exports) {\n" +
+              "    _ = require(\"underscore\");\n" +
+              "    module.exports = KAS;\n" +
+              "} else {\n" +
+              "    _ = window._;\n" +
+              "    window.KAS = KAS;\n" +
+              "}\n\n" +
+              "(function(KAS) {\n\n";
 var parser = (new jison.Generator(grammar)).generate({moduleType: "js"});
 var postlude = "\n\nKAS.parser = parser;\n})(KAS);";
 

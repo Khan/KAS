@@ -1,53 +1,69 @@
-/* TODO(charlie): fix these lint errors (http://eslint.org/docs/rules): */
-/* eslint-disable no-var, no-undef, comma-dangle, indent, max-len */
-
 (function(KAS) {
+    // Assumes that both expressions have already been parsed
+    // TODO(alex): be able to pass a random() function to compare()
+    KAS.compare = function(expr1, expr2, options) {
+        const defaults = {
+            form: false, // Check that the two expressions have the same form
+            simplify: false, // Check that the second expression is simplified
+        };
 
-// assumes that both expressions have already been parsed
-// TODO(alex): be able to pass a random() function to compare()
-KAS.compare = function(expr1, expr2, options) {
-    var defaults = {
-        form: false,        // check that the two expressions have the same form
-        simplify: false     // check that the second expression is simplified
-    };
+        /* Options that could be added in the future:
+         * - Allow ratios: e.g. 3/1 and 3 should both be accepted for something
+         *   like slope
+         * - Allow student to choose their own variable names
+         */
 
-    /* more possible options:
-        allow ratios e.g. 3/1 and 3 should both be accepted for something like slope
-        allow student to choose their own variables names
-    */
-
-    if (options !== undefined) {
-        options = _.extend(defaults, options);
-    } else {
-        options = defaults;
-    }
-
-    // variable check
-    var vars = expr1.sameVars(expr2);
-    if (!vars.equal) {
-        var message = null;
-        if (vars.equalIgnoringCase) {
-            message = "Some of your variables are in the wrong case (upper vs. lower).";
+        if (options !== undefined) {
+            // eslint-disable-next-line no-undef
+            options = _.extend(defaults, options);
+        } else {
+            options = defaults;
         }
-        return {equal: false, message: message};
-    }
 
-    // semantic check
-    if (!expr1.compare(expr2)) {
-        return {equal: false, message: null};
-    }
+        // TODO(CP-1614): Figure out how to make these messages translatable
 
-    // syntactic check
-    if (options.form && !expr1.sameForm(expr2)) {
-        return {equal: false, message: "Your answer is not in the correct form."};
-    }
+        // Variable check
+        const vars = expr1.sameVars(expr2);
+        if (!vars.equal) {
+            let message;
+            if (vars.equalIgnoringCase) {
+                message =
+                    "Check your variables; one or more are using " +
+                    "the wrong case (upper or lower).";
+            } else {
+                message =
+                    "Check your variables; you may have used the wrong " +
+                    "letter for one or more of them.";
+            }
+            return {
+                equal: false,
+                wrongVariableCase: vars.equalIgnoringCase,
+                wrongVariableNames: !vars.equalIgnoringCase,
+                message: message,
+            };
+        }
 
-    // syntactic check
-    if (options.simplify && !expr1.isSimplified()) {
-        return {equal: false, message: "Your answer is not fully expanded and simplified."};
-    }
+        // Semantic check
+        if (!expr1.compare(expr2)) {
+            return {equal: false, message: null};
+        }
 
-    return {equal: true, message: null};
-};
+        // Syntactic check
+        if (options.form && !expr1.sameForm(expr2)) {
+            return {
+                equal: false,
+                message: "Your answer is not in the correct form.",
+            };
+        }
 
+        // Syntactic check
+        if (options.simplify && !expr1.isSimplified()) {
+            return {
+                equal: false,
+                message: "Your answer is not fully expanded and simplified.",
+            };
+        }
+
+        return {equal: true, message: null};
+    };
 })(KAS);

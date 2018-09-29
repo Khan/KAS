@@ -5058,7 +5058,7 @@ KAS.One = Num.One;
     // Assumes that both expressions have already been parsed
     // TODO(alex): be able to pass a random() function to compare()
     KAS.compare = function(expr1, expr2, options) {
-        const defaults = {
+        var defaults = {
             form: false, // Check that the two expressions have the same form
             simplify: false, // Check that the second expression is simplified
         };
@@ -5079,9 +5079,9 @@ KAS.One = Num.One;
         // TODO(CP-1614): Figure out how to make these messages translatable
 
         // Variable check
-        const vars = expr1.sameVars(expr2);
+        var vars = expr1.sameVars(expr2);
         if (!vars.equal) {
-            let message;
+            var message;
             if (vars.equalIgnoringCase) {
                 message =
                     "Check your variables; one or more are using " +

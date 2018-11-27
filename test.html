@@ -5,9 +5,9 @@
     <title>KAS Browser Tests</title>
 
     <!-- Include QUnit -->
-    <link rel="stylesheet" href="node_modules/qunit/support/qunit/qunit/qunit.css" type="text/css" media="screen">
-    <script src="node_modules/qunit/support/qunit/qunit/qunit.js"></script>
-    <script src="node_modules/qunit/support/qunit/addons/close-enough/qunit-close-enough.js"></script>
+    <link rel="stylesheet" href="node_modules/qunit/qunit/qunit.css" type="text/css" media="screen">
+    <script src="node_modules/qunit/qunit/qunit.js"></script>
+    <script src="node_modules/qunit-assert-close/qunit-assert-close.js"></script>
 
     <!-- Include Underscore -->
     <script src="node_modules/underscore/underscore.js"></script>
@@ -43,304 +43,304 @@
 
     QUnit.module("parsing");
 
-    var print = function(input, expected, options) {
+    var print = function(assert, input, expected, options) {
         var message = input + " parses as " + expected;
-        QUnit.close(parse(input, options).print(), expected, 1e-9, message);
+        assert.close(parse(input, options).print(), expected, 1e-9, message);
     };
 
-    test("empty", function() {
-        print("", "");
+    QUnit.test("empty", function(assert) {
+        print(assert, "", "");
     });
 
-    test("positive and negative primitives", function() {
-        print("0", "0");
-        print("1.", "1");
-        print("3.14", "3.14");
-        print(".14", "0.14");
-        print("pi", "pi");
-        print("e", "e");
-        print("x", "x");
-        print("theta", "theta");
+    QUnit.test("positive and negative primitives", function(assert) {
+        print(assert, "0", "0");
+        print(assert, "1.", "1");
+        print(assert, "3.14", "3.14");
+        print(assert, ".14", "0.14");
+        print(assert, "pi", "pi");
+        print(assert, "e", "e");
+        print(assert, "x", "x");
+        print(assert, "theta", "theta");
 
-        print("-0", "-1*0");
-        print("-1.", "-1");
-        print("-3.14", "-3.14");
-        print("-.14", "-0.14");
-        print("-pi", "-1*pi");
-        print("-e", "-1*e");
-        print("-theta", "-1*theta");
+        print(assert, "-0", "-1*0");
+        print(assert, "-1.", "-1");
+        print(assert, "-3.14", "-3.14");
+        print(assert, "-.14", "-0.14");
+        print(assert, "-pi", "-1*pi");
+        print(assert, "-e", "-1*e");
+        print(assert, "-theta", "-1*theta");
     });
 
-    test("LaTeX constants", function() {
-        print("\\theta", "theta");
-        print("\\pi", "pi");
-        print("\\phi", "phi");
+    QUnit.test("LaTeX constants", function(assert) {
+        print(assert, "\\theta", "theta");
+        print(assert, "\\pi", "pi");
+        print(assert, "\\phi", "phi");
     });
 
-    test("ignore TeX spaces", function() {
-        print("a\\space b", "a*b");
-        print("a\\ b", "a*b");
+    QUnit.test("ignore TeX spaces", function(assert) {
+        print(assert, "a\\space b", "a*b");
+        print(assert, "a\\ b", "a*b");
     });
 
-    test("positive and negative rationals", function() {
-        print("1/2", "1/2");
-        print("-1/2", "-1/2");
-        print("1/-2", "-1/2");
-        print("-1/-2", "-1*-1/2");
-        print("42/42", "42/42");
-        print("42/1", "42/1");
-        print("0/42", "0/42");
+    QUnit.test("positive and negative rationals", function(assert) {
+        print(assert, "1/2", "1/2");
+        print(assert, "-1/2", "-1/2");
+        print(assert, "1/-2", "-1/2");
+        print(assert, "-1/-2", "-1*-1/2");
+        print(assert, "42/42", "42/42");
+        print(assert, "42/1", "42/1");
+        print(assert, "0/42", "0/42");
 
-        print("2 (1/2)", "2*1/2");
-        print("1/2 1/2", "1/2*1/2");
-        print("-1/2", "-1/2");
-        print("1/2 2", "1/2*2");
+        print(assert, "2 (1/2)", "2*1/2");
+        print(assert, "1/2 1/2", "1/2*1/2");
+        print(assert, "-1/2", "-1/2");
+        print(assert, "1/2 2", "1/2*2");
     });
 
-    test("rationals using \\frac", function() {
-        print("\\frac{1}{2}", "1/2");
-        print("\\frac{-1}{2}", "-1/2");
-        print("\\frac{1}{-2}", "-1/2");
-        print("\\frac{-1}{-2}", "-1*-1/2");
-        print("\\frac{42}{42}", "42/42");
-        print("\\frac{42}{1}", "42/1");
-        print("\\frac{0}{42}", "0/42");
+    QUnit.test("rationals using \\frac", function(assert) {
+        print(assert, "\\frac{1}{2}", "1/2");
+        print(assert, "\\frac{-1}{2}", "-1/2");
+        print(assert, "\\frac{1}{-2}", "-1/2");
+        print(assert, "\\frac{-1}{-2}", "-1*-1/2");
+        print(assert, "\\frac{42}{42}", "42/42");
+        print(assert, "\\frac{42}{1}", "42/1");
+        print(assert, "\\frac{0}{42}", "0/42");
 
-        print("2\\frac{1}{2}", "2*1/2");
-        print("\\frac{1}{2}\\frac{1}{2}", "1/2*1/2");
-        print("-\\frac{1}{2}", "-1/2");
-        print("\\frac{1}{2}2", "1/2*2");
+        print(assert, "2\\frac{1}{2}", "2*1/2");
+        print(assert, "\\frac{1}{2}\\frac{1}{2}", "1/2*1/2");
+        print(assert, "-\\frac{1}{2}", "-1/2");
+        print(assert, "\\frac{1}{2}2", "1/2*2");
     });
 
-    test("rationals using \\dfrac", function() {
-        print("\\dfrac{1}{2}", "1/2");
-        print("\\dfrac{-1}{2}", "-1/2");
-        print("\\dfrac{1}{-2}", "-1/2");
-        print("\\dfrac{-1}{-2}", "-1*-1/2");
-        print("\\dfrac{42}{42}", "42/42");
-        print("\\dfrac{42}{1}", "42/1");
-        print("\\dfrac{0}{42}", "0/42");
+    QUnit.test("rationals using \\dfrac", function(assert) {
+        print(assert, "\\dfrac{1}{2}", "1/2");
+        print(assert, "\\dfrac{-1}{2}", "-1/2");
+        print(assert, "\\dfrac{1}{-2}", "-1/2");
+        print(assert, "\\dfrac{-1}{-2}", "-1*-1/2");
+        print(assert, "\\dfrac{42}{42}", "42/42");
+        print(assert, "\\dfrac{42}{1}", "42/1");
+        print(assert, "\\dfrac{0}{42}", "0/42");
 
-        print("2\\dfrac{1}{2}", "2*1/2");
-        print("\\dfrac{1}{2}\\dfrac{1}{2}", "1/2*1/2");
-        print("-\\dfrac{1}{2}", "-1/2");
-        print("\\dfrac{1}{2}2", "1/2*2");
+        print(assert, "2\\dfrac{1}{2}", "2*1/2");
+        print(assert, "\\dfrac{1}{2}\\dfrac{1}{2}", "1/2*1/2");
+        print(assert, "-\\dfrac{1}{2}", "-1/2");
+        print(assert, "\\dfrac{1}{2}2", "1/2*2");
     });
 
-    test("parens", function() {
-        print("(0)", "0");
-        print("(ab)", "a*b");
-        print("(a/b)", "a*b^(-1)");
-        print("(a^b)", "a^(b)");
-        print("(ab)c", "a*b*c");
-        print("a(bc)", "a*b*c");
-        print("a+(b+c)", "a+b+c");
-        print("(a+b)+c", "a+b+c");
-        print("a(b+c)", "a*(b+c)");
-        print("(a+b)^c", "(a+b)^(c)");
-        print("(ab)^c", "(a*b)^(c)");
+    QUnit.test("parens", function(assert) {
+        print(assert, "(0)", "0");
+        print(assert, "(ab)", "a*b");
+        print(assert, "(a/b)", "a*b^(-1)");
+        print(assert, "(a^b)", "a^(b)");
+        print(assert, "(ab)c", "a*b*c");
+        print(assert, "a(bc)", "a*b*c");
+        print(assert, "a+(b+c)", "a+b+c");
+        print(assert, "(a+b)+c", "a+b+c");
+        print(assert, "a(b+c)", "a*(b+c)");
+        print(assert, "(a+b)^c", "(a+b)^(c)");
+        print(assert, "(ab)^c", "(a*b)^(c)");
     });
 
-    test("subscripts", function() {
-        print("a", "a");
-        print("a_0", "a_(0)");
-        print("a_i", "a_(i)");
-        print("a_n", "a_(n)");
-        print("a_n+1", "a_(n)+1");
-        print("a_(n+1)", "a_(n+1)");
-        print("a_{n+1}", "a_(n+1)");
+    QUnit.test("subscripts", function(assert) {
+        print(assert, "a", "a");
+        print(assert, "a_0", "a_(0)");
+        print(assert, "a_i", "a_(i)");
+        print(assert, "a_n", "a_(n)");
+        print(assert, "a_n+1", "a_(n)+1");
+        print(assert, "a_(n+1)", "a_(n+1)");
+        print(assert, "a_{n+1}", "a_(n+1)");
     });
 
-    test("negation", function() {
-        print("-x", "-1*x");
-        print("--x", "-1*-1*x");
-        print("---x", "-1*-1*-1*x");
-        print("-1", "-1");
-        print("--1", "-1*-1");
-        print("---1", "-1*-1*-1");
-        print("-3x", "-3*x");
-        print("--3x", "-1*-3*x");
-        print("-x*3", "x*-3");
-        print("--x*3", "-1*x*-3");
-        print("\u2212x", "-1*x");
+    QUnit.test("negation", function(assert) {
+        print(assert, "-x", "-1*x");
+        print(assert, "--x", "-1*-1*x");
+        print(assert, "---x", "-1*-1*-1*x");
+        print(assert, "-1", "-1");
+        print(assert, "--1", "-1*-1");
+        print(assert, "---1", "-1*-1*-1");
+        print(assert, "-3x", "-3*x");
+        print(assert, "--3x", "-1*-3*x");
+        print(assert, "-x*3", "x*-3");
+        print(assert, "--x*3", "-1*x*-3");
+        print(assert, "\u2212x", "-1*x");
     });
 
-    test("addition and subtraction", function() {
-        print("a+b", "a+b");
-        print("a-b", "a+-1*b");
-        print("a--b", "a+-1*-1*b");
-        print("a---b", "a+-1*-1*-1*b");
-        print("2-4", "2+-4");
-        print("2--4", "2+-1*-4");
-        print("2---4", "2+-1*-1*-4");
-        print("2-x*4", "2+x*-4");
-        print("1-2+a-b+pi-e", "1+-2+a+-1*b+pi+-1*e");
-        print("x+1", "x+1");
-        print("x-1", "x+-1");
-        print("(x-1)", "x+-1");
-        print("a(x-1)", "a*(x+-1)");
-        print("a\u2212b", "a+-1*b");
+    QUnit.test("addition and subtraction", function(assert) {
+        print(assert, "a+b", "a+b");
+        print(assert, "a-b", "a+-1*b");
+        print(assert, "a--b", "a+-1*-1*b");
+        print(assert, "a---b", "a+-1*-1*-1*b");
+        print(assert, "2-4", "2+-4");
+        print(assert, "2--4", "2+-1*-4");
+        print(assert, "2---4", "2+-1*-1*-4");
+        print(assert, "2-x*4", "2+x*-4");
+        print(assert, "1-2+a-b+pi-e", "1+-2+a+-1*b+pi+-1*e");
+        print(assert, "x+1", "x+1");
+        print(assert, "x-1", "x+-1");
+        print(assert, "(x-1)", "x+-1");
+        print(assert, "a(x-1)", "a*(x+-1)");
+        print(assert, "a\u2212b", "a+-1*b");
     });
 
-    test("multiplication", function() {
-        print("a*b", "a*b");
-        print("-a*b", "-1*a*b");
-        print("a*-b", "a*-1*b");
-        print("-ab", "-1*a*b");
-        print("-a*b", "-1*a*b");
-        print("-(ab)", "-1*a*b");
-        print("a\u00b7b", "a*b");
-        print("a\u00d7b", "a*b");
-        print("a\\cdotb", "a*b");
-        print("a\\timesb", "a*b");
-        print("a\\astb", "a*b");
+    QUnit.test("multiplication", function(assert) {
+        print(assert, "a*b", "a*b");
+        print(assert, "-a*b", "-1*a*b");
+        print(assert, "a*-b", "a*-1*b");
+        print(assert, "-ab", "-1*a*b");
+        print(assert, "-a*b", "-1*a*b");
+        print(assert, "-(ab)", "-1*a*b");
+        print(assert, "a\u00b7b", "a*b");
+        print(assert, "a\u00d7b", "a*b");
+        print(assert, "a\\cdotb", "a*b");
+        print(assert, "a\\timesb", "a*b");
+        print(assert, "a\\astb", "a*b");
     })
 
-    test("division", function() {
-        print("a/b", "a*b^(-1)");
-        print("a/bc", "a*b^(-1)*c");
-        print("(ab)/c", "a*b*c^(-1)");
-        print("ab/c", "a*b*c^(-1)");
-        print("ab/cd", "a*b*c^(-1)*d");
-        print("a\\divb", "a*b^(-1)");
-        print("a\u00F7b", "a*b^(-1)");
+    QUnit.test("division", function(assert) {
+        print(assert, "a/b", "a*b^(-1)");
+        print(assert, "a/bc", "a*b^(-1)*c");
+        print(assert, "(ab)/c", "a*b*c^(-1)");
+        print(assert, "ab/c", "a*b*c^(-1)");
+        print(assert, "ab/cd", "a*b*c^(-1)*d");
+        print(assert, "a\\divb", "a*b^(-1)");
+        print(assert, "a\u00F7b", "a*b^(-1)");
     });
 
-    test("exponentiation", function() {
-        print("x^y", "x^(y)");
-        print("x^y^z", "x^(y^(z))");
-        print("x^yz", "x^(y)*z");
-        print("-x^2", "-1*x^(2)");
-        print("-(x^2)", "-1*x^(2)");
-        print("0-x^2", "0+-1*x^(2)");
-        print("x^-y", "x^(-1*y)");
-        print("x^(-y)", "x^(-1*y)");
-        print("x^-(y)", "x^(-1*y)");
-        print("x^-(-y)", "x^(-1*-1*y)");
-        print("x^--y", "x^(-1*-1*y)");
-        print("x^-yz", "x^(-1*y)*z");
-        print("x^-y^z", "x^(-1*y^(z))");
-        print("x**y", "x^(y)");
+    QUnit.test("exponentiation", function(assert) {
+        print(assert, "x^y", "x^(y)");
+        print(assert, "x^y^z", "x^(y^(z))");
+        print(assert, "x^yz", "x^(y)*z");
+        print(assert, "-x^2", "-1*x^(2)");
+        print(assert, "-(x^2)", "-1*x^(2)");
+        print(assert, "0-x^2", "0+-1*x^(2)");
+        print(assert, "x^-y", "x^(-1*y)");
+        print(assert, "x^(-y)", "x^(-1*y)");
+        print(assert, "x^-(y)", "x^(-1*y)");
+        print(assert, "x^-(-y)", "x^(-1*-1*y)");
+        print(assert, "x^--y", "x^(-1*-1*y)");
+        print(assert, "x^-yz", "x^(-1*y)*z");
+        print(assert, "x^-y^z", "x^(-1*y^(z))");
+        print(assert, "x**y", "x^(y)");
 
-        print("x^{a}", "x^(a)");
-        print("x^{ab}", "x^(a*b)");
+        print(assert, "x^{a}", "x^(a)");
+        print(assert, "x^{ab}", "x^(a*b)");
     });
 
-    test("square root", function() {
-        print("sqrt(x)", "x^(1/2)");
-        print("sqrt(x)y", "x^(1/2)*y");
-        print("1/sqrt(x)", "x^(-1/2)");
-        print("1/sqrt(x)y", "x^(-1/2)*y");
+    QUnit.test("square root", function(assert) {
+        print(assert, "sqrt(x)", "x^(1/2)");
+        print(assert, "sqrt(x)y", "x^(1/2)*y");
+        print(assert, "1/sqrt(x)", "x^(-1/2)");
+        print(assert, "1/sqrt(x)y", "x^(-1/2)*y");
 
-        print("sqrt(2)/2", "2^(1/2)*1/2");
-        print("sqrt(2)^2", "(2^(1/2))^(2)");
+        print(assert, "sqrt(2)/2", "2^(1/2)*1/2");
+        print(assert, "sqrt(2)^2", "(2^(1/2))^(2)");
 
-        print("\\sqrt(x)", "x^(1/2)");
-        print("\\sqrt(x)y", "x^(1/2)*y");
-        print("1/\\sqrt(x)", "x^(-1/2)");
-        print("1/\\sqrt(x)y", "x^(-1/2)*y");
+        print(assert, "\\sqrt(x)", "x^(1/2)");
+        print(assert, "\\sqrt(x)y", "x^(1/2)*y");
+        print(assert, "1/\\sqrt(x)", "x^(-1/2)");
+        print(assert, "1/\\sqrt(x)y", "x^(-1/2)*y");
 
-        print("\\sqrt(2)/2", "2^(1/2)*1/2");
-        print("\\sqrt(2)^2", "(2^(1/2))^(2)");
+        print(assert, "\\sqrt(2)/2", "2^(1/2)*1/2");
+        print(assert, "\\sqrt(2)^2", "(2^(1/2))^(2)");
 
-        print("\\sqrt{2}", "2^(1/2)");
-        print("\\sqrt{2+2}", "(2+2)^(1/2)");
+        print(assert, "\\sqrt{2}", "2^(1/2)");
+        print(assert, "\\sqrt{2+2}", "(2+2)^(1/2)");
     });
 
-    test("nth root", function() {
-        print("sqrt[3]{x}", "x^(1/3)");
-        print("sqrt[4]{x}y", "x^(1/4)*y");
-        print("1/sqrt[5]{x}", "x^(-1/5)");
-        print("1/sqrt[7]{x}y", "x^(-1/7)*y");
+    QUnit.test("nth root", function(assert) {
+        print(assert, "sqrt[3]{x}", "x^(1/3)");
+        print(assert, "sqrt[4]{x}y", "x^(1/4)*y");
+        print(assert, "1/sqrt[5]{x}", "x^(-1/5)");
+        print(assert, "1/sqrt[7]{x}y", "x^(-1/7)*y");
 
-        print("sqrt[3]{2}/2", "2^(1/3)*1/2");
-        print("sqrt[3]{2}^2", "(2^(1/3))^(2)");
+        print(assert, "sqrt[3]{2}/2", "2^(1/3)*1/2");
+        print(assert, "sqrt[3]{2}^2", "(2^(1/3))^(2)");
 
-        print("\\sqrt[4]{x}", "x^(1/4)");
-        print("\\sqrt[4]{x}y", "x^(1/4)*y");
-        print("1/\\sqrt[4]{x}", "x^(-1/4)");
-        print("1/\\sqrt[4]{x}y", "x^(-1/4)*y");
+        print(assert, "\\sqrt[4]{x}", "x^(1/4)");
+        print(assert, "\\sqrt[4]{x}y", "x^(1/4)*y");
+        print(assert, "1/\\sqrt[4]{x}", "x^(-1/4)");
+        print(assert, "1/\\sqrt[4]{x}y", "x^(-1/4)*y");
 
-        print("\\sqrt[5]{2}/2", "2^(1/5)*1/2");
-        print("\\sqrt[5]{2}^2", "(2^(1/5))^(2)");
+        print(assert, "\\sqrt[5]{2}/2", "2^(1/5)*1/2");
+        print(assert, "\\sqrt[5]{2}^2", "(2^(1/5))^(2)");
 
-        print("\\sqrt[6]{2}", "2^(1/6)");
-        print("\\sqrt[6]{2+2}", "(2+2)^(1/6)");
+        print(assert, "\\sqrt[6]{2}", "2^(1/6)");
+        print(assert, "\\sqrt[6]{2+2}", "(2+2)^(1/6)");
 
-        print("\\sqrt[2]{2}", "2^(1/2)");
-        print("\\sqrt[2]{2+2}", "(2+2)^(1/2)");
+        print(assert, "\\sqrt[2]{2}", "2^(1/2)");
+        print(assert, "\\sqrt[2]{2+2}", "(2+2)^(1/2)");
     });
 
-    test("absolute value", function() {
-        print("abs(x)", "abs(x)");
-        print("abs(abs(x))", "abs(abs(x))");
-        print("abs(x)abs(y)", "abs(x)*abs(y)");
+    QUnit.test("absolute value", function(assert) {
+        print(assert, "abs(x)", "abs(x)");
+        print(assert, "abs(abs(x))", "abs(abs(x))");
+        print(assert, "abs(x)abs(y)", "abs(x)*abs(y)");
 
-        print("|x|", "abs(x)");
-        print("||x||", "abs(abs(x))");
+        print(assert, "|x|", "abs(x)");
+        print(assert, "||x||", "abs(abs(x))");
         // TODO(alex): fix the below so it doesn't require an *
         // may require own lexer/preprocessor
-        print("|x|*|y|", "abs(x)*abs(y)");
+        print(assert, "|x|*|y|", "abs(x)*abs(y)");
 
-        print("\\abs(x)", "abs(x)");
-        print("\\abs(\\abs(x))", "abs(abs(x))");
-        print("\\abs(x)\\abs(y)", "abs(x)*abs(y)");
+        print(assert, "\\abs(x)", "abs(x)");
+        print(assert, "\\abs(\\abs(x))", "abs(abs(x))");
+        print(assert, "\\abs(x)\\abs(y)", "abs(x)*abs(y)");
 
-        print("\\left|x\\right|", "abs(x)");
-        print("\\left|\\left|x\\right|\\right|", "abs(abs(x))");
-        print("\\left|x\\right|\\left|y\\right|", "abs(x)*abs(y)");
+        print(assert, "\\left|x\\right|", "abs(x)");
+        print(assert, "\\left|\\left|x\\right|\\right|", "abs(abs(x))");
+        print(assert, "\\left|x\\right|\\left|y\\right|", "abs(x)*abs(y)");
     });
 
-    test("logarithms", function() {
-        print("lnx", "ln(x)");
-        print("ln x", "ln(x)");
-        print("ln x^y", "ln(x^(y))");
-        print("ln xy", "ln(x*y)");
-        print("ln x/y", "ln(x*y^(-1))");
-        print("ln x+y", "ln(x)+y");
-        print("ln x-y", "ln(x)+-1*y");
+    QUnit.test("logarithms", function(assert) {
+        print(assert, "lnx", "ln(x)");
+        print(assert, "ln x", "ln(x)");
+        print(assert, "ln x^y", "ln(x^(y))");
+        print(assert, "ln xy", "ln(x*y)");
+        print(assert, "ln x/y", "ln(x*y^(-1))");
+        print(assert, "ln x+y", "ln(x)+y");
+        print(assert, "ln x-y", "ln(x)+-1*y");
 
-        print("ln xyz", "ln(x*y*z)");
-        print("ln xy/z", "ln(x*y*z^(-1))");
-        print("ln xy/z+1", "ln(x*y*z^(-1))+1");
+        print(assert, "ln xyz", "ln(x*y*z)");
+        print(assert, "ln xy/z", "ln(x*y*z^(-1))");
+        print(assert, "ln xy/z+1", "ln(x*y*z^(-1))+1");
 
-        print("ln x(y)", "ln(x)*y");
+        print(assert, "ln x(y)", "ln(x)*y");
 
-        print("logx", "log_(10) (x)");
-        print("log x", "log_(10) (x)");
-        print("log_2x", "log_(2) (x)");
-        print("log _ 2 x", "log_(2) (x)");
-        print("log_bx_0", "log_(b) (x_(0))");
-        print("log_x_0b", "log_(x_(0)) (b)");
+        print(assert, "logx", "log_(10) (x)");
+        print(assert, "log x", "log_(10) (x)");
+        print(assert, "log_2x", "log_(2) (x)");
+        print(assert, "log _ 2 x", "log_(2) (x)");
+        print(assert, "log_bx_0", "log_(b) (x_(0))");
+        print(assert, "log_x_0b", "log_(x_(0)) (b)");
 
-        print("log_2.5x", "log_(2.5) (x)");
+        print(assert, "log_2.5x", "log_(2.5) (x)");
 
-        print("ln ln x", "ln(ln(x))");
-        print("ln x ln y", "ln(x)*ln(y)");
-        print("ln x/ln y", "ln(x)*ln(y)^(-1)");
+        print(assert, "ln ln x", "ln(ln(x))");
+        print(assert, "ln x ln y", "ln(x)*ln(y)");
+        print(assert, "ln x/ln y", "ln(x)*ln(y)^(-1)");
 
-        print("\\lnx", "ln(x)");
-        print("\\ln x", "ln(x)");
-        print("\\ln x^y", "ln(x^(y))");
-        print("\\ln xy", "ln(x*y)");
-        print("\\ln x/y", "ln(x*y^(-1))");
-        print("\\ln x+y", "ln(x)+y");
-        print("\\ln x-y", "ln(x)+-1*y");
+        print(assert, "\\lnx", "ln(x)");
+        print(assert, "\\ln x", "ln(x)");
+        print(assert, "\\ln x^y", "ln(x^(y))");
+        print(assert, "\\ln xy", "ln(x*y)");
+        print(assert, "\\ln x/y", "ln(x*y^(-1))");
+        print(assert, "\\ln x+y", "ln(x)+y");
+        print(assert, "\\ln x-y", "ln(x)+-1*y");
 
-        print("\\logx", "log_(10) (x)");
-        print("\\log x", "log_(10) (x)");
-        print("\\log_2x", "log_(2) (x)");
-        print("\\log _ 2 x", "log_(2) (x)");
-        print("\\log_bx_0", "log_(b) (x_(0))");
-        print("\\log_x_0b", "log_(x_(0)) (b)");
+        print(assert, "\\logx", "log_(10) (x)");
+        print(assert, "\\log x", "log_(10) (x)");
+        print(assert, "\\log_2x", "log_(2) (x)");
+        print(assert, "\\log _ 2 x", "log_(2) (x)");
+        print(assert, "\\log_bx_0", "log_(b) (x_(0))");
+        print(assert, "\\log_x_0b", "log_(x_(0)) (b)");
 
-        print("\\log_2.5x", "log_(2.5) (x)");
+        print(assert, "\\log_2.5x", "log_(2.5) (x)");
 
-        print("\\frac{\\logx}{y}", "log_(10) (x)*y^(-1)");
-        print("\\frac{\\log x}{y}", "log_(10) (x)*y^(-1)");
+        print(assert, "\\frac{\\logx}{y}", "log_(10) (x)*y^(-1)");
+        print(assert, "\\frac{\\log x}{y}", "log_(10) (x)*y^(-1)");
     });
 
-    test("trig functions", function() {
+    QUnit.test("trig functions", function(assert) {
         var functions = [
             "sin", "cos", "tan",
             "csc", "sec", "cot"
@@ -351,351 +351,351 @@
         });
 
         _.each(functions.concat(inverses), function(func) {
-            print(func + "x", func + "(x)");
-            print("\\" + func + "x", func + "(x)");
+            print(assert, func + "x", func + "(x)");
+            print(assert, "\\" + func + "x", func + "(x)");
         });
 
-        print("sin^-1 x", "arcsin(x)");
-        print("\\sin^-1 x", "arcsin(x)");
+        print(assert, "sin^-1 x", "arcsin(x)");
+        print(assert, "\\sin^-1 x", "arcsin(x)");
 
-        print("(sinx)^2", "sin(x)^(2)");
-        print("sin^2x", "sin(x)^(2)");
-        print("sin^2(x)", "sin(x)^(2)");
-        print("sin^2 x", "sin(x)^(2)");
-        print("(sin^2x)", "sin(x)^(2)");
+        print(assert, "(sinx)^2", "sin(x)^(2)");
+        print(assert, "sin^2x", "sin(x)^(2)");
+        print(assert, "sin^2(x)", "sin(x)^(2)");
+        print(assert, "sin^2 x", "sin(x)^(2)");
+        print(assert, "(sin^2x)", "sin(x)^(2)");
 
-        print("sin xy", "sin(x*y)");
-        print("sin x(y)", "sin(x)*y");
-        print("sin x/y", "sin(x*y^(-1))");
-        print("(sin x)/y", "sin(x)*y^(-1)");
+        print(assert, "sin xy", "sin(x*y)");
+        print(assert, "sin x(y)", "sin(x)*y");
+        print(assert, "sin x/y", "sin(x*y^(-1))");
+        print(assert, "(sin x)/y", "sin(x)*y^(-1)");
 
-        print("sin sin x", "sin(sin(x))");
-        print("sin x sin y", "sin(x)*sin(y)");
-        print("sin x/sin y", "sin(x)*sin(y)^(-1)");
+        print(assert, "sin sin x", "sin(sin(x))");
+        print(assert, "sin x sin y", "sin(x)*sin(y)");
+        print(assert, "sin x/sin y", "sin(x)*sin(y)^(-1)");
 
-        print("1/(sinx)^2", "sin(x)^(-2)");
-        print("1/sin^2x", "sin(x)^(-2)");
-        print("1/sin^2(x)", "sin(x)^(-2)");
-        print("1/(sin^2x)", "sin(x)^(-2)");
+        print(assert, "1/(sinx)^2", "sin(x)^(-2)");
+        print(assert, "1/sin^2x", "sin(x)^(-2)");
+        print(assert, "1/sin^2(x)", "sin(x)^(-2)");
+        print(assert, "1/(sin^2x)", "sin(x)^(-2)");
 
-        print("sin(theta)", "sin(theta)");
-        print("\\sin(\\theta)", "sin(theta)");
+        print(assert, "sin(theta)", "sin(theta)");
+        print(assert, "\\sin(\\theta)", "sin(theta)");
     });
 
-    test("hyperbolic functions", function() {
-        print("sinh xy", "sinh(x*y)");
-        print("1/(sinhx)^2", "sinh(x)^(-2)");
-        print("\\sinh(\\theta)", "sinh(theta)");
+    QUnit.test("hyperbolic functions", function(assert) {
+        print(assert, "sinh xy", "sinh(x*y)");
+        print(assert, "1/(sinhx)^2", "sinh(x)^(-2)");
+        print(assert, "\\sinh(\\theta)", "sinh(theta)");
     });
 
-    test("formulas", function() {
-        print("mx+b", "m*x+b");
-        print("v^2/r", "v^(2)*r^(-1)");
-        print("4/3pir^3", "4/3*pi*r^(3)");
-        print("4/3\u03C0r^3", "4/3*pi*r^(3)");
-        print("sin^2 x + cos^2 x = 1", "sin(x)^(2)+cos(x)^(2)=1");
+    QUnit.test("formulas", function(assert) {
+        print(assert, "mx+b", "m*x+b");
+        print(assert, "v^2/r", "v^(2)*r^(-1)");
+        print(assert, "4/3pir^3", "4/3*pi*r^(3)");
+        print(assert, "4/3\u03C0r^3", "4/3*pi*r^(3)");
+        print(assert, "sin^2 x + cos^2 x = 1", "sin(x)^(2)+cos(x)^(2)=1");
     });
 
-    test("factors", function() {
-        print("(6x+1)(x-1)", "(6*x+1)*(x+-1)");
+    QUnit.test("factors", function(assert) {
+        print(assert, "(6x+1)(x-1)", "(6*x+1)*(x+-1)");
     });
 
-    test("whitespace", function() {
-        print("12/3", "12/3");
-        print("12 /3", "12/3");
-        print("12/ 3", "12/3");
-        print("xy", "x*y");
-        print("x y", "x*y");
+    QUnit.test("whitespace", function(assert) {
+        print(assert, "12/3", "12/3");
+        print(assert, "12 /3", "12/3");
+        print(assert, "12/ 3", "12/3");
+        print(assert, "xy", "x*y");
+        print(assert, "x y", "x*y");
     });
 
-    test("equations", function() {
-        print("y=x", "y=x");
-        print("y=x^2", "y=x^(2)");
-        print("1<2", "1<2");
-        print("1<=2", "1<=2");
-        print("1\\le2", "1<=2");
-        print("2>1", "2>1");
-        print("2>=1", "2>=1");
-        print("2\\ge1", "2>=1");
-        print("1<>2", "1<>2");
-        print("1=/=2", "1<>2");
-        print("1\\ne2", "1<>2");
-        print("1\\neq2", "1<>2");
-        print("a\u2260b", "a<>b");
-        print("a\u2264b", "a<=b");
-        print("a\u2265b", "a>=b");
+    QUnit.test("equations", function(assert) {
+        print(assert, "y=x", "y=x");
+        print(assert, "y=x^2", "y=x^(2)");
+        print(assert, "1<2", "1<2");
+        print(assert, "1<=2", "1<=2");
+        print(assert, "1\\le2", "1<=2");
+        print(assert, "2>1", "2>1");
+        print(assert, "2>=1", "2>=1");
+        print(assert, "2\\ge1", "2>=1");
+        print(assert, "1<>2", "1<>2");
+        print(assert, "1=/=2", "1<>2");
+        print(assert, "1\\ne2", "1<>2");
+        print(assert, "1\\neq2", "1<>2");
+        print(assert, "a\u2260b", "a<>b");
+        print(assert, "a\u2264b", "a<=b");
+        print(assert, "a\u2265b", "a>=b");
     });
 
-    test("function variables", function() {
-        print("f(x)", "f*x");
-        print("f(x)", "f(x)", {functions: ["f"]});
-        print("f(x+y)", "f(x+y)", {functions: ["f"]});
-        print("f(x)g(x)", "f(x)*g(x)", {functions: ["f", "g"]});
-        print("f(g(h(x)))", "f(g(h(x)))", {functions: ["f", "g", "h"]});
+    QUnit.test("function variables", function(assert) {
+        print(assert, "f(x)", "f*x");
+        print(assert, "f(x)", "f(x)", {functions: ["f"]});
+        print(assert, "f(x+y)", "f(x+y)", {functions: ["f"]});
+        print(assert, "f(x)g(x)", "f(x)*g(x)", {functions: ["f", "g"]});
+        print(assert, "f(g(h(x)))", "f(g(h(x)))", {functions: ["f", "g", "h"]});
 
-        print("f\\left(x\\right)", "f*x");
-        print("f\\left(x\\right)", "f(x)", {functions: ["f"]});
-        print("f\\left(x+y\\right)", "f(x+y)", {functions: ["f"]});
-        print("f\\left(x\\right)g\\left(x\\right)", "f(x)*g(x)", {functions: ["f", "g"]});
-        print("f\\left(g\\left(h\\left(x\\right)\\right)\\right)", "f(g(h(x)))", {functions: ["f", "g", "h"]});
+        print(assert, "f\\left(x\\right)", "f*x");
+        print(assert, "f\\left(x\\right)", "f(x)", {functions: ["f"]});
+        print(assert, "f\\left(x+y\\right)", "f(x+y)", {functions: ["f"]});
+        print(assert, "f\\left(x\\right)g\\left(x\\right)", "f(x)*g(x)", {functions: ["f", "g"]});
+        print(assert, "f\\left(g\\left(h\\left(x\\right)\\right)\\right)", "f(g(h(x)))", {functions: ["f", "g", "h"]});
     });
 
-    var repr = function(input, expected, options) {
+    var repr = function(assert, input, expected, options) {
         var message = input + " parses as " + expected;
-        strictEqual(parse(input, options).repr(), expected, message);
+        assert.strictEqual(parse(input, options).repr(), expected, message);
     };
 
-    test("structure", function() {
-        repr("", "Add()");
-        repr("1.", "1");
-        repr("1/2", "1/2");
-        repr("1/-2", "-1/2");
-        repr("x/-2", "Mul(Var(x),-1/2)");
-        repr("a+b", "Add(Var(a),Var(b))");
-        repr("a+b+c", "Add(Var(a),Var(b),Var(c))");
-        repr("a-b", "Add(Var(a),Mul(-1,Var(b)))");
-        repr("a-b+c", "Add(Var(a),Mul(-1,Var(b)),Var(c))");
-        repr("abc", "Mul(Var(a),Var(b),Var(c))");
-        repr("a/bc", "Mul(Var(a),Pow(Var(b),-1),Var(c))");
-        repr("a*(b+c)", "Mul(Var(a),Add(Var(b),Var(c)))");
-        repr("x--y", "Add(Var(x),Mul(-1,-1,Var(y)))");
-        repr("--y", "Mul(-1,-1,Var(y))");
-        repr("e", "Const(e)");
-        repr("2e", "Mul(2,Const(e))");
-        repr("2e^x", "Mul(2,Pow(Const(e),Var(x)))");
-        repr("cdef", "Mul(Var(c),Var(d),Const(e),Var(f))");
-        repr("pi", "Const(pi)");
-        repr("pi^2", "Pow(Const(pi),2)")
-        repr("pir", "Mul(Const(pi),Var(r))");
-        repr("pir^2", "Mul(Const(pi),Pow(Var(r),2))");
-        repr("y=x^2", "Eq(Var(y),=,Pow(Var(x),2))");
-        repr("log_2x", "Log(2,Var(x))");
-        repr("f(x+y)", "Mul(Var(f),Add(Var(x),Var(y)))");
-        repr("f(x+y)", "Func(f,Add(Var(x),Var(y)))", {functions: ["f"]});
-        repr("sin(theta)", "Trig(sin,Var(theta))");
-        repr("tanh(theta)", "Trig(tanh,Var(theta))");
+    QUnit.test("structure", function(assert) {
+        repr(assert, "", "Add()");
+        repr(assert, "1.", "1");
+        repr(assert, "1/2", "1/2");
+        repr(assert, "1/-2", "-1/2");
+        repr(assert, "x/-2", "Mul(Var(x),-1/2)");
+        repr(assert, "a+b", "Add(Var(a),Var(b))");
+        repr(assert, "a+b+c", "Add(Var(a),Var(b),Var(c))");
+        repr(assert, "a-b", "Add(Var(a),Mul(-1,Var(b)))");
+        repr(assert, "a-b+c", "Add(Var(a),Mul(-1,Var(b)),Var(c))");
+        repr(assert, "abc", "Mul(Var(a),Var(b),Var(c))");
+        repr(assert, "a/bc", "Mul(Var(a),Pow(Var(b),-1),Var(c))");
+        repr(assert, "a*(b+c)", "Mul(Var(a),Add(Var(b),Var(c)))");
+        repr(assert, "x--y", "Add(Var(x),Mul(-1,-1,Var(y)))");
+        repr(assert, "--y", "Mul(-1,-1,Var(y))");
+        repr(assert, "e", "Const(e)");
+        repr(assert, "2e", "Mul(2,Const(e))");
+        repr(assert, "2e^x", "Mul(2,Pow(Const(e),Var(x)))");
+        repr(assert, "cdef", "Mul(Var(c),Var(d),Const(e),Var(f))");
+        repr(assert, "pi", "Const(pi)");
+        repr(assert, "pi^2", "Pow(Const(pi),2)")
+        repr(assert, "pir", "Mul(Const(pi),Var(r))");
+        repr(assert, "pir^2", "Mul(Const(pi),Pow(Var(r),2))");
+        repr(assert, "y=x^2", "Eq(Var(y),=,Pow(Var(x),2))");
+        repr(assert, "log_2x", "Log(2,Var(x))");
+        repr(assert, "f(x+y)", "Mul(Var(f),Add(Var(x),Var(y)))");
+        repr(assert, "f(x+y)", "Func(f,Add(Var(x),Var(y)))", {functions: ["f"]});
+        repr(assert, "sin(theta)", "Trig(sin,Var(theta))");
+        repr(assert, "tanh(theta)", "Trig(tanh,Var(theta))");
 
         // verify that negative signs get folded into numbers
-        repr("-x*3", "Mul(Var(x),-3)");
-        repr("sin -x*3", "Trig(sin,Mul(Var(x),-3))");
+        repr(assert, "-x*3", "Mul(Var(x),-3)");
+        repr(assert, "sin -x*3", "Trig(sin,Mul(Var(x),-3))");
     });
 
 
     QUnit.module("rendering");
 
-    var tex = function(input, expected, options) {
+    var tex = function(assert, input, expected, options) {
         var message = input + " renders as " + expected;
-        strictEqual(parse(input, options).tex(), expected, message);
+        assert.strictEqual(parse(input, options).tex(), expected, message);
     };
 
-    test("positive and negative primitives", function() {
-        tex("0", "0");
-        tex("-1", "-1");
-        tex("--1", "--1");
-        tex("-2", "-2");
-        tex("--2", "--2");
-        tex("x", "x");
-        tex("theta", "\\theta");
-        tex("1/2", "\\frac{1}{2}");
-        tex("-1/2", "-\\frac{1}{2}");
-        tex("1/-2", "-\\frac{1}{2}");
-        tex("-1/-2", "--\\frac{1}{2}");
+    QUnit.test("positive and negative primitives", function(assert) {
+        tex(assert, "0", "0");
+        tex(assert, "-1", "-1");
+        tex(assert, "--1", "--1");
+        tex(assert, "-2", "-2");
+        tex(assert, "--2", "--2");
+        tex(assert, "x", "x");
+        tex(assert, "theta", "\\theta");
+        tex(assert, "1/2", "\\frac{1}{2}");
+        tex(assert, "-1/2", "-\\frac{1}{2}");
+        tex(assert, "1/-2", "-\\frac{1}{2}");
+        tex(assert, "-1/-2", "--\\frac{1}{2}");
     });
 
-    test("addition", function() {
-        tex("1-2", "1-2");
-        tex("a+b", "a+b");
-        tex("a-b", "a-b");
-        tex("a-1b", "a-1b");
-        tex("a+-b", "a+-b");
-        tex("a+-1b", "a+-1b");
+    QUnit.test("addition", function(assert) {
+        tex(assert, "1-2", "1-2");
+        tex(assert, "a+b", "a+b");
+        tex(assert, "a-b", "a-b");
+        tex(assert, "a-1b", "a-1b");
+        tex(assert, "a+-b", "a+-b");
+        tex(assert, "a+-1b", "a+-1b");
     });
 
-    test("multiplication", function() {
-        tex("ab", "ab");
-        tex("a*b", "ab");
-        tex("a/b", "\\frac{a}{b}");
-        tex("a/bc/d", "\\frac{ac}{bd}");
+    QUnit.test("multiplication", function(assert) {
+        tex(assert, "ab", "ab");
+        tex(assert, "a*b", "ab");
+        tex(assert, "a/b", "\\frac{a}{b}");
+        tex(assert, "a/bc/d", "\\frac{ac}{bd}");
 
-        tex("1/(x+y)", "\\frac{1}{x+y}");
-        tex("2/(x+y)", "\\frac{2}{x+y}");
-        tex("(z+2)/(x+y)", "\\frac{z+2}{x+y}");
-        tex("(z+2)/4", "\\frac{z+2}{4}");
+        tex(assert, "1/(x+y)", "\\frac{1}{x+y}");
+        tex(assert, "2/(x+y)", "\\frac{2}{x+y}");
+        tex(assert, "(z+2)/(x+y)", "\\frac{z+2}{x+y}");
+        tex(assert, "(z+2)/4", "\\frac{z+2}{4}");
     });
 
-    test("rational expressions", function() {
-        tex("x+1/2", "x+\\frac{1}{2}");
-        tex("x-1/2", "x-\\frac{1}{2}");
+    QUnit.test("rational expressions", function(assert) {
+        tex(assert, "x+1/2", "x+\\frac{1}{2}");
+        tex(assert, "x-1/2", "x-\\frac{1}{2}");
 
-        tex("1/2x", "\\frac{1}{2}x");
-        tex("1/2x/y", "\\frac{1}{2}\\frac{x}{y}");
-        tex("5*1/2x/y", "\\frac{1}{2}\\frac{5x}{y}");
-        tex("1/2*4*x/y", "\\frac{1}{2}\\frac{4x}{y}");
-        tex("-1/2x", "-\\frac{1}{2}x");
-        tex("a-1/2x", "a-\\frac{1}{2}x");
+        tex(assert, "1/2x", "\\frac{1}{2}x");
+        tex(assert, "1/2x/y", "\\frac{1}{2}\\frac{x}{y}");
+        tex(assert, "5*1/2x/y", "\\frac{1}{2}\\frac{5x}{y}");
+        tex(assert, "1/2*4*x/y", "\\frac{1}{2}\\frac{4x}{y}");
+        tex(assert, "-1/2x", "-\\frac{1}{2}x");
+        tex(assert, "a-1/2x", "a-\\frac{1}{2}x");
 
-        tex("1/(2x)", "\\frac{1}{2x}");
-        tex("8/(7p^4)", "\\frac{8}{7p^{4}}");
+        tex(assert, "1/(2x)", "\\frac{1}{2x}");
+        tex(assert, "8/(7p^4)", "\\frac{8}{7p^{4}}");
 
-        tex("x/2", "\\frac{x}{2}");
-        tex("1x/2", "\\frac{1x}{2}");
-        tex("-x/2", "-\\frac{x}{2}");
-        tex("x/-2", "-\\frac{x}{2}");
-        tex("x/-2/-3", "--\\frac{x}{2 \\cdot 3}");
-        tex("--x/2/3", "--\\frac{x}{2 \\cdot 3}");
-        tex("a-x/2", "a-\\frac{x}{2}");
+        tex(assert, "x/2", "\\frac{x}{2}");
+        tex(assert, "1x/2", "\\frac{1x}{2}");
+        tex(assert, "-x/2", "-\\frac{x}{2}");
+        tex(assert, "x/-2", "-\\frac{x}{2}");
+        tex(assert, "x/-2/-3", "--\\frac{x}{2 \\cdot 3}");
+        tex(assert, "--x/2/3", "--\\frac{x}{2 \\cdot 3}");
+        tex(assert, "a-x/2", "a-\\frac{x}{2}");
 
-        tex("1*-2", "1 \\cdot -2");
-        tex("1*-2*3", "1 \\cdot -2 \\cdot 3");
-        tex("1*-2*3/4", "1 \\cdot -2 \\cdot \\frac{3}{4}");
-        tex("1*-2*3/4/5", "1 \\cdot -2 \\cdot \\frac{3}{4} \\cdot \\frac{1}{5}");
-        tex("1/2*1/2", "\\frac{1}{2} \\cdot \\frac{1}{2}");
+        tex(assert, "1*-2", "1 \\cdot -2");
+        tex(assert, "1*-2*3", "1 \\cdot -2 \\cdot 3");
+        tex(assert, "1*-2*3/4", "1 \\cdot -2 \\cdot \\frac{3}{4}");
+        tex(assert, "1*-2*3/4/5", "1 \\cdot -2 \\cdot \\frac{3}{4} \\cdot \\frac{1}{5}");
+        tex(assert, "1/2*1/2", "\\frac{1}{2} \\cdot \\frac{1}{2}");
     });
 
-    test("exponentiation", function() {
-        tex("x^y", "x^{y}");
-        tex("xy^z", "xy^{z}");
-        tex("(xy)^z", "(xy)^{z}");
-        tex("(x+y)^z", "(x+y)^{z}");
-        tex("x^(yz)", "x^{yz}");
-        tex("x^-(yz)", "x^{-yz}");
-        tex("x^(y+z)", "x^{y+z}");
-        tex("x^-(y+z)", "x^{-(y+z)}");
-        tex("(x^y)^z", "(x^{y})^{z}");
-        tex("pir^2", "\\pi r^{2}");
+    QUnit.test("exponentiation", function(assert) {
+        tex(assert, "x^y", "x^{y}");
+        tex(assert, "xy^z", "xy^{z}");
+        tex(assert, "(xy)^z", "(xy)^{z}");
+        tex(assert, "(x+y)^z", "(x+y)^{z}");
+        tex(assert, "x^(yz)", "x^{yz}");
+        tex(assert, "x^-(yz)", "x^{-yz}");
+        tex(assert, "x^(y+z)", "x^{y+z}");
+        tex(assert, "x^-(y+z)", "x^{-(y+z)}");
+        tex(assert, "(x^y)^z", "(x^{y})^{z}");
+        tex(assert, "pir^2", "\\pi r^{2}");
     });
 
-    test("square root", function() {
-        tex("sqrt(x)", "\\sqrt{x}");
-        tex("sqrt(x)y", "\\sqrt{x}y");
-        tex("1/sqrt(x)", "\\frac{1}{\\sqrt{x}}");
-        tex("1/sqrt(x)y", "\\frac{y}{\\sqrt{x}}");
+    QUnit.test("square root", function(assert) {
+        tex(assert, "sqrt(x)", "\\sqrt{x}");
+        tex(assert, "sqrt(x)y", "\\sqrt{x}y");
+        tex(assert, "1/sqrt(x)", "\\frac{1}{\\sqrt{x}}");
+        tex(assert, "1/sqrt(x)y", "\\frac{y}{\\sqrt{x}}");
 
-        tex("sqrt(2)/2", "\\frac{\\sqrt{2}}{2}");
-        tex("sqrt(2)^2", "(\\sqrt{2})^{2}");
+        tex(assert, "sqrt(2)/2", "\\frac{\\sqrt{2}}{2}");
+        tex(assert, "sqrt(2)^2", "(\\sqrt{2})^{2}");
     });
 
-    test("nth root", function() {
+    QUnit.test("nth root", function(assert) {
         // This is an unfortunate case, but only nth degree roots with integer
         // n's get nicely printed as tex.
-        tex("sqrt[z]{x}", "x^{\\frac{1}{z}}");
+        tex(assert, "sqrt[z]{x}", "x^{\\frac{1}{z}}");
 
-        tex("sqrt[3]{x}", "\\sqrt[3]{x}");
-        tex("sqrt[3]{x}z", "\\sqrt[3]{x}z");
-        tex("1/sqrt[4]{x}", "\\frac{1}{\\sqrt[4]{x}}");
-        tex("1/sqrt[4]{x}y", "\\frac{y}{\\sqrt[4]{x}}");
+        tex(assert, "sqrt[3]{x}", "\\sqrt[3]{x}");
+        tex(assert, "sqrt[3]{x}z", "\\sqrt[3]{x}z");
+        tex(assert, "1/sqrt[4]{x}", "\\frac{1}{\\sqrt[4]{x}}");
+        tex(assert, "1/sqrt[4]{x}y", "\\frac{y}{\\sqrt[4]{x}}");
 
-        tex("sqrt[9]{2}/2", "\\frac{\\sqrt[9]{2}}{2}");
-        tex("sqrt[9]{2}^2", "(\\sqrt[9]{2})^{2}");
+        tex(assert, "sqrt[9]{2}/2", "\\frac{\\sqrt[9]{2}}{2}");
+        tex(assert, "sqrt[9]{2}^2", "(\\sqrt[9]{2})^{2}");
     });
 
-    test("absolute value", function() {
-        tex("|x|", "\\left|x\\right|");
-        tex("|x|y", "\\left|x\\right|y");
+    QUnit.test("absolute value", function(assert) {
+        tex(assert, "|x|", "\\left|x\\right|");
+        tex(assert, "|x|y", "\\left|x\\right|y");
     })
 
-    test("logarithms", function() {
-        tex("lnx", "\\ln(x)");
-        tex("logx", "\\log_{10}(x)");
-        tex("lnx^y", "\\ln(x^{y})");
-        tex("logx^y", "\\log_{10}(x^{y})");
-        tex("(lnx)^y", "[\\ln(x)]^{y}");
-        tex("(logx)^y", "[\\log_{10}(x)]^{y}");
+    QUnit.test("logarithms", function(assert) {
+        tex(assert, "lnx", "\\ln(x)");
+        tex(assert, "logx", "\\log_{10}(x)");
+        tex(assert, "lnx^y", "\\ln(x^{y})");
+        tex(assert, "logx^y", "\\log_{10}(x^{y})");
+        tex(assert, "(lnx)^y", "[\\ln(x)]^{y}");
+        tex(assert, "(logx)^y", "[\\log_{10}(x)]^{y}");
     });
 
-    test("trig functions", function() {
-        tex("sinx", "\\sin(x)");
+    QUnit.test("trig functions", function(assert) {
+        tex(assert, "sinx", "\\sin(x)");
 
-        tex("arcsin x", "\\arcsin(x)");
-        tex("sin^-1 x", "\\arcsin(x)");
+        tex(assert, "arcsin x", "\\arcsin(x)");
+        tex(assert, "sin^-1 x", "\\arcsin(x)");
 
-        tex("(sinx)^2", "\\sin^{2}(x)");
-        tex("sin^2 x", "\\sin^{2}(x)");
+        tex(assert, "(sinx)^2", "\\sin^{2}(x)");
+        tex(assert, "sin^2 x", "\\sin^{2}(x)");
 
-        tex("1/(sinx)^2", "\\frac{1}{\\sin^{2}(x)}");
-        tex("1/sin^2x", "\\frac{1}{\\sin^{2}(x)}");
+        tex(assert, "1/(sinx)^2", "\\frac{1}{\\sin^{2}(x)}");
+        tex(assert, "1/sin^2x", "\\frac{1}{\\sin^{2}(x)}");
 
-        tex("sin^2 x + cos^2 x = 1", "\\sin^{2}(x)+\\cos^{2}(x) = 1");
+        tex(assert, "sin^2 x + cos^2 x = 1", "\\sin^{2}(x)+\\cos^{2}(x) = 1");
     });
 
-    test("hyperbolic functions", function() {
-        tex("sinhx", "\\sinh(x)");
-        tex("sinh^2 x", "\\sinh^{2}(x)");
+    QUnit.test("hyperbolic functions", function(assert) {
+        tex(assert, "sinhx", "\\sinh(x)");
+        tex(assert, "sinh^2 x", "\\sinh^{2}(x)");
     });
 
-    test("multiplication with numbers", function() {
-        tex("4*10", "4 \\cdot 10");
-        tex("10^5", "10^{5}");
-        tex("4*10^5", "4 \\cdot 10^{5}");
-        tex("10^5x", "10^{5}x");
-        tex("4*10^5x", "4 \\cdot 10^{5}x");
-        tex("x*(10+4)^5", "x(10+4)^{5}");
+    QUnit.test("multiplication with numbers", function(assert) {
+        tex(assert, "4*10", "4 \\cdot 10");
+        tex(assert, "10^5", "10^{5}");
+        tex(assert, "4*10^5", "4 \\cdot 10^{5}");
+        tex(assert, "10^5x", "10^{5}x");
+        tex(assert, "4*10^5x", "4 \\cdot 10^{5}x");
+        tex(assert, "x*(10+4)^5", "x(10+4)^{5}");
 
-        tex("-1*2", "-1 \\cdot 2");
-        tex("1*-2", "1 \\cdot -2");
-        tex("-1*-2", "-1 \\cdot -2");
-        tex("-1*2*3", "-1 \\cdot 2 \\cdot 3");
+        tex(assert, "-1*2", "-1 \\cdot 2");
+        tex(assert, "1*-2", "1 \\cdot -2");
+        tex(assert, "-1*-2", "-1 \\cdot -2");
+        tex(assert, "-1*2*3", "-1 \\cdot 2 \\cdot 3");
     });
 
-    test("inverses and division", function() {
-        tex("x^-1", "x^{-1}");
-        tex("2x^-1", "2x^{-1}");
-        tex("1/x", "\\frac{1}{x}");
-        tex("-1/x", "\\frac{-1}{x}");
-        tex("2/x", "\\frac{2}{x}");
-        tex("1/x^2", "\\frac{1}{x^{2}}");
-        tex("2/x^2", "\\frac{2}{x^{2}}");
-        tex("1/1/x", "\\frac{1}{x}");
-        tex("1/(1/x)", "\\frac{1}{\\frac{1}{x}}");
-        tex("1/x/x", "\\frac{1}{xx}");
-        tex("1/(x/x)", "\\frac{1}{\\frac{x}{x}}");
-        tex("-1/1/x", "\\frac{-1}{x}");
-        tex("-1/(1/x)", "\\frac{-1}{\\frac{1}{x}}");
-        tex("-1/x/x", "\\frac{-1}{xx}");
-        tex("-1/(x/x)", "\\frac{-1}{\\frac{x}{x}}");
+    QUnit.test("inverses and division", function(assert) {
+        tex(assert, "x^-1", "x^{-1}");
+        tex(assert, "2x^-1", "2x^{-1}");
+        tex(assert, "1/x", "\\frac{1}{x}");
+        tex(assert, "-1/x", "\\frac{-1}{x}");
+        tex(assert, "2/x", "\\frac{2}{x}");
+        tex(assert, "1/x^2", "\\frac{1}{x^{2}}");
+        tex(assert, "2/x^2", "\\frac{2}{x^{2}}");
+        tex(assert, "1/1/x", "\\frac{1}{x}");
+        tex(assert, "1/(1/x)", "\\frac{1}{\\frac{1}{x}}");
+        tex(assert, "1/x/x", "\\frac{1}{xx}");
+        tex(assert, "1/(x/x)", "\\frac{1}{\\frac{x}{x}}");
+        tex(assert, "-1/1/x", "\\frac{-1}{x}");
+        tex(assert, "-1/(1/x)", "\\frac{-1}{\\frac{1}{x}}");
+        tex(assert, "-1/x/x", "\\frac{-1}{xx}");
+        tex(assert, "-1/(x/x)", "\\frac{-1}{\\frac{x}{x}}");
     });
 
-    test("distributive property", function() {
-        tex("ab+c", "ab+c");
-        tex("ab+ac", "ab+ac");
-        tex("a(b+c)", "a(b+c)");
+    QUnit.test("distributive property", function(assert) {
+        tex(assert, "ab+c", "ab+c");
+        tex(assert, "ab+ac", "ab+ac");
+        tex(assert, "a(b+c)", "a(b+c)");
     });
 
-    test("numerical exponents", function() {
-        tex("9^4", "9^{4}");
-        tex("-9^4", "-9^{4}");
-        tex("1-9^4", "1-9^{4}");
+    QUnit.test("numerical exponents", function(assert) {
+        tex(assert, "9^4", "9^{4}");
+        tex(assert, "-9^4", "-9^{4}");
+        tex(assert, "1-9^4", "1-9^{4}");
     });
 
-    test("negating a Mul", function() {
-        tex("-3x", "-3x");
-        tex("--3x", "--3x");
-        tex("-x*3", "-3x");
-        tex("--x*3", "--3x");
+    QUnit.test("negating a Mul", function(assert) {
+        tex(assert, "-3x", "-3x");
+        tex(assert, "--3x", "--3x");
+        tex(assert, "-x*3", "-3x");
+        tex(assert, "--x*3", "--3x");
     });
 
-    test("equations", function() {
-        tex("y=x", "y = x");
-        tex("y<x", "y < x");
-        tex("y>x", "y > x");
-        tex("y<>x", "y \\ne x");
-        tex("y=/=x", "y \\ne x");
-        tex("y<=x", "y \\le x");
-        tex("y>=x", "y \\ge x");
-        print("y \\le x", "y<=x");
-        print("y \\leq x", "y<=x");
-        print("y \\ge x", "y>=x");
-        print("y \\geq x", "y>=x");
+    QUnit.test("equations", function(assert) {
+        tex(assert, "y=x", "y = x");
+        tex(assert, "y<x", "y < x");
+        tex(assert, "y>x", "y > x");
+        tex(assert, "y<>x", "y \\ne x");
+        tex(assert, "y=/=x", "y \\ne x");
+        tex(assert, "y<=x", "y \\le x");
+        tex(assert, "y>=x", "y \\ge x");
+        print(assert, "y \\le x", "y<=x");
+        print(assert, "y \\leq x", "y<=x");
+        print(assert, "y \\ge x", "y>=x");
+        print(assert, "y \\geq x", "y>=x");
     });
 
-    test("function variables", function() {
-        tex("f(x)", "fx");
-        tex("f(x)", "f(x)", {functions: ["f"]});
-        tex("f(sin x)", "f(\\sin(x))", {functions: ["f"]});
-        tex("sin f(x)", "\\sin(f(x))", {functions: ["f"]});
+    QUnit.test("function variables", function(assert) {
+        tex(assert, "f(x)", "fx");
+        tex(assert, "f(x)", "f(x)", {functions: ["f"]});
+        tex(assert, "f(sin x)", "f(\\sin(x))", {functions: ["f"]});
+        tex(assert, "sin f(x)", "\\sin(f(x))", {functions: ["f"]});
     });
 
-    var texopt = function(input, expected) {
+    var texopt = function(assert, input, expected) {
         var options = {
             display: false,
             dynamic: false,
@@ -705,78 +705,78 @@
         _.each(optlist, function(opt) { options[opt] = true; });
 
         var message = input + " renders with options as " + expected;
-        strictEqual(parse(input).asTex(options), expected, message);
+        assert.strictEqual(parse(input).asTex(options), expected, message);
     };
 
-    test("options", function() {
-        texopt("x", "x");
-        texopt("x", "\\displaystyle x", "display");
-        texopt("a(b+c(d+e))", "a(b+c(d+e))");
-        texopt("a(b+c(d+e))", "a\\left(b+c\\left(d+e\\right)\\right)", "dynamic");
-        texopt("2*2", "2 \\cdot 2");
-        texopt("2*2", "2 \\times 2", "times");
+    QUnit.test("options", function(assert) {
+        texopt(assert, "x", "x");
+        texopt(assert, "x", "\\displaystyle x", "display");
+        texopt(assert, "a(b+c(d+e))", "a(b+c(d+e))");
+        texopt(assert, "a(b+c(d+e))", "a\\left(b+c\\left(d+e\\right)\\right)", "dynamic");
+        texopt(assert, "2*2", "2 \\cdot 2");
+        texopt(assert, "2*2", "2 \\times 2", "times");
 
-        texopt("1*2(3+4)", "\\displaystyle 1 \\times 2\\left(3+4\\right)",
+        texopt(assert, "1*2(3+4)", "\\displaystyle 1 \\times 2\\left(3+4\\right)",
             "display", "dynamic", "times");
     });
 
 
     QUnit.module("evaluating");
 
-    var val = function(input, expected, vars, functions) {
+    var val = function(assert, input, expected, vars, functions) {
         if (vars === undefined) vars = {};
         var message = input + " evaluates as " + expected;
-        strictEqual(parse(input, {functions: functions}).eval(vars, {functions: functions}), expected, message);
+        assert.strictEqual(parse(input, {functions: functions}).eval(vars, {functions: functions}), expected, message);
     };
 
-    test("empty", function() {
-        val("", 0);
+    QUnit.test("empty", function(assert) {
+        val(assert, "", 0);
     });
 
-    test("simple expressions", function() {
-        val("1+2+3+4", 10);
-        val("1+2-3+4", 4);
-        val("1*2*3*4", 24);
-        val("1*2/3*4", 2 + 2/3);
-        val("4^3^2^1", 262144);
-        val("-1", -1);
-        val("--1", 1);
-        val("---1", -1);
-        val("2^-2", .25);
-        val("8^(1/3)", 2);
-        val("0^0", 1);
-        val(".25*4", 1);
-        val("ln e", 1);
-        val("log 10", 1);
-        val("log_2 2", 1);
+    QUnit.test("simple expressions", function(assert) {
+        val(assert, "1+2+3+4", 10);
+        val(assert, "1+2-3+4", 4);
+        val(assert, "1*2*3*4", 24);
+        val(assert, "1*2/3*4", 2 + 2/3);
+        val(assert, "4^3^2^1", 262144);
+        val(assert, "-1", -1);
+        val(assert, "--1", 1);
+        val(assert, "---1", -1);
+        val(assert, "2^-2", .25);
+        val(assert, "8^(1/3)", 2);
+        val(assert, "0^0", 1);
+        val(assert, ".25*4", 1);
+        val(assert, "ln e", 1);
+        val(assert, "log 10", 1);
+        val(assert, "log_2 2", 1);
     });
 
-    test("hyperbolic expressions", function() {
-        val("cosh(0.2)", 1.0200667556190757);
-        val("coth(0.2)", 5.06648956343947);
-        val("csch(3 * 2)", 0.004957534813479361);
+    QUnit.test("hyperbolic expressions", function(assert) {
+        val(assert, "cosh(0.2)", 1.020066755619076);
+        val(assert, "coth(0.2)", 5.066489563439473);
+        val(assert, "csch(3 * 2)", 0.00495753481347936);
     });
 
-    test("variable expressions", function() {
-        val("x", 3, {x: 3});
-        val("x^2", 9, {x: 3});
-        val("(x^2+y^2)^.5", 5, {x: 3, y: 4});
-        val("log x_0", 1, {x_0: 10});
-        val("log x_0 + log x_1", 3, {x_0: 10, x_1: 100});
-        val("log x_42", 1, {x_42: 10});
-        val("x_a + x_bc", 7, {x_a: 1, x_b: 2, c: 3});
+    QUnit.test("variable expressions", function(assert) {
+        val(assert, "x", 3, {x: 3});
+        val(assert, "x^2", 9, {x: 3});
+        val(assert, "(x^2+y^2)^.5", 5, {x: 3, y: 4});
+        val(assert, "log x_0", 1, {x_0: 10});
+        val(assert, "log x_0 + log x_1", 3, {x_0: 10, x_1: 100});
+        val(assert, "log x_42", 1, {x_42: 10});
+        val(assert, "x_a + x_bc", 7, {x_a: 1, x_b: 2, c: 3});
     });
 
-    test("function expressions", function() {
-        val("f(2)", 4, {"f": "2x"}, ["f"]);
-        val("f(4+8)", 48, {"f": "4x"}, ["f"]);
-        val("f(x-1)-f(x)", -7, {"f": "x^3", "x": 2}, ["f"]);
-        val("g(1)", -1, {f: "x", g: "-f(x)"}, ["f", "g"]);
+    QUnit.test("function expressions", function(assert) {
+        val(assert, "f(2)", 4, {"f": "2x"}, ["f"]);
+        val(assert, "f(4+8)", 48, {"f": "4x"}, ["f"]);
+        val(assert, "f(x-1)-f(x)", -7, {"f": "x^3", "x": 2}, ["f"]);
+        val(assert, "g(1)", -1, {f: "x", g: "-f(x)"}, ["f", "g"]);
     });
 
     QUnit.module("compilation");
 
-    var compile = function(input, expected, vars, functions) {
+    var compile = function(assert, input, expected, vars, functions) {
         if (vars === undefined) vars = {};
         var func = parse(input, {functions: functions}).compile();
         var result;
@@ -787,70 +787,70 @@
         }
         var message = input + " should evaluate to " + expected +
 			", was " + result + "; by func: " + func.toString();
-        ok(Math.abs(result - expected) < 1e-9, message);
+        assert.ok(Math.abs(result - expected) < 1e-9, message);
     };
 
-    test("empty", function() {
-        compile("", 0);
+    QUnit.test("empty", function(assert) {
+        compile(assert, "", 0);
     });
 
-    test("simple expressions", function() {
-        compile("1+2+3+4", 10);
-        compile("1+2-3+4", 4);
-        compile("1*2*3*4", 24);
-        compile("1*2/3*4", 2 + 2/3);
-        compile("4^3^2^1", 262144);
-        compile("-1", -1);
-        compile("--1", 1);
-        compile("---1", -1);
-        compile("2^-2", .25);
-        compile("8^(1/3)", 2);
-        compile("0^0", 1);
-        compile(".25*4", 1);
-        compile("ln e", 1);
-        compile("log 10", 1);
-        compile("log_2 2", 1);
+    QUnit.test("simple expressions", function(assert) {
+        compile(assert, "1+2+3+4", 10);
+        compile(assert, "1+2-3+4", 4);
+        compile(assert, "1*2*3*4", 24);
+        compile(assert, "1*2/3*4", 2 + 2/3);
+        compile(assert, "4^3^2^1", 262144);
+        compile(assert, "-1", -1);
+        compile(assert, "--1", 1);
+        compile(assert, "---1", -1);
+        compile(assert, "2^-2", .25);
+        compile(assert, "8^(1/3)", 2);
+        compile(assert, "0^0", 1);
+        compile(assert, ".25*4", 1);
+        compile(assert, "ln e", 1);
+        compile(assert, "log 10", 1);
+        compile(assert, "log_2 2", 1);
     });
 
-    test("variable expressions", function() {
-        compile("x", 3, {x: 3});
-        compile("x^2", 9, {x: 3});
-        compile("(x^2+y^2)^.5", 5, {x: 3, y: 4});
-        compile("log x_0", 1, {x_0: 10});
-        compile("log x_0 + log x_1", 3, {x_0: 10, x_1: 100});
-        compile("log x_42", 1, {x_42: 10});
-        compile("x_a + x_bc", 7, {x_a: 1, x_b: 2, c: 3});
+    QUnit.test("variable expressions", function(assert) {
+        compile(assert, "x", 3, {x: 3});
+        compile(assert, "x^2", 9, {x: 3});
+        compile(assert, "(x^2+y^2)^.5", 5, {x: 3, y: 4});
+        compile(assert, "log x_0", 1, {x_0: 10});
+        compile(assert, "log x_0 + log x_1", 3, {x_0: 10, x_1: 100});
+        compile(assert, "log x_42", 1, {x_42: 10});
+        compile(assert, "x_a + x_bc", 7, {x_a: 1, x_b: 2, c: 3});
     });
 
-    test("function expressions", function() {
-        compile("f(2)", 4, {"f": function(x) { return 2 * x; }}, ["f"]);
-        compile("f(4+8)", 48, {"f": function(x) { return 4 * x; }}, ["f"]);
-        compile("f(x-1)-f(x)", -7, {"f": function(x) { return Math.pow(x, 3); }, "x": 2}, ["f"]);
+    QUnit.test("function expressions", function(assert) {
+        compile(assert, "f(2)", 4, {"f": function(x) { return 2 * x; }}, ["f"]);
+        compile(assert, "f(4+8)", 48, {"f": function(x) { return 4 * x; }}, ["f"]);
+        compile(assert, "f(x-1)-f(x)", -7, {"f": function(x) { return Math.pow(x, 3); }, "x": 2}, ["f"]);
     });
 
-    test("trig expressions", function() {
-        compile("-2sin(pi x) + 4", 4, {x: 32});
-        compile("sin(pi x)", 0, {x: 6});
-        compile("sin(x)", 1, {x: Math.PI / 2});
-        compile("sin(pi x)", -1, {x: 3/2});
-        compile("cos(x)", 1, {x: 0});
-        compile("cos x", -1, {x: Math.PI});
-        compile("tan(x)", 0, {x: 0});
-        compile("tan x", 1, {x: Math.PI / 4});
+    QUnit.test("trig expressions", function(assert) {
+        compile(assert, "-2sin(pi x) + 4", 4, {x: 32});
+        compile(assert, "sin(pi x)", 0, {x: 6});
+        compile(assert, "sin(x)", 1, {x: Math.PI / 2});
+        compile(assert, "sin(pi x)", -1, {x: 3/2});
+        compile(assert, "cos(x)", 1, {x: 0});
+        compile(assert, "cos x", -1, {x: Math.PI});
+        compile(assert, "tan(x)", 0, {x: 0});
+        compile(assert, "tan x", 1, {x: Math.PI / 4});
     });
 
     QUnit.module("checking form");
 
-    var norm = function(input, reference) {
+    var norm = function(assert, input, reference) {
         var actual = parse(input).normalize().print();
         var expected = parse(reference).normalize().print();
         var message = input + " is the same as " + reference;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    test("normalize", function() {
-        norm("ab", "ba");
-        norm("(ab)c", "(cb)a");
+    QUnit.test("normalize", function(assert) {
+        norm(assert, "ab", "ba");
+        norm(assert, "(ab)c", "(cb)a");
 
         var forms = [
             "(6x+1)(x-1)",
@@ -864,20 +864,20 @@
         ];
 
         _.each(forms, function(form) {
-            norm(forms[0], form);
+            norm(assert, forms[0], form);
         });
     });
 
-    var stripnorm = function(input, reference) {
+    var stripnorm = function(assert, input, reference) {
         var actual = parse(input).strip().normalize().print();
         var expected = parse(reference).strip().normalize().print();
         var message = input + " is the same as " + reference;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    test("strip then normalize", function() {
-        stripnorm("ab", "ba");
-        stripnorm("(ab)c", "(cb)a");
+    QUnit.test("strip then normalize", function(assert) {
+        stripnorm(assert, "ab", "ba");
+        stripnorm(assert, "(ab)c", "(cb)a");
 
         var forms = [
             "(6x+1)(x-1)",
@@ -901,21 +901,21 @@
         ];
 
         _.each(forms, function(form) {
-            stripnorm(forms[0], form);
+            stripnorm(assert, forms[0], form);
         });
     })
 
 
     QUnit.module("equation to expression");
 
-    var asExpr = function(input, reference) {
+    var asExpr = function(assert, input, reference) {
         var actual = parse(input).asExpr().simplify().normalize().print();
         var expected = parse(reference).normalize().print();
         var message = input + " as an expression is " + reference;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    test("", function() {
+    QUnit.test("", function(assert) {
         var forms = [
             "y=2x-5",
             "-2x+5=-y",
@@ -932,9 +932,9 @@
 
         _.each(forms, function(form) {
             if (form.indexOf("<>") !== -1) {
-                asExpr(form, "-y+2x-5");
+                asExpr(assert, form, "-y+2x-5");
             } else {
-                asExpr(form, "y-2x+5");
+                asExpr(assert, form, "y-2x+5");
             }
         });
 
@@ -946,24 +946,24 @@
         ];
 
         _.each(forms2, function(form) {
-            asExpr(form, "p-351");
+            asExpr(assert, form, "p-351");
         });
     });
 
 
     QUnit.module("comparing");
 
-    var compare = function(options, input, reference, expectedResult) {
+    var compare = function(assert, options, input, reference, expectedResult) {
         var actual = parse(input, {functions: ["f", "g", "h"]});
         var expected = parse(reference, {functions: ["f", "g", "h"]});
         var result = KAS.compare(actual, expected, options);
         if (expectedResult === undefined) expectedResult = true;
         var message = input + " is " + (expectedResult ? "" : "NOT ") + "the same as " + reference;
-        ok(result.equal === expectedResult, message);
+        assert.equal(result.equal, expectedResult, message);
     };
 
-    test("evaluate only", function() {
-        var comp = _.partial(compare, {form: false});
+    QUnit.test("evaluate only", function(assert) {
+        var comp = _.partial(compare, assert, {form: false});
 
         comp("2+2", "4");
         comp("a(b+c)", "ab+ac");
@@ -1161,8 +1161,8 @@
         comp("(-2)^(n+0.1)", "(-2)^(n+1.1)");
     });
 
-    test("simplify can't yet handle these", function() {
-        var comp = _.partial(compare, {form: false});
+    QUnit.test("simplify can't yet handle these", function(assert) {
+        var comp = _.partial(compare, assert, {form: false});
 
         comp("sin(x + 2pi)", "sin(x)");
         comp("y = sin(x + 2pi)", "y = sin(x)");
@@ -1170,8 +1170,8 @@
         comp("y = sin^2(x)+cos^2(x)", "y = x/x");
     });
 
-    test("partially evaluating functions", function() {
-        var comp = _.partial(compare, {form: false});
+    QUnit.test("partially evaluating functions", function(assert) {
+        var comp = _.partial(compare, assert, {form: false});
 
         comp("f(x)", "f(x)");
         comp("f(x)", "g(x)", false);
@@ -1182,8 +1182,8 @@
         comp("f(x) = ln|x|+c", "f(x)-ln|x|-c = 0");
     });
 
-    test("evaluating and comparing form", function() {
-        var comp = _.partial(compare, {form: true});
+    QUnit.test("evaluating and comparing form", function(assert) {
+        var comp = _.partial(compare, assert, {form: false});
 
         comp("ab", "ba");
         comp("(ab)c", "(cb)a");
@@ -1231,359 +1231,359 @@
 
     QUnit.module("findGCD");
 
-    var findGCD = function(a, b, reference) {
+    var findGCD = function(assert, a, b, reference) {
         var actual = parse(a).findGCD(parse(b)).repr();
         var expected = parse(reference).repr();
 
         var message = "(" + a + ").findGCD(" + b + ") = " + expected;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    test("findGCD on ints", function() {
-        findGCD("40", "30", "10");
-        findGCD("14", "21", "7");
-        findGCD("13", "26", "13");
+    QUnit.test("findGCD on ints", function(assert) {
+        findGCD(assert, "40", "30", "10");
+        findGCD(assert, "14", "21", "7");
+        findGCD(assert, "13", "26", "13");
     });
 
-    test("findGCD on rationals", function() {
-        findGCD("40/3", "55/6", "5/6");
-        findGCD("3/4", "1/2", "1/4");
-        findGCD("3/7", "12/22", "3/77");
-        findGCD("3/10", "4/15", "1/30");
-        findGCD("2/3", "23/6", "1/6");
-        findGCD("2/3", "22/6", "1/3");
+    QUnit.test("findGCD on rationals", function(assert) {
+        findGCD(assert, "40/3", "55/6", "5/6");
+        findGCD(assert, "3/4", "1/2", "1/4");
+        findGCD(assert, "3/7", "12/22", "3/77");
+        findGCD(assert, "3/10", "4/15", "1/30");
+        findGCD(assert, "2/3", "23/6", "1/6");
+        findGCD(assert, "2/3", "22/6", "1/3");
 
-        findGCD("2/3", "2", "2/3");
-        findGCD("2/3", "3", "1/3");
-        findGCD("1/2", "4", "1/2");
-        findGCD("4", "3/4", "1/4");
-        findGCD("3", "3/4", "3/4");
+        findGCD(assert, "2/3", "2", "2/3");
+        findGCD(assert, "2/3", "3", "1/3");
+        findGCD(assert, "1/2", "4", "1/2");
+        findGCD(assert, "4", "3/4", "1/4");
+        findGCD(assert, "3", "3/4", "3/4");
     });
 
-    test("findGCD on floats", function() {
+    QUnit.test("findGCD on floats", function(assert) {
         // Feel free to change this when we do something other
         // than a naive "return 1" for floats
-        findGCD("1.23", "1.42", "1");
-        findGCD("1", String(Math.PI), "1");
+        findGCD(assert, "1.23", "1.42", "1");
+        findGCD(assert, "1", String(Math.PI), "1");
     });
 
     QUnit.module("transforming");
 
-    var factor = function(input, reference) {
+    var factor = function(assert, input, reference) {
         var actual = parse(input).factor().normalize().repr();
         var expected = parse(reference).normalize().repr();
         var message = input + " factors as " + reference;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    test("factoring Adds", function() {
-        factor("2+2", "2(1+1)");
-        factor("-2-2", "-2(1+1)");
-        factor("2x+2", "2(x+1)");
-        factor("x^3+x^2", "x^2(x+1)");
-        factor("2x+xy", "x(2+y)");
-        factor("2xy+xy^2", "xy(2+y)");
-        factor("2+2/3", "2/3(3+1)");  // a little questionable, but 2/3 is what
+    QUnit.test("factoring Adds", function(assert) {
+        factor(assert, "2+2", "2(1+1)");
+        factor(assert, "-2-2", "-2(1+1)");
+        factor(assert, "2x+2", "2(x+1)");
+        factor(assert, "x^3+x^2", "x^2(x+1)");
+        factor(assert, "2x+xy", "x(2+y)");
+        factor(assert, "2xy+xy^2", "xy(2+y)");
+        factor(assert, "2+2/3", "2/3(3+1)");  // a little questionable, but 2/3 is what
                                       // wolframalpha returns for the gcd, so
                                       // we pull it out
-        factor("2x+1.1", "2x+1.1");
+        factor(assert, "2x+1.1", "2x+1.1");
     });
 
-    test("factoring Muls", function() {
-        factor("(2x+2)/(x+1)", "2 (x+1)/(x+1)");
-        factor("(x+1)/(2x+2)", "1/2 (x+1)/(x+1)");
+    QUnit.test("factoring Muls", function(assert) {
+        factor(assert, "(2x+2)/(x+1)", "2 (x+1)/(x+1)");
+        factor(assert, "(x+1)/(2x+2)", "1/2 (x+1)/(x+1)");
     });
 
-    test("factoring Pows", function() {
-        factor("x^y+x^(2y)", "x^y(1+x^y)");
-        factor("x^y+x^z", "x^y+x^z");
+    QUnit.test("factoring Pows", function(assert) {
+        factor(assert, "x^y+x^(2y)", "x^y(1+x^y)");
+        factor(assert, "x^y+x^z", "x^y+x^z");
     });
 
-    var expand = function(input, reference) {
+    var expand = function(assert, input, reference) {
         var actual = parse(input).expand().normalize().print();
         var expected = parse(reference).normalize().print();
         var message = input + " expands as " + reference;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    var expandrepr = function(input, expected) {
+    var expandrepr = function(assert, input, expected) {
         var actual = parse(input).expand().repr();
         var message = input + " expands as " + expected;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    var expandtex = function(input, expected) {
+    var expandtex = function(assert, input, expected) {
         var actual = parse(input).expand().tex();
         var message = input + " expands and is rendered as " + expected;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    test("distribute over multiplication", function() {
-        expand("a(b+c)", "ab+ac");
-        expandtex("a(b+c)", "ab+ac");
-        expandrepr("a(b+c)", "Add(Mul(Var(a),Var(b)),Mul(Var(a),Var(c)))");
+    QUnit.test("distribute over multiplication", function(assert) {
+        expand(assert, "a(b+c)", "ab+ac");
+        expandtex(assert, "a(b+c)", "ab+ac");
+        expandrepr(assert, "a(b+c)", "Add(Mul(Var(a),Var(b)),Mul(Var(a),Var(c)))");
 
-        expand("a(b-c)", "ab-ac");
-        expandtex("a(b-c)", "ab-ac");
-        expandrepr("a(b-c)", "Add(Mul(Var(a),Var(b)),Mul(Var(a),-1,Var(c)))");
+        expand(assert, "a(b-c)", "ab-ac");
+        expandtex(assert, "a(b-c)", "ab-ac");
+        expandrepr(assert, "a(b-c)", "Add(Mul(Var(a),Var(b)),Mul(Var(a),-1,Var(c)))");
 
-        expand("a(b+c)d", "abd+acd");
-        expandrepr("a(b+c)d", "Add(Mul(Var(a),Var(d),Var(b)),Mul(Var(a),Var(d),Var(c)))");
+        expand(assert, "a(b+c)d", "abd+acd");
+        expandrepr(assert, "a(b+c)d", "Add(Mul(Var(a),Var(d),Var(b)),Mul(Var(a),Var(d),Var(c)))");
 
-        expand("(a+b)(c+d)", "ac+ad+bc+bd");
-        expand("(a+b)(c+d)ef", "acef+adef+bcef+bdef");
-        expand("(a+b)c^d", "ac^d+bc^d");
-        expand("ab(c+d)e^f", "abce^f+abde^f");
+        expand(assert, "(a+b)(c+d)", "ac+ad+bc+bd");
+        expand(assert, "(a+b)(c+d)ef", "acef+adef+bcef+bdef");
+        expand(assert, "(a+b)c^d", "ac^d+bc^d");
+        expand(assert, "ab(c+d)e^f", "abce^f+abde^f");
 
-        expand("(a+b(c+d))e", "ae+bce+bde");
-        expandrepr("(a+b(c+d))e", "Add(Mul(Const(e),Var(a)),Mul(Const(e),Var(b),Var(c)),Mul(Const(e),Var(b),Var(d)))");
+        expand(assert, "(a+b(c+d))e", "ae+bce+bde");
+        expandrepr(assert, "(a+b(c+d))e", "Add(Mul(Const(e),Var(a)),Mul(Const(e),Var(b),Var(c)),Mul(Const(e),Var(b),Var(d)))");
     });
 
-    test("distribute over rational expressions", function() {
-        expand("(a+b)/(c+d)", "(a+b)/(c+d)");
-        expand("(a+b)/(c+d)*a", "(aa+ab)/(c+d)");
-        expand("(a+b)/(c+d)*1/e", "(a+b)/(ce+de)");
-        expand("(a+b)/(c+d)*a/e", "(aa+ab)/(ce+de)");
+    QUnit.test("distribute over rational expressions", function(assert) {
+        expand(assert, "(a+b)/(c+d)", "(a+b)/(c+d)");
+        expand(assert, "(a+b)/(c+d)*a", "(aa+ab)/(c+d)");
+        expand(assert, "(a+b)/(c+d)*1/e", "(a+b)/(ce+de)");
+        expand(assert, "(a+b)/(c+d)*a/e", "(aa+ab)/(ce+de)");
     });
 
-    test("expand exponentiation", function() {
-        expand("(ab)^2", "a^2 b^2");
-        expand("2*(ab)^2", "2 a^2 b^2");
-        expand("(a+b)^2", "a^2+2ab+b^2");
+    QUnit.test("expand exponentiation", function(assert) {
+        expand(assert, "(ab)^2", "a^2 b^2");
+        expand(assert, "2*(ab)^2", "2 a^2 b^2");
+        expand(assert, "(a+b)^2", "a^2+2ab+b^2");
 
-        expand("(ab)^-2", "a^-2 b^-2");
-        expand("2*(ab)^-2", "2 a^-2 b^-2");
-        expand("(a+b)^-2", "(a^2+2ab+b^2)^-1");
+        expand(assert, "(ab)^-2", "a^-2 b^-2");
+        expand(assert, "2*(ab)^-2", "2 a^-2 b^-2");
+        expand(assert, "(a+b)^-2", "(a^2+2ab+b^2)^-1");
     });
 
-    test("expand absolute value", function() {
-        expand("|a+b|", "|a+b|");
-        expand("|ab|", "|a|*|b|");
+    QUnit.test("expand absolute value", function(assert) {
+        expand(assert, "|a+b|", "|a+b|");
+        expand(assert, "|ab|", "|a|*|b|");
     });
 
-    test("expand logarithms", function() {
-        expand("ln(xy)", "lnx+lny");
-        expand("log_b(x)", "lnx/lnb");
-        expand("log_b(xy)", "lnx/lnb+lny/lnb");
-        expand("ln(xy/z)", "lnx+lny-lnz");
+    QUnit.test("expand logarithms", function(assert) {
+        expand(assert, "ln(xy)", "lnx+lny");
+        expand(assert, "log_b(x)", "lnx/lnb");
+        expand(assert, "log_b(xy)", "lnx/lnb+lny/lnb");
+        expand(assert, "ln(xy/z)", "lnx+lny-lnz");
 
-        expand("ln(x^y)", "ylnx");
-        expand("log_b(x^y)", "ylnx/lnb");
-        expand("ln(x^y^z)", "y^zlnx");
+        expand(assert, "ln(x^y)", "ylnx");
+        expand(assert, "log_b(x^y)", "ylnx/lnb");
+        expand(assert, "ln(x^y^z)", "y^zlnx");
 
-        expand("ln(x^y/z)", "ylnx-lnz");
+        expand(assert, "ln(x^y/z)", "ylnx-lnz");
 
         // ln((xy)^z) -> ln(x^z*y^z) -> z*ln(x)+z*ln(y)
-        expand("ln((xy)^z)", "zlnx+zlny");
+        expand(assert, "ln((xy)^z)", "zlnx+zlny");
 
-        expand("log_b(x)log_x(y)", "ln(x)/ln(b)*ln(y)/ln(x)");
-        expand("log_b(x)log_x(y)log_y(z)", "ln(x)/ln(b)*ln(y)/ln(x)*ln(z)/ln(y)");
+        expand(assert, "log_b(x)log_x(y)", "ln(x)/ln(b)*ln(y)/ln(x)");
+        expand(assert, "log_b(x)log_x(y)log_y(z)", "ln(x)/ln(b)*ln(y)/ln(x)*ln(z)/ln(y)");
     });
 
-    test("expand trig functions", function() {
-        expand("sin(x)", "sin(x)");
-        expand("cos(x)", "cos(x)");
-        expand("tan(x)", "sin(x)/cos(x)");
-        expand("csc(x)", "1/sin(x)");
-        expand("sec(x)", "1/cos(x)");
-        expand("cot(x)", "cos(x)/sin(x)");
+    QUnit.test("expand trig functions", function(assert) {
+        expand(assert, "sin(x)", "sin(x)");
+        expand(assert, "cos(x)", "cos(x)");
+        expand(assert, "tan(x)", "sin(x)/cos(x)");
+        expand(assert, "csc(x)", "1/sin(x)");
+        expand(assert, "sec(x)", "1/cos(x)");
+        expand(assert, "cot(x)", "cos(x)/sin(x)");
     });
 
-    test("expand hyperbolic functions", function() {
-        expand("sinh(x)", "sinh(x)");
-        expand("cosh(x)", "cosh(x)");
-        expand("tanh(x)", "sinh(x)/cosh(x)");
-        expand("csch(x)", "1/sinh(x)");
-        expand("sech(x)", "1/cosh(x)");
-        expand("coth(x)", "cosh(x)/sinh(x)");
+    QUnit.test("expand hyperbolic functions", function(assert) {
+        expand(assert, "sinh(x)", "sinh(x)");
+        expand(assert, "cosh(x)", "cosh(x)");
+        expand(assert, "tanh(x)", "sinh(x)/cosh(x)");
+        expand(assert, "csch(x)", "1/sinh(x)");
+        expand(assert, "sech(x)", "1/cosh(x)");
+        expand(assert, "coth(x)", "cosh(x)/sinh(x)");
     });
 
-    var collect = function(input, reference) {
+    var collect = function(assert, input, reference) {
         var actual = parse(input).collect().normalize().print();
         var expected = parse(reference).normalize().print();
         var message = input + " collects as " + reference;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    var collectrepr = function(input, expected) {
+    var collectrepr = function(assert, input, expected) {
         var actual = parse(input).collect().repr();
         var message = input + " collects as " + expected;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    var collecttex = function(input, expected) {
+    var collecttex = function(assert, input, expected) {
         var actual = parse(input).collect().tex();
         var message = input + " collects and is rendered as " + expected;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    test("collect over addition", function() {
-        collect("", "0");
-        collect("0", "0");
-        collect("1+3", "4");
-        collect("x+3", "3+x");
-        collect("x+3x", "4x");
-        collectrepr("x+3x", "Mul(4,Var(x))");
-        collect("a+a+a", "3a");
-        collectrepr("a+a+a", "Mul(3,Var(a))");
-        collect("a+b+b+c", "a+2b+c");
-        collectrepr("a+b+b+c", "Add(Var(a),Mul(2,Var(b)),Var(c))");
-        collect("4x^2-x^2+8x+7-5x-4", "3+3x+3x^2");
+    QUnit.test("collect over addition", function(assert) {
+        collect(assert, "", "0");
+        collect(assert, "0", "0");
+        collect(assert, "1+3", "4");
+        collect(assert, "x+3", "3+x");
+        collect(assert, "x+3x", "4x");
+        collectrepr(assert, "x+3x", "Mul(4,Var(x))");
+        collect(assert, "a+a+a", "3a");
+        collectrepr(assert, "a+a+a", "Mul(3,Var(a))");
+        collect(assert, "a+b+b+c", "a+2b+c");
+        collectrepr(assert, "a+b+b+c", "Add(Var(a),Mul(2,Var(b)),Var(c))");
+        collect(assert, "4x^2-x^2+8x+7-5x-4", "3+3x+3x^2");
     });
 
-    test("collect over multiplication", function() {
-        collect("5*7", "35");
-        collect("5*7x+20x", "55x");
-        collect("3x*xy+2yx^2", "5x^2y");
-        collect("4/6", "2/3");
-        collect("1/1", "1");
-        collect("1/2+1/3", "5/6");
-        collect("1/2+1/3+1", "11/6");
-        collect("1.2+1/2", "1.7");
-        collect("1/2-1/2", "0");
-        collect("1/2-.5", "0");
+    QUnit.test("collect over multiplication", function(assert) {
+        collect(assert, "5*7", "35");
+        collect(assert, "5*7x+20x", "55x");
+        collect(assert, "3x*xy+2yx^2", "5x^2y");
+        collect(assert, "4/6", "2/3");
+        collect(assert, "1/1", "1");
+        collect(assert, "1/2+1/3", "5/6");
+        collect(assert, "1/2+1/3+1", "11/6");
+        collect(assert, "1.2+1/2", "1.7");
+        collect(assert, "1/2-1/2", "0");
+        collect(assert, "1/2-.5", "0");
     });
 
-    test("collect over exponentiation", function() {
-        collect("x^0", "1");
-        collect("x^1", "x");
-        collect("x^(log_x y)", "y");
-        collect("(x^y)^z", "x^(yz)");
-        collect("0^0", "1");
-        collect("4^1.5", "8");
-        collect("(2/3)^2", "4/9");
-        collect("(2/3)^-2", "9/4");
+    QUnit.test("collect over exponentiation", function(assert) {
+        collect(assert, "x^0", "1");
+        collect(assert, "x^1", "x");
+        collect(assert, "x^(log_x y)", "y");
+        collect(assert, "(x^y)^z", "x^(yz)");
+        collect(assert, "0^0", "1");
+        collect(assert, "4^1.5", "8");
+        collect(assert, "(2/3)^2", "4/9");
+        collect(assert, "(2/3)^-2", "9/4");
     });
 
-    test("collect over roots", function() {
-        collect("sqrt(2)^2", "2");
-        collect("sqrt[3]{3}^3", "3");
-        collect("(2^(1/3))^3", "2");
+    QUnit.test("collect over roots", function(assert) {
+        collect(assert, "sqrt(2)^2", "2");
+        collect(assert, "sqrt[3]{3}^3", "3");
+        collect(assert, "(2^(1/3))^3", "2");
     });
 
-    test("collect over absolute value", function() {
-        collect("|x|", "|x|");
-        collect("|2|", "2");
-        collect("|0|", "0");
-        collect("|-2|", "2");
-        collect("|pi|", "pi");
-        collect("|2^x|", "2^x");
-        collect("|x^2|", "x^2");
-        collect("|-2pix^2y^3|", "2pix^2*|y^3|");
+    QUnit.test("collect over absolute value", function(assert) {
+        collect(assert, "|x|", "|x|");
+        collect(assert, "|2|", "2");
+        collect(assert, "|0|", "0");
+        collect(assert, "|-2|", "2");
+        collect(assert, "|pi|", "pi");
+        collect(assert, "|2^x|", "2^x");
+        collect(assert, "|x^2|", "x^2");
+        collect(assert, "|-2pix^2y^3|", "2pix^2*|y^3|");
     });
 
-    test("collect over logarithms", function() {
-        collect("log(1)", "0");
-        collect("log_x(x)", "1");
-        collect("log_b(b^x)", "x");
+    QUnit.test("collect over logarithms", function(assert) {
+        collect(assert, "log(1)", "0");
+        collect(assert, "log_x(x)", "1");
+        collect(assert, "log_b(b^x)", "x");
 
-        collect("b^(2*y*log_b x)", "x^(2y)");
-        collect("b^(log_b a) b^(-log_b c)", "a/c");
+        collect(assert, "b^(2*y*log_b x)", "x^(2y)");
+        collect(assert, "b^(log_b a) b^(-log_b c)", "a/c");
 
-        collect("ln(x)/ln(b)", "log_b(x)");
-        collect("ln(x)/ln(b)*ln(y)/ln(x)", "log_b(y)");
-        collect("ln(x)/ln(b)*ln(y)/ln(x)*ln(z)/ln(y)", "log_b(z)");
+        collect(assert, "ln(x)/ln(b)", "log_b(x)");
+        collect(assert, "ln(x)/ln(b)*ln(y)/ln(x)", "log_b(y)");
+        collect(assert, "ln(x)/ln(b)*ln(y)/ln(x)*ln(z)/ln(y)", "log_b(z)");
     });
 
-    test("collect trig functions", function() {
-        collect("sin(x)cos(x)", "sin(x)cos(x)");
-        collect("sin(x)/cos(x)", "tan(x)");
+    QUnit.test("collect trig functions", function(assert) {
+        collect(assert, "sin(x)cos(x)", "sin(x)cos(x)");
+        collect(assert, "sin(x)/cos(x)", "tan(x)");
 
-        collect("sin^2(x)/cos^2(x)", "tan^2(x)");
-        collect("cos^2(x)/sin^2(x)", "cot^2(x)");
+        collect(assert, "sin^2(x)/cos^2(x)", "tan^2(x)");
+        collect(assert, "cos^2(x)/sin^2(x)", "cot^2(x)");
 
-        collect("sin^-2(x)/cos^-2(x)", "cot^2(x)");
-        collect("cos^-2(x)/sin^-2(x)", "tan^2(x)");
+        collect(assert, "sin^-2(x)/cos^-2(x)", "cot^2(x)");
+        collect(assert, "cos^-2(x)/sin^-2(x)", "tan^2(x)");
 
-        collect("sin^--2(x)/cos^--2(x)", "tan^2(x)");
-        collect("cos^--2(x)/sin^--2(x)", "cot^2(x)");
+        collect(assert, "sin^--2(x)/cos^--2(x)", "tan^2(x)");
+        collect(assert, "cos^--2(x)/sin^--2(x)", "cot^2(x)");
 
-        collect("sin^2(x)/cos(x)", "sin^2(x)/cos(x)");
-        collect("sin(x)/cos^2(x)", "sin(x)/cos^2(x)");
+        collect(assert, "sin^2(x)/cos(x)", "sin^2(x)/cos(x)");
+        collect(assert, "sin(x)/cos^2(x)", "sin(x)/cos^2(x)");
 
-        collect("sin(-x)", "-sin(x)");
-        collect("cos(-x)", "cos(x)");
-        collect("tan(-x)", "-tan(x)");
-        collect("csc(-x)", "-csc(x)");
-        collect("sec(-x)", "sec(x)");
-        collect("cot(-x)", "-cot(x)");
+        collect(assert, "sin(-x)", "-sin(x)");
+        collect(assert, "cos(-x)", "cos(x)");
+        collect(assert, "tan(-x)", "-tan(x)");
+        collect(assert, "csc(-x)", "-csc(x)");
+        collect(assert, "sec(-x)", "sec(x)");
+        collect(assert, "cot(-x)", "-cot(x)");
 
-        collect("sin(--x)", "sin(x)");
-        collect("arcsin(-x)", "arcsin(-x)");
+        collect(assert, "sin(--x)", "sin(x)");
+        collect(assert, "arcsin(-x)", "arcsin(-x)");
 
-        collect("sin(-x)cos(-x)", "-sin(x)cos(x)");
-        collect("sin(-x)/cos(-x)", "-tan(x)");
+        collect(assert, "sin(-x)cos(-x)", "-sin(x)cos(x)");
+        collect(assert, "sin(-x)/cos(-x)", "-tan(x)");
     });
 
-    test("collect then output tex", function() {
-        // user-friendly tex representation is not guaranteed after collect()
-        collect("-x", "-1x");
-        collecttex("-x", "-1x");
-        collect("a-b", "a+-1b");
-        collecttex("a-b", "a+-1b");
-        collect("a/b", "ab^-1");
-        collecttex("a/b", "ab^{-1}");
+    QUnit.test("collect then output tex", function(assert) {
+        // user-friendly tex representation is not guaranteed after collect(assert, )
+        collect(assert, "-x", "-1x");
+        collecttex(assert, "-x", "-1x");
+        collect(assert, "a-b", "a+-1b");
+        collecttex(assert, "a-b", "a+-1b");
+        collect(assert, "a/b", "ab^-1");
+        collecttex(assert, "a/b", "ab^{-1}");
     });
 
-    test("collect over an equation", function() {
+    QUnit.test("collect over an equation", function(assert) {
         // collect does not try to collect across both sides of an equation
-        collect("y+1-1=x*x", "y=x^(2)");
-        collect("1+y=1+x^2", "1+y=1+x^(2)");
+        collect(assert, "y+1-1=x*x", "y=x^(2)");
+        collect(assert, "1+y=1+x^2", "1+y=1+x^(2)");
     });
 
-    var simplify = function(input, reference) {
+    var simplify = function(assert, input, reference) {
         var actual = parse(input).simplify().normalize().print();
         var expected = parse(reference).normalize().print();
         var message = input + " simplifies as " + reference;
-        strictEqual(actual, expected, message);
+        assert.strictEqual(actual, expected, message);
     };
 
-    test("simplify", function() {
-        simplify("(a+b)^2", "(a+b)^2");
-        simplify("(a+b)(a+b)", "(a+b)^2");
+    QUnit.test("simplify", function(assert) {
+        simplify(assert, "(a+b)^2", "(a+b)^2");
+        simplify(assert, "(a+b)(a+b)", "(a+b)^2");
 
         // (ab)^2 ->[factor]-> a^2 * b^2 ->[collect]-> a^2 * b^2
         // (no change during collect, therefore factoring is rolled back)
-        simplify("(ab)^2", "(ab)^2");
+        simplify(assert, "(ab)^2", "(ab)^2");
 
         // (3x)^2 ->[factor]-> 3^2 * x^2 ->[collect]-> 9x^2
         // (changed during collect, therefore factoring persists)
-        simplify("(3x)^2", "9x^2");
+        simplify(assert, "(3x)^2", "9x^2");
 
-        simplify("(2sqrt(2))^4", "64");
-        simplify("(3sqrt[3]{3})^9", "531441");
+        simplify(assert, "(2sqrt(2))^4", "64");
+        simplify(assert, "(3sqrt[3]{3})^9", "531441");
 
         // from "Simplifying expressions with exponents"
-        simplify("((nx^5)^5)", "n^5 x^25");
-        simplify("((nx^5)^5)/2", "1/2 n^5 x^25");
-        simplify("((nx^5)^5)/(n^-2x^2)^-3", "n^-1 x^31");
+        simplify(assert, "((nx^5)^5)", "n^5 x^25");
+        simplify(assert, "((nx^5)^5)/2", "1/2 n^5 x^25");
+        simplify(assert, "((nx^5)^5)/(n^-2x^2)^-3", "n^-1 x^31");
 
-        simplify("1/(xya)+1/(xyb)", "1/(xya)+1/(xyb)");
+        simplify(assert, "1/(xya)+1/(xyb)", "1/(xya)+1/(xyb)");
 
         // Simplify rationals correctly
-        simplify("2*(x+1/3)", "2*x+2/3");
-        simplify("-1*(1/3+x)", "-1*x+-1/3");
+        simplify(assert, "2*(x+1/3)", "2*x+2/3");
+        simplify(assert, "-1*(1/3+x)", "-1*x+-1/3");
     });
 
     QUnit.module("units");
 
-    var unitEq = function(x, y, msg) {
-        ok(KAS.compare(x.simplify(), y.simplify()).equal, msg);
+    var unitEq = function(assert, x, y, msg) {
+        assert.ok(KAS.compare(x.simplify(), y.simplify()).equal, msg);
     };
 
-    var unitNeq = function(x, y, msg) {
-        ok(!KAS.compare(x.simplify(), y.simplify()).equal, msg);
+    var unitNeq = function(assert, x, y, msg) {
+        assert.ok(!KAS.compare(x.simplify(), y.simplify()).equal, msg);
     };
 
-    var parseEq = function(x, y, msg) {
-        unitEq(KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg);
+    var parseEq = function(assert, x, y, msg) {
+        unitEq(assert, KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg);
     };
 
-    var parseNeq = function(x, y, msg) {
-        unitNeq(KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg);
+    var parseNeq = function(assert, x, y, msg) {
+        unitNeq(assert, KAS.unitParse(x).expr, KAS.unitParse(y).expr, msg);
     };
 
-    var solveUnitVariable = function(original, newUnit, expected) {
+    var solveUnitVariable = function(assert, original, newUnit, expected) {
         var originalParsed = KAS.unitParse(original).expr;
         var newUnitParsed = KAS.unitParse(newUnit).unit;
         var x = new KAS.Var("x");
@@ -1595,7 +1595,7 @@
         var answer = equality.solveLinearEquationForVariable(x);
 
         var msg = original + " = [" + expected.print() + "] " + newUnit;
-        ok(Math.round(answer.eval()) == Math.round(expected.eval()), msg);
+        assert.ok(Math.round(answer.eval()) == Math.round(expected.eval()), msg);
     };
 
     var formEq = function(x, y) {
@@ -1605,25 +1605,27 @@
         ).equal;
     };
 
-    var parseMagnitude = function(str, expected) {
+    var parseMagnitude = function(assert, str, expected) {
         var parsed = KAS.unitParse(str).coefficient;
-        ok(+parsed, expected);
+        assert.ok(+parsed, expected);
     };
 
-    test("simplify expressions with units", function() {
+    QUnit.test("simplify expressions with units", function(assert) {
         unitEq(
+            assert,
             new KAS.Mul(new KAS.Rational(1, 100), new KAS.Unit("cup")),
             new KAS.Mul(new KAS.Rational(1, 400), new KAS.Unit("qt")),
             "1/100 cup = 1 / 400 quart"
         );
 
-        parseEq("10 g", "0.01 kg", "10 g = 1 / 100 kg");
+        parseEq(assert, "10 g", "0.01 kg", "10 g = 1 / 100 kg");
 
-        parseEq("9.8 kg m / s^2", "9.8 N", "9.8 kg m / s^2 = 9.8 N");
+        parseEq(assert, "9.8 kg m / s^2", "9.8 N", "9.8 kg m / s^2 = 9.8 N");
 
-        parseEq("9.8 m / s^2", "9.8 N / kg", "9.8 m / s^2 = 9.8 N / kg");
+        parseEq(assert, "9.8 m / s^2", "9.8 N / kg", "9.8 m / s^2 = 9.8 N / kg");
 
         unitEq(
+            assert,
             new KAS.Mul(new KAS.Float(9.8),
                         new KAS.Unit("m"),
                         new KAS.Pow(new KAS.Unit("s"), new KAS.Int(-2))),
@@ -1634,6 +1636,7 @@
         );
 
         unitEq(
+            assert,
             new KAS.Mul(new KAS.Int(50),
                         new KAS.Unit("m"),
                         new KAS.Pow(new KAS.Unit("m"), new KAS.Int(-1))),
@@ -1648,6 +1651,7 @@
         // 1 tsp * ------ * ------- * ------ * -------
         //         3 tsp    16 tbsp   16 cup     gal
         unitEq(
+            assert,
             new KAS.Unit("tsp"),
             new KAS.Mul(
                 new KAS.Rational(1, 3),
@@ -1659,7 +1663,7 @@
             "tsp reduces"
         );
 
-        ok(
+        assert.ok(
             !KAS.compare(
                 new KAS.Mul(new KAS.Int(50), new KAS.Unit("m")),
                 new KAS.Int(50)
@@ -1667,27 +1671,28 @@
             "50 m != 50"
         );
 
-        parseNeq("50 m", "50 A", "50 m != 50 A");
-        parseEq("5000 mA", "5 A", "5000 mA = 5 A");
-        parseNeq("5 mA", "5 A", "5 mA != 5 A");
+        parseNeq(assert, "50 m", "50 A", "50 m != 50 A");
+        parseEq(assert, "5000 mA", "5 A", "5000 mA = 5 A");
+        parseNeq(assert, "5 mA", "5 A", "5 mA != 5 A");
 
-        parseNeq("9.8 kg m / s^2", "9.8 J", "9.8 kg m / s^2 != 9.8 J");
-        parseEq("9.8 kg m / s^2", "9.8 J/m", "9.8 kg m / s^2 = 9.8 J/m");
+        parseNeq(assert, "9.8 kg m / s^2", "9.8 J", "9.8 kg m / s^2 != 9.8 J");
+        parseEq(assert, "9.8 kg m / s^2", "9.8 J/m", "9.8 kg m / s^2 = 9.8 J/m");
 
-        ok(!formEq("mA", "A"), "mA !== A")
-        ok(!formEq("g", "kg"), "g !== kg");
-        ok(!formEq("kg m / s^2", "N"), "kg m / s^2 !== N");
-        ok(!formEq("m / s^2", "N / kg"), "m / s^2 !== N / kg");
+        assert.ok(!formEq("mA", "A"), "mA !== A")
+        assert.ok(!formEq("g", "kg"), "g !== kg");
+        assert.ok(!formEq("kg m / s^2", "N"), "kg m / s^2 !== N");
+        assert.ok(!formEq("m / s^2", "N / kg"), "m / s^2 !== N / kg");
 
-        ok(formEq("A", "A"), "A === A");
-        ok(formEq("kg", "kg"), "kg = kg");
-        ok(formEq("kg m / s^2", "m kg / s^2"), "kg m / s^2 === m kg / s^2");
-        ok(formEq("m / s^2", "m / s^2"), "m / s^2 === m / s^2");
+        assert.ok(formEq("A", "A"), "A === A");
+        assert.ok(formEq("kg", "kg"), "kg = kg");
+        assert.ok(formEq("kg m / s^2", "m kg / s^2"), "kg m / s^2 === m kg / s^2");
+        assert.ok(formEq("m / s^2", "m / s^2"), "m / s^2 === m / s^2");
 
         // btu doesn't allow si prefixes
-        throws(new KAS.Unit("mBTU"), "mBTU throws");
+        assert.throws(new KAS.Unit("mBTU"), "mBTU throws");
 
         solveUnitVariable(
+            assert,
             "2.5 gal", "cup", new KAS.Int(40)
         );
 
@@ -1695,189 +1700,194 @@
         // 1 tsp * ------ * ------- * ------ * -------- * ------ * (--------)
         //         3 tsp    16 tbsp   16 cup   1000 gal   1000 L   (    m   )
         solveUnitVariable(
+            assert,
             "1 tsp", "cm^3", new KAS.Rational(3785, 768)
         );
 
         solveUnitVariable(
+            assert,
             "1 dozen qt", "gal", new KAS.Int(3)
         );
 
         solveUnitVariable(
+            assert,
             "1 day", "sec", new KAS.Int(60*60*24)
         );
 
         solveUnitVariable(
+            assert,
             "5 kg m / s^2", "N", new KAS.Int(5)
         );
 
         // This was originally broken due to a scientific notation parsing
         // problem. Leaving it around because it doesn't hurt anything.
         solveUnitVariable(
+            assert,
             "5 x 10^5 N", "lb", new KAS.Int(112404)
         );
 
-        parseMagnitude("5 x 10^5 N", 500000);
-        parseMagnitude("1.23456 x 10^5 N", 123456);
-        parseMagnitude("3.14 x 10^-2 N", 0.0314);
+        parseMagnitude(assert, "5 x 10^5 N", 500000);
+        parseMagnitude(assert, "1.23456 x 10^5 N", 123456);
+        parseMagnitude(assert, "3.14 x 10^-2 N", 0.0314);
     });
 
     QUnit.module("isSimplified");
 
-    var isSimplified = function(input, expectedResult, options) {
+    var isSimplified = function(assert, input, expectedResult, options) {
         if (expectedResult === undefined) expectedResult = true;
         var message = input + (expectedResult ? " is " : " is NOT ") + "simplified";
-        ok(parse(input, options).isSimplified() === expectedResult, message);
+        assert.ok(parse(input, options).isSimplified() === expectedResult, message);
     };
 
-    test("isSimplified (addition/subtraction)", function() {
-        isSimplified("a+b+c");
-        isSimplified("a-b-c");
-        isSimplified("a+b+c+c", false);
-        isSimplified("a-b-c-d-d+d", false);
-        isSimplified("x");
-        isSimplified("x+0", false);
+    QUnit.test("isSimplified (addition/subtraction)", function(assert) {
+        isSimplified(assert, "a+b+c");
+        isSimplified(assert, "a-b-c");
+        isSimplified(assert, "a+b+c+c", false);
+        isSimplified(assert, "a-b-c-d-d+d", false);
+        isSimplified(assert, "x");
+        isSimplified(assert, "x+0", false);
     });
 
-    test("isSimplified (multiplication/division/negation)", function() {
-        isSimplified("1/2");
-        isSimplified("2/1", false);
-        isSimplified("(2x)/(5x)", false);
-        isSimplified("-x");
-        isSimplified("-1*x");
-        isSimplified("--x", false);
-        isSimplified("x/1", false);
-        isSimplified("x/y");
-        isSimplified("xy/z");
-        isSimplified("-3x");
-        isSimplified("-x*3");
-        isSimplified("-x*3*y");
-        isSimplified("(x+1)/(2(x+1))", false);
+    QUnit.test("isSimplified (multiplication/division/negation)", function(assert) {
+        isSimplified(assert, "1/2");
+        isSimplified(assert, "2/1", false);
+        isSimplified(assert, "(2x)/(5x)", false);
+        isSimplified(assert, "-x");
+        isSimplified(assert, "-1*x");
+        isSimplified(assert, "--x", false);
+        isSimplified(assert, "x/1", false);
+        isSimplified(assert, "x/y");
+        isSimplified(assert, "xy/z");
+        isSimplified(assert, "-3x");
+        isSimplified(assert, "-x*3");
+        isSimplified(assert, "-x*3*y");
+        isSimplified(assert, "(x+1)/(2(x+1))", false);
     });
 
-    test("isSimplified (exponentiation)", function() {
-        isSimplified("x^-1");
-        isSimplified("1/x");
-        isSimplified("1/x^-1", false);
+    QUnit.test("isSimplified (exponentiation)", function(assert) {
+        isSimplified(assert, "x^-1");
+        isSimplified(assert, "1/x");
+        isSimplified(assert, "1/x^-1", false);
     });
 
-    test("isSimplified (logarithms)", function() {
-        isSimplified("ln(x)");
-        isSimplified("ln(x+y)");
+    QUnit.test("isSimplified (logarithms)", function(assert) {
+        isSimplified(assert, "ln(x)");
+        isSimplified(assert, "ln(x+y)");
 
         // Will only expand logarithms if leads to a simpler expression
-        // TODO(alex): Combine all simplify() and isSimplified() tests!
-        isSimplified("ln(x/y)");
-        isSimplified("ln(x/y)+ln(y)", false);
+        // TODO(alex): Combine all simplify(assert, ) and isSimplified(assert, ) tests!
+        isSimplified(assert, "ln(x/y)");
+        isSimplified(assert, "ln(x/y)+ln(y)", false);
     });
 
-    test("isSimplified (equations)", function() {
-        isSimplified("x=10");
-        isSimplified("x=-10");
-        isSimplified("x=10y");
-        isSimplified("x=-10y");
-        isSimplified("x=10+y");
-        isSimplified("x=-10+y");
+    QUnit.test("isSimplified (equations)", function(assert) {
+        isSimplified(assert, "x=10");
+        isSimplified(assert, "x=-10");
+        isSimplified(assert, "x=10y");
+        isSimplified(assert, "x=-10y");
+        isSimplified(assert, "x=10+y");
+        isSimplified(assert, "x=-10+y");
 
-        isSimplified("f(2x) = 10", true, {functions: ["f"]});
-        isSimplified("f(x+x) = 10", false, {functions: ["f"]});
+        isSimplified(assert, "f(2x) = 10", true, {functions: ["f"]});
+        isSimplified(assert, "f(x+x) = 10", false, {functions: ["f"]});
     });
 
-    test("isSimplified (equalities)", function() {
-        isSimplified("y=x");
-        isSimplified("y=x^2");
-        isSimplified("y=x*x", false);
+    QUnit.test("isSimplified (equalities)", function(assert) {
+        isSimplified(assert, "y=x");
+        isSimplified(assert, "y=x^2");
+        isSimplified(assert, "y=x*x", false);
 
-        isSimplified("y=x^2+1");
-        isSimplified("xy=x^2+1");
-        isSimplified("y+1=x^2+1", false);
+        isSimplified(assert, "y=x^2+1");
+        isSimplified(assert, "xy=x^2+1");
+        isSimplified(assert, "y+1=x^2+1", false);
 
-        isSimplified("xy=x^2", false);
-        isSimplified("x^2y=x^3", false);
-        isSimplified("alnx=blnx+clnx", false)
+        isSimplified(assert, "xy=x^2", false);
+        isSimplified(assert, "x^2y=x^3", false);
+        isSimplified(assert, "alnx=blnx+clnx", false)
 
-        isSimplified("xy=0");
-        isSimplified("2xy=0", false);
-        isSimplified("xy/z=0");
+        isSimplified(assert, "xy=0");
+        isSimplified(assert, "2xy=0", false);
+        isSimplified(assert, "xy/z=0");
     });
 
-    test("isSimplified (inequalities)", function() {
-        isSimplified("y<x");
-        isSimplified("y<x^2");
-        isSimplified("y<x*x", false);
+    QUnit.test("isSimplified (inequalities)", function(assert) {
+        isSimplified(assert, "y<x");
+        isSimplified(assert, "y<x^2");
+        isSimplified(assert, "y<x*x", false);
 
-        isSimplified("y<x^2+1");
-        isSimplified("xy<x^2+1");
-        isSimplified("y+1<x^2+1", false);
+        isSimplified(assert, "y<x^2+1");
+        isSimplified(assert, "xy<x^2+1");
+        isSimplified(assert, "y+1<x^2+1", false);
 
-        isSimplified("xy<x^2"); // x might be negative
-        isSimplified("x^2y<x^3", false);
-        isSimplified("alnx<blnx+clnx"); // lnx might be negative
+        isSimplified(assert, "xy<x^2"); // x might be negative
+        isSimplified(assert, "x^2y<x^3", false);
+        isSimplified(assert, "alnx<blnx+clnx"); // lnx might be negative
 
-        isSimplified("xy<0");
-        isSimplified("2xy<0", false);
-        isSimplified("xy/z<0");
+        isSimplified(assert, "xy<0");
+        isSimplified(assert, "2xy<0", false);
+        isSimplified(assert, "xy/z<0");
     });
 
-    test("isSimplified (rational expressions)", function() {
-        isSimplified("3/4 x");
-        isSimplified("3/(4x)");
-        isSimplified("3/4 1/x");
+    QUnit.test("isSimplified (rational expressions)", function(assert) {
+        isSimplified(assert, "3/4 x");
+        isSimplified(assert, "3/(4x)");
+        isSimplified(assert, "3/4 1/x");
 
-        isSimplified("(x+1)/(x+2)");
-        isSimplified("(x+1)/(2x+2)", false);
-        isSimplified("(2x+2)/(x+1)", false);
+        isSimplified(assert, "(x+1)/(x+2)");
+        isSimplified(assert, "(x+1)/(2x+2)", false);
+        isSimplified(assert, "(2x+2)/(x+1)", false);
 
-        isSimplified("xy+2y=x+1");
-        isSimplified("y=(x+1)/(x+2)");
-        isSimplified("y/(x+1)=1/(x+2)");
+        isSimplified(assert, "xy+2y=x+1");
+        isSimplified(assert, "y=(x+1)/(x+2)");
+        isSimplified(assert, "y/(x+1)=1/(x+2)");
 
-        // TODO(alex): Combine all isSimplified() and simplify() tests!
-        isSimplified("y=(x+1)/(2x+2)", false);
-        isSimplified("y=1/2");
+        // TODO(alex): Combine all isSimplified(assert, ) and simplify(assert, ) tests!
+        isSimplified(assert, "y=(x+1)/(2x+2)", false);
+        isSimplified(assert, "y=1/2");
 
-        isSimplified("y=(2x+2)/(x+1)", false);
-        isSimplified("y=2");
+        isSimplified(assert, "y=(2x+2)/(x+1)", false);
+        isSimplified(assert, "y=2");
 
         // same denominators (adding_and_subtracting_rational_expressions_1.5)
-        isSimplified("(15np-25mp)/(15p^2-5p)+(20mp+10p^2)/(15p^2-5p)", false);
-        isSimplified("(3n-m+2p)/(3p-1)");
+        isSimplified(assert, "(15np-25mp)/(15p^2-5p)+(20mp+10p^2)/(15p^2-5p)", false);
+        isSimplified(assert, "(3n-m+2p)/(3p-1)");
 
-        isSimplified("5yx/(2x^2+4yx)-(2x^2-6yx)/(2x^2+4yx)", false);
-        isSimplified("(11y-2x)/(2x+4y)");
+        isSimplified(assert, "5yx/(2x^2+4yx)-(2x^2-6yx)/(2x^2+4yx)", false);
+        isSimplified(assert, "(11y-2x)/(2x+4y)");
 
-        isSimplified("(25m^2-20pm)/(5pm+5m)-20m^2/(5pm+5m)", false);
-        isSimplified("(m-4p)/(p+1)");
+        isSimplified(assert, "(25m^2-20pm)/(5pm+5m)-20m^2/(5pm+5m)", false);
+        isSimplified(assert, "(m-4p)/(p+1)");
 
         // pathological examples
-        isSimplified("  (a + b)/(2c+2d)");
-        isSimplified("  (3a+3b)/(2c+2d)");
-        isSimplified("  (2a+2b)/( c+ d)");
-        isSimplified("  (2a+2b)/(3c+3d)");
-        isSimplified("  (2a+2b)/(4c+4d)", false);
-        isSimplified("  (4a+4b)/(2c+2d)", false);
-        isSimplified("y=(a + b)/(2c+2d)");
-        isSimplified("y=(3a+3b)/(2c+2d)");
-        isSimplified("y=(2a+2b)/( c+ d)");
-        isSimplified("y=(2a+2b)/(3c+3d)");
-        isSimplified("y=(2a+2b)/(4c+4d)", false);
-        isSimplified("y=(4a+4b)/(2c+2d)", false);
+        isSimplified(assert, "  (a + b)/(2c+2d)");
+        isSimplified(assert, "  (3a+3b)/(2c+2d)");
+        isSimplified(assert, "  (2a+2b)/( c+ d)");
+        isSimplified(assert, "  (2a+2b)/(3c+3d)");
+        isSimplified(assert, "  (2a+2b)/(4c+4d)", false);
+        isSimplified(assert, "  (4a+4b)/(2c+2d)", false);
+        isSimplified(assert, "y=(a + b)/(2c+2d)");
+        isSimplified(assert, "y=(3a+3b)/(2c+2d)");
+        isSimplified(assert, "y=(2a+2b)/( c+ d)");
+        isSimplified(assert, "y=(2a+2b)/(3c+3d)");
+        isSimplified(assert, "y=(2a+2b)/(4c+4d)", false);
+        isSimplified(assert, "y=(4a+4b)/(2c+2d)", false);
     });
 
-    var hasConsts = function(input, expectedConsts, options) {
-        deepEqual(parse(input, options).getConsts(), expectedConsts);
+    var hasConsts = function(assert, input, expectedConsts, options) {
+        assert.deepEqual(parse(input, options).getConsts(), expectedConsts);
     };
 
-    test("getConsts", function() {
-        hasConsts("4", []);
-        hasConsts("4x", []);
-        hasConsts("4pi", ["pi"]);
-        hasConsts("4e", ["e"]);
-        hasConsts("4pi+e", ["e", "pi"]);
-        hasConsts("4pi+pi", ["pi"]);
-        hasConsts("4cos(pi)", ["pi"]);
-        hasConsts("4cos(xpi)", ["pi"]);
-        hasConsts("(4x)/(2pi)", ["pi"]);
-        hasConsts("4sec(x)", []);
+    QUnit.test("getConsts", function(assert) {
+        hasConsts(assert, "4", []);
+        hasConsts(assert, "4x", []);
+        hasConsts(assert, "4pi", ["pi"]);
+        hasConsts(assert, "4e", ["e"]);
+        hasConsts(assert, "4pi+e", ["e", "pi"]);
+        hasConsts(assert, "4pi+pi", ["pi"]);
+        hasConsts(assert, "4cos(pi)", ["pi"]);
+        hasConsts(assert, "4cos(xpi)", ["pi"]);
+        hasConsts(assert, "(4x)/(2pi)", ["pi"]);
+        hasConsts(assert, "4sec(x)", []);
     });
 })(KAS);
 </script>

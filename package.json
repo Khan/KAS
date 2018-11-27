@@ -4,7 +4,9 @@
   "description": "A lightweight JavaScript CAS for comparing expressions and equations.",
   "main": "build/kas.js",
   "scripts": {
-    "test": "node testrunner"
+    "test": "node testrunner",
+    "build": "grunt",
+    "build:parser": "grunt parser"
   },
   "repository": {
     "type": "git",

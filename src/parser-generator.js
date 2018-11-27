@@ -197,6 +197,9 @@ var prelude = "// This is a @gene" + "rated file\n" +
               "}\n\n" +
               "(function(KAS) {\n\n";
 var parser = (new jison.Generator(grammar)).generate({moduleType: "js"});
+// NOTE(jeresig): We need to comment out these two labels as they appear to be
+// invalid ES5 (they also aren't referenced anywhere so this seems safe).
+parser = parser.replace(/(_token_stack:)/g, "//$1");
 var postlude = "\n\nKAS.parser = parser;\n})(KAS);";
 
 fs.writeFileSync(path.resolve(__dirname, "parser.js"), prelude + parser + postlude);
@@ -212,5 +215,8 @@ var unitParserOutfile = path.resolve(__dirname, "unitparser.js");
 var unitParserSource = fs.readFileSync(unitParserInfile);
 var unitParser = new jison.Generator(unitParserSource.toString());
 var generatedParser = unitParser.generate({ moduleType: "js" });
+// NOTE(jeresig): We need to comment out these two labels as they appear to be
+// invalid ES5 (they also aren't referenced anywhere so this seems safe).
+generatedParser = generatedParser.replace(/(_token_stack:)/g, "//$1");
 fs.writeFileSync(unitParserOutfile,
                  unitPrelude + generatedParser + unitEpilogue);

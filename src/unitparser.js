@@ -76,7 +76,7 @@
 */
 var parser = (function(){
 var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,11],$V1=[1,9],$V2=[8,17],$V3=[6,11],$V4=[6,11,13,17];
-var parser = {trace: function trace() { },
+var parser = {trace: function trace () { },
 yy: {},
 symbols_: {"error":2,"unitvalue":3,"magnitude":4,"unit":5,"EOF":6,"float":7,"POW":8,"int":9,"multatoms":10,"DIV":11,"expatom":12,"MUL":13,"atom":14,"^":15,"nat":16,"ATOM":17,"FLOAT":18,"NAT":19,"NEG":20,"$accept":0,"$end":1},
 terminals_: {2:"error",6:"EOF",8:"POW",11:"DIV",13:"MUL",15:"^",17:"ATOM",18:"FLOAT",19:"NAT",20:"NEG"},
@@ -162,7 +162,7 @@ break;
 },
 table: [{3:1,4:2,5:3,7:4,10:5,12:8,14:10,16:7,17:$V0,18:[1,6],19:$V1},{1:[3]},{5:12,10:5,12:8,14:10,17:$V0},{6:[1,13]},{8:[1,14],17:[2,4]},{6:[2,6],11:[1,15]},o($V2,[2,13]),o($V2,[2,14]),o($V3,[2,9],{12:8,14:10,10:17,13:[1,16],17:$V0}),o([6,8,11,13,17],[2,15]),o($V4,[2,11],{15:[1,18]}),o([6,11,13,15,17],[2,12]),{6:[1,19]},{1:[2,2]},{9:20,19:[1,22],20:[1,21]},{10:23,12:8,14:10,17:$V0},{10:24,12:8,14:10,17:$V0},o($V3,[2,8]),{16:25,19:$V1},{1:[2,1]},{17:[2,3]},{19:[1,26]},{17:[2,17]},{6:[2,5]},o($V3,[2,7]),o($V4,[2,10]),{17:[2,16]}],
 defaultActions: {13:[2,2],19:[2,1],20:[2,3],22:[2,17],23:[2,5],26:[2,16]},
-parseError: function parseError(str, hash) {
+parseError: function parseError (str, hash) {
     if (hash.recoverable) {
         this.trace(str);
     } else {
@@ -198,7 +198,7 @@ parse: function parse(input) {
         vstack.length = vstack.length - n;
         lstack.length = lstack.length - n;
     }
-    _token_stack:
+    //_token_stack:
         function lex() {
             var token;
             token = lexer.lex() || EOF;
@@ -448,7 +448,7 @@ showPosition:function () {
     },
 
 // test the lexed token: return FALSE when not a match, otherwise return token
-test_match:function (match, indexed_rule) {
+test_match:function(match, indexed_rule) {
         var token,
             lines,
             backup;
@@ -578,7 +578,7 @@ next:function () {
     },
 
 // return next match that has a token
-lex:function lex() {
+lex:function lex () {
         var r = this.next();
         if (r) {
             return r;
@@ -588,12 +588,12 @@ lex:function lex() {
     },
 
 // activates a new lexer condition state (pushes the new lexer condition state onto the condition stack)
-begin:function begin(condition) {
+begin:function begin (condition) {
         this.conditionStack.push(condition);
     },
 
 // pop the previously active lexer condition state off the condition stack
-popState:function popState() {
+popState:function popState () {
         var n = this.conditionStack.length - 1;
         if (n > 0) {
             return this.conditionStack.pop();
@@ -603,7 +603,7 @@ popState:function popState() {
     },
 
 // produce the lexer rule set which is active for the currently active lexer condition state
-_currentRules:function _currentRules() {
+_currentRules:function _currentRules () {
         if (this.conditionStack.length && this.conditionStack[this.conditionStack.length - 1]) {
             return this.conditions[this.conditionStack[this.conditionStack.length - 1]].rules;
         } else {
@@ -612,7 +612,7 @@ _currentRules:function _currentRules() {
     },
 
 // return the currently active lexer condition state; when an index argument is provided it produces the N-th previous condition state, if available
-topState:function topState(n) {
+topState:function topState (n) {
         n = this.conditionStack.length - 1 - Math.abs(n || 0);
         if (n >= 0) {
             return this.conditionStack[n];
@@ -622,7 +622,7 @@ topState:function topState(n) {
     },
 
 // alias for begin(condition)
-pushState:function pushState(condition) {
+pushState:function pushState (condition) {
         this.begin(condition);
     },
 

@@ -80,14 +80,14 @@ expr.simplify().print();
 How to build the library
 ------------------------
     npm install
-    grunt
+    npm run build
 
 How to build the parser
 -----------------------
 First, make any changes in `src/parser-generator.js`
 
     npm install
-    grunt parser
+    npm run build:parser
 
 License
 -------

@@ -2,7 +2,7 @@
   "name": "kas",
   "version": "0.2.0",
   "description": "A lightweight JavaScript CAS for comparing expressions and equations.",
-  "main": "build/kas.js",
+  "main": "src/kas.js",
   "scripts": {
     "test": "node testrunner",
     "build": "grunt",
@@ -25,7 +25,7 @@
     "url": "https://github.com/Khan/KAS/issues"
   },
   "dependencies": {
-    "underscore": "~1.5.1"
+    "underscore": "1.4.4"
   },
   "devDependencies": {
     "grunt": "^1.0.3",

@@ -2,7 +2,7 @@
   "name": "kas",
   "version": "0.2.0",
   "description": "A lightweight JavaScript CAS for comparing expressions and equations.",
-  "main": "src/kas.js",
+  "main": "kas.js",
   "scripts": {
     "test": "node testrunner",
     "build": "grunt",

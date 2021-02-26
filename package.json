@@ -25,7 +25,7 @@
     "url": "https://github.com/Khan/KAS/issues"
   },
   "dependencies": {
-    "underscore": "1.4.4"
+    "underscore": "^1.4.4"
   },
   "devDependencies": {
     "grunt": "^1.0.3",

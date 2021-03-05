@@ -403,9 +403,11 @@ _.extend(Expr.prototype, {
     },
 
     // check that the structure of both expressions is the same
+    // all negative signs are stripped and the expressions are converted to
+    // a canonical commutative form
     // should only be done after compare() returns true to avoid false positives
     sameForm: function(other) {
-        return this.tex() === other.tex();
+        return this.strip().equals(other.strip());
     },
 
     // returns the GCD of this expression and the given factor

@@ -2976,7 +2976,10 @@ _.extend(Pow.prototype, {
 
     print: function() {
         var base = this.base.print();
-        if (this.base instanceof Seq || this.base instanceof Pow) {
+        if (this.base instanceof Seq ||
+            this.base instanceof Pow ||
+            this.base instanceof Rational && !this.base.isSimple() ||
+            this.base instanceof Num && this.base.isNegative()) {
             base = "(" + base + ")";
         }
         return base + "^(" + this.exp.print() + ")";
